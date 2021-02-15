@@ -11,7 +11,7 @@
 using Simulate
 
 # Define run parameters
-
+initialSystem = "Test"
 
 # Run simulation
-simulate()
+simulate(initialSystem)
