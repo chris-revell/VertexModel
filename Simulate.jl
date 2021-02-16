@@ -24,22 +24,18 @@ using GeometryTools
 using CalculateForce
 using SingleHexagon
 using Parameters
+using Visualise
 
 @inline @views function simulate(initialSystem)
 
-    # Parameters
-
-
     A = readdlm("input/$(initialSystem)_A.txt", ' ', Float64, '\n') # Incidence matrix. Rows => edges; columns => vertices.
     B = readdlm("input/$(initialSystem)_B.txt", ' ', Float64, '\n') # Incidence matrix. Rows => cells; columns => edges. Values +/-1 for orientation
-    R = readdlm("input/$(initialSystem)_R.txt", ' ', Float64, '\n')[:,1:2] # Coordinates of vertices
+    R = readdlm("input/$(initialSystem)_R.txt", ' ', Float64, '\n') # Coordinates of vertices
     #A,B,R = singleHexagon()
     # Infer system information from matrices
     nCells = size(B)[1]  # Number of cells
     nEdges = size(A)[1]  # Number of edges
     nVerts = size(A)[2]  # Number of vertices
-    R.+= rand(Float64,nVerts,2).*0.2.-0.1
-    R.*=2.0
 
     Aᵀ = zeros(Float64,nVerts,nEdges)
     Ā  = zeros(Float64,nEdges,nVerts)
@@ -68,7 +64,7 @@ using Parameters
     t = 0.00000000001
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellOnes)
 
-    @gif for t=0:dt:tMax
+    for t=0:dt:tMax
 
         geometryTools!(A,Ā,B,B̄,C,R,nCells,nEdges,nVerts,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,cellEffectivePressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
 
@@ -76,7 +72,7 @@ using Parameters
 
         R .+= F.*dt
 
-        scatter(R[:,1],R[:,2],xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal)
+        visualise(Ā,R,nEdges,t,folderName)
 
     end
 
