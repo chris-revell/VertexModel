@@ -12,14 +12,11 @@ module TopologyChange
 # Julia packages
 using LinearAlgebra
 
-# Local modules
-
-
 @inline @views function topologyChange!(A, Ā, Aᵀ, Āᵀ, B, B̄, Bᵀ, B̄ᵀ, C, cellEdgeCount, boundaryVertices, cellOnes)
 
     Ā .= abs.(A)    # All -1 components converted to +1 (Adjacency matrix - vertices to edges)
     B̄ .= abs.(B)    # All -1 components converted to +1 (Adjacency matrix - cells to edges)
-    C .= 0.5*B̄*Ā  # C adjacency matrix. Rows => cells; Columns => vertices
+    C .= 0.5*B̄*Ā    # C adjacency matrix. Rows => cells; Columns => vertices
 
     transpose!(Aᵀ,A)
     Āᵀ .= abs.(Aᵀ)
