@@ -27,7 +27,7 @@ using Visualise
     lamda        = -0.259                # Parameters in energy relaxation. Hard wired from data.    (-0.1#-0.259 ??)
     tStar        = 20.0                  # Relaxation rate. Approx from Sarah's data.
     realTimetMax = 200.0                 # Real time maximum system run time /seconds
-    dt           = 1.0                   # Non dimensionalised time step
+    dt           = 0.1                   # Non dimensionalised time step
     ϵ            = [0.0 1.0
                    -1.0 0.0]       # Antisymmetric rotation matrix
 
@@ -35,7 +35,6 @@ using Visualise
     # NB Preferred area = 1.0 by default
     tMax               = realTimetMax/tStar    # Non dimensionalised maximum system run time
     outputInterval     = tMax/100.0            # Time interval for storing system data (non dimensionalised)
-    nonDimCellCycle    = meanCellCycle/tStar   # Non dimensionalised cell cycle time? (Parameter used in cell division time)
     preferredPerimeter = -lamda/(2*gamma)      # Cell preferred perimeter
 
     # Import system matrices from file
@@ -78,7 +77,7 @@ using Visualise
     folderName = createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,A,B,R)
 
     # Initialise time and output count
-    t = 0.00000000001
+    t = 1E-8
     outputCount = 0
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellOnes)
 
@@ -115,7 +114,7 @@ using Visualise
 
     end
 
-    run(`convert -delay 5 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
+    run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
 
 end
 

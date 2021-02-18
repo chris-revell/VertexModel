@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 15/02/2021.
 #
 #
-#
+# Function to create a starting system of one hexagonal cell. 
 
 module SingleHexagon
 
@@ -23,14 +23,9 @@ using LinearAlgebra
          0.0  0.0  0.0  0.0  -1.0 1.0
          -1.0 0.0  0.0  0.0  0.0  1.0]
 
-    B = [-1.0 -1.0 -1.0 -1.0 -1.0 1.0]
+    B = -1.0.*ones(6)
 
-    R = [0.0 0.0
-         0.0 0.0
-         0.0 0.0
-         0.0 0.0
-         0.0 0.0
-         0.0 0.0]
+    R = zeros(6,2)
 
     for k=1:6
         R[k,1]= 5.0*(cos((k*π)/3.0))
