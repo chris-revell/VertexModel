@@ -18,9 +18,9 @@ using LinearAlgebra
     B̄ .= abs.(B)    # All -1 components converted to +1 (Adjacency matrix - cells to edges)
     C .= 0.5*B̄*Ā    # C adjacency matrix. Rows => cells; Columns => vertices
 
-    transpose!(Aᵀ,A)
+    Aᵀ .= transpose(A)
     Āᵀ .= abs.(Aᵀ)
-    transpose!(Bᵀ,B)
+    Bᵀ .= transpose(B)
     B̄ᵀ .= abs.(Bᵀ)
 
     cellEdgeCount    .= sum(B̄,dims=2)             # Number of edges around each cell found by summing columns of B̄

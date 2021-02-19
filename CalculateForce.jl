@@ -15,6 +15,8 @@ using LinearAlgebra
 @inline @views function calculateForce!(F,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ)
 
     fill!(F,0.0)
+
+    # Internal forces
     for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
@@ -22,6 +24,8 @@ using LinearAlgebra
             end
         end
     end
+
+    # External forces 
 
 end
 

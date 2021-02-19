@@ -46,18 +46,18 @@ using ColorSchemes
    # end
 
    # Plot connections between neighbouring cell centres
-   xs = zeros(2)
-   ys = zeros(2)
-   for i=1:nEdges
-      x=findall(x->x>0.5,B̄[:,i])
-      if size(x)[1] > 1
-         xs[1] = cellPositions[x[1],1]
-         xs[2] = cellPositions[x[2],1]
-         ys[1] = cellPositions[x[1],2]
-         ys[2] = cellPositions[x[2],2]
-         plot!(xs,ys,color=:red,alpha=edgeDots[i],linewidth=3)
-      end
-   end
+   # xs = zeros(2)
+   # ys = zeros(2)
+   # for i=1:nEdges
+   #    x=findall(x->x>0.5,B̄[:,i])
+   #    if size(x)[1] > 1
+   #       xs[1] = cellPositions[x[1],1]
+   #       xs[2] = cellPositions[x[2],1]
+   #       ys[1] = cellPositions[x[1],2]
+   #       ys[2] = cellPositions[x[2],2]
+   #       plot!(xs,ys,color=:red,alpha=edgeDots[i],linewidth=3)
+   #    end
+   # end
 
    # *************** Force vectors ***************************
    # xs = zeros(0)
