@@ -27,8 +27,8 @@ using Visualise
     gamma        = 0.172     # Parameters in energy relaxation. Hard wired from data.    (0.05#0.172 ??)
     lamda        = -0.259    # Parameters in energy relaxation. Hard wired from data.    (-0.1#-0.259 ??)
     tStar        = 20.0      # Relaxation rate. Approx from Sarah's data.
-    realTimetMax = 200.0     # Real time maximum system run time /seconds
-    dt           = 0.1       # Non dimensionalised time step
+    realTimetMax = 20.0     # Real time maximum system run time /seconds
+    dt           = 0.01       # Non dimensionalised time step
     ϵ            = [0.0 1.0
                    -1.0 0.0] # Antisymmetric rotation matrix
 
@@ -38,11 +38,14 @@ using Visualise
     outputInterval     = tMax/100.0           # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -lamda/(2*gamma)     # Cell preferred perimeter
 
-    # Import system matrices from file
-    A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n')) # Incidence matrix. Rows => edges; columns => vertices.
-    B = sparse(readdlm("input/$(initialSystem)_B.txt",',',Int64,'\n')) # Incidence matrix. Rows => cells; columns => edges. Values +/-1 for orientation
-    R = readdlm("input/$(initialSystem)_R.txt",',',Float64,'\n')               # Coordinates of vertices
-
+    if initialSystem=="single"
+        A,B,R = singleHexagon()
+    else
+        # Import system matrices from file
+        A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n')) # Incidence matrix. Rows => edges; columns => vertices.
+        B = sparse(readdlm("input/$(initialSystem)_B.txt",',',Int64,'\n')) # Incidence matrix. Rows => cells; columns => edges. Values +/-1 for orientation
+        R = readdlm("input/$(initialSystem)_R.txt",',',Float64,'\n')               # Coordinates of vertices
+    end
 
     # Infer system information from matrices
     nCells            = size(B)[1]                    # Number of cells
@@ -86,6 +89,11 @@ using Visualise
 
         # Runge-Kutta integration
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,nVerts,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,edgeDots,gamma,preferredPerimeter)
+        if t%outputInterval<dt
+            visualise(Ā,B̄,R,C,F,cellPositions,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,edgeDots)
+            outputCount+=1
+            println("$outputCount/100")
+        end
         calculateForce!(F,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ)
         ΔR .= sum(F,dims=2)[:,1,:].*dt/6.0
 
@@ -107,15 +115,9 @@ using Visualise
         R .+= ΔR
         t +=dt
 
-        if t%outputInterval<dt
-            visualise(Ā,B̄,R,C,F,cellPositions,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,edgeDots)
-            outputCount+=1
-            println("$outputCount/100")
-        end
-
     end
 
-    run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
+    #run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
 
 end
 
