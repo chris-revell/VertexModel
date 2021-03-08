@@ -17,7 +17,7 @@ using LinearAlgebra
     # Find adjacency matrices from incidence matrices
     Ā .= abs.(A)    # All -1 components converted to +1 (Adjacency matrix - vertices to edges)
     B̄ .= abs.(B)    # All -1 components converted to +1 (Adjacency matrix - cells to edges)
-    C .= 0.5*B̄*Ā    # C adjacency matrix. Rows => cells; Columns => vertices
+    C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices NB Integer division
 
     # Establish transpose matrices
     Aᵀ .= transpose(A)
@@ -33,6 +33,15 @@ using LinearAlgebra
     for i=1:nVerts
         vertexEdges[i,:] .= findall(j->j!=0,Ā[:,i])
     end
+
+    #
+    # for i=1:nVerts
+    #     if boundaryVertices[i] == 0
+    #         vertexCells[i,:] .= findall(j->j!=0,C[:,i])
+    #     else
+    #         vertexCells[i,1:2] .= findall(j->j!=0,C[:,i])
+    #     end
+    # end
 
     return nothing
 

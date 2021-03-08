@@ -12,9 +12,10 @@ module CalculateForce
 # Julia packages
 using LinearAlgebra
 
-@inline @views function calculateForce!(F,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ)
+@inline @views function calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
 
     fill!(F,0.0)
+    fill!(Fexternal,0.0)
 
     # Internal forces
     for k=1:nVerts
@@ -25,7 +26,17 @@ using LinearAlgebra
         end
     end
 
-    # External forces 
+
+    # External pressure
+    for k=1:nVerts
+        if boundaryVertices[k] != 0
+            for i=1:nCells
+                for j=1:nEdges
+                    Fexternal[k,:] .= Fexternal[k,:] .+ 0.5*pressureExternal*B[i,j]*Ā[j,k].*ϵ*edgeTangents[j,:]
+                end
+            end
+        end
+    end
 
 end
 
