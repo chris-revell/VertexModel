@@ -14,7 +14,7 @@ using Dates
 using Base.Filesystem
 using DelimitedFiles
 
-function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,A,B,R)
+function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
 
     # Create directory for run data labelled with current time.
     foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
@@ -33,6 +33,7 @@ function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,
         println(conditionsfile, "dt,                 $dt                ")
         println(conditionsfile, "outputInterval,     $outputInterval    ")
         println(conditionsfile, "preferredPerimeter, $preferredPerimeter")
+        println(conditionsfile, "preferredArea,      $preferredArea     ")
     end
 
     # Store initial system characteristic matrices
