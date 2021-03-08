@@ -12,7 +12,7 @@ module TopologyChange
 # Julia packages
 using LinearAlgebra
 
-@inline @views function topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices)
+@inline @views function topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,nVerts)
 
     # Find adjacency matrices from incidence matrices
     Ā .= abs.(A)    # All -1 components converted to +1 (Adjacency matrix - vertices to edges)
@@ -28,6 +28,11 @@ using LinearAlgebra
     # Calculate additional topology data
     cellEdgeCount    .= sum(B̄,dims=2)           # Number of edges around each cell found by summing columns of B̄
     boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2)) # Find the vertices at the boundary
+
+    # Use adjacency matrix Ā to find edges j that intersect vertex i
+    for i=1:nVerts
+        vertexEdges[i,:] .= findall(j->j!=0,Ā[:,i])
+    end
 
     return nothing
 

@@ -24,9 +24,9 @@ using Visualise
 @inline @views function simulate(initialSystem)
 
     # Parameters
-    realTimetMax = 200.0     # Real time maximum system run time /seconds
+    realTimetMax = 400.0     # Real time maximum system run time /seconds
     gamma        = 0.172     # Parameters in energy relaxation. Hard wired from data.
-    lamda        = -0.259    # Parameters in energy relaxation. Hard wired from data.
+    lamda        = -1.259    # Parameters in energy relaxation. Hard wired from data.
     tStar        = 20.0      # Relaxation rate. Approx from Sarah's data.
     dt           = 0.01      # Non dimensionalised time step
     ϵ            = [0.0 1.0
@@ -73,6 +73,7 @@ using Visualise
     edgeLengths       = zeros(nEdges,1)              # 1D matrix of scalar edge lengths
     edgeTangents      = zeros(nEdges,2)              # 2D matrix of tangent vectors for each edge (magnitude = edge length)
     edgeMidpoints     = zeros(nEdges,2)              # 2D matrix of position coordinates for each edge midpoint
+    vertexEdges       = zeros(Int64,nVerts,3)        # 2D matrix containing the labels of all 3 edges around each vertex
     F                 = zeros(nVerts,nCells,2)       # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
     # Create output directory in which to store results and parameters
@@ -81,7 +82,7 @@ using Visualise
     # Initialise time and output count
     t = 1E-8
     outputCount = 0
-    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices)
+    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,nVerts)
 
     while t<tMax
 
@@ -89,9 +90,9 @@ using Visualise
         # 1st step of Runge-Kutta
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
         if t%outputInterval<dt
-            visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices)
+            visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
             outputCount+=1
-            println("$outputCount/100")
+            println("$outputCount/10")
         end
         calculateForce!(F,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ)
         ΔR .= sum(F,dims=2)[:,1,:].*dt/6.0
