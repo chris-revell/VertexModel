@@ -18,13 +18,17 @@ using LinearAlgebra
     fill!(Fexternal,0.0)
 
     # Internal forces
+    # NB This iteration could be improved to better leverage sparse arrays
     for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
-                F[k,i,:] .+= 0.5*cellPressures[i]*B[i,j]*Ā[j,k].*(ϵ*edgeTangents[j,:]) .+ cellTensions[i]*B̄[i,j]*A[j,k].*edgeTangents[j,:]./edgeLengths[j]
+                F[k,:] .+= 0.5*cellPressures[i]*B[i,j]*Ā[j,k].*(ϵ*edgeTangents[j,:]) .+ cellTensions[i]*B̄[i,j]*A[j,k].*edgeTangents[j,:]./edgeLengths[j]
             end
         end
     end
+
+
+    
 
 
     # External pressure

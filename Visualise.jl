@@ -40,27 +40,17 @@ using ColorSchemes
 
    # Vertex moment kites
    for i=1:nVerts
+      # Exclude boundary vertices.
       if boundaryVertices[i] == 0
-         # Exclude boundary vertices.
-         
-         # Calculate polar angles of edges around vertex i
-         polarAngles = zeros(3)
-         for k=1:3
-            # Multiply edge tangent vectors by corresponding incidence matrix component to ensure we consider all vectors point into the vertex
-            polarAngles[k] = atan(A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k],1],A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k],2])
-         end
-         # Find order of indices around vertex.
-         orderAroundVertex = sortperm(polarAngles)
-
          # Loop over 3 edges around the vertex.
          for k=0:2
             # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
-            dM = edgeMidpoints[vertexEdges[i,orderAroundVertex[((k+1)%3)+1]],:] .- edgeMidpoints[vertexEdges[i,orderAroundVertex[k+1]],:]
+            dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1],:] .- edgeMidpoints[vertexEdges[i,k+1],:]
             # Find cell bordered by these two edges
-            cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,orderAroundVertex[((k+1)%3)+1]]]),findall(x->x!=0,B̄[:,vertexEdges[i,orderAroundVertex[k+1]]]))[1]
-            xs = [cellPositions[cellID,1],edgeMidpoints[vertexEdges[i,orderAroundVertex[k+1]],1],R[i,1],edgeMidpoints[vertexEdges[i,orderAroundVertex[((k+1)%3)+1]],1],cellPositions[cellID,1]]
-            ys = [cellPositions[cellID,2],edgeMidpoints[vertexEdges[i,orderAroundVertex[k+1]],2],R[i,2],edgeMidpoints[vertexEdges[i,orderAroundVertex[((k+1)%3)+1]],2],cellPositions[cellID,2]]
-            dotProduct = normalize(edgeTangents[vertexEdges[i,orderAroundVertex[((k+2)%3)+1]],:])⋅normalize(dM)
+            cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
+            xs = [cellPositions[cellID,1],edgeMidpoints[vertexEdges[i,k+1],1],R[i,1],edgeMidpoints[vertexEdges[i,(k+1)%3+1],1],cellPositions[cellID,1]]
+            ys = [cellPositions[cellID,2],edgeMidpoints[vertexEdges[i,k+1],2],R[i,2],edgeMidpoints[vertexEdges[i,(k+1)%3+1],2],cellPositions[cellID,2]]
+            dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1],:])⋅normalize(dM)
             plot!(xs,ys,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
          end
       else

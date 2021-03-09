@@ -25,8 +25,8 @@ using Visualise
 
     # Parameters
     realTimetMax = 400.0     # Real time maximum system run time /seconds
-    gamma        = 0.172     # Parameters in energy relaxation. Hard wired from data.
-    lamda        = -0.259    # Parameters in energy relaxation. Hard wired from data.
+    gamma        = 0.2       # Parameters in energy relaxation.
+    lamda        = -0.3      # Parameters in energy relaxation.
     tStar        = 20.0      # Relaxation rate. Approx from Sarah's data.
     dt           = 0.01      # Non dimensionalised time step
     ϵ            = [0.0 1.0
@@ -38,7 +38,7 @@ using Visualise
     outputInterval     = tMax/10.0           # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -lamda/(2*gamma)    # Cell preferred perimeter
     preferredArea      = 1.0                 # Cell preferred area
-    pressureExternal   = 0.01
+    pressureExternal   = 0.1
 
     if initialSystem=="single"
         A,B,R = singleHexagon()
@@ -76,8 +76,8 @@ using Visualise
     edgeMidpoints     = zeros(nEdges,2)              # 2D matrix of position coordinates for each edge midpoint
     vertexEdges       = zeros(Int64,nVerts,3)        # 2D matrix containing the labels of all 3 edges around each vertex
     vertexCells       = zeros(Int64,nVerts,3)        # 2D matrix containing the labels of all 2-3 cells around each vertex
-    F                 = zeros(nVerts,nCells,2)       # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
-    Fexternal         = zeros(nVerts,2)       # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
+    F                 = zeros(nVerts,2)              # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
+    Fexternal         = zeros(nVerts,2)              # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
     # Create output directory in which to store results and parameters
     folderName = createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
@@ -85,7 +85,7 @@ using Visualise
     # Initialise time and output count
     t = 1E-8
     outputCount = 0
-    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,nVerts)
+    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,edgeTangents,nVerts)
 
     while t<tMax
 
@@ -98,25 +98,25 @@ using Visualise
             println("$outputCount/10")
         end
         calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        ΔR .= (sum(F,dims=2)[:,1,:] .+ Fexternal).*dt/6.0
+        ΔR .= (F .+ Fexternal).*dt/6.0
 
         # 2nd step of Runge-Kutta
-        tempR .= R .+ sum(F,dims=2)[:,1,:].*dt/2.0
+        tempR .= R .+ (F .+ Fexternal).*dt/2.0
         spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
         calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        ΔR .+= (sum(F,dims=2)[:,1,:] .+ Fexternal).*dt/3.0
+        ΔR .+= (F .+ Fexternal).*dt/3.0
 
         # 3rd step of Runge-Kutta
-        tempR .= R .+ sum(F,dims=2)[:,1,:].*dt/2.0
+        tempR .= R .+ (F .+ Fexternal).*dt/2.0
         spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
         calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        ΔR .+= (sum(F,dims=2)[:,1,:] .+ Fexternal).*dt/3.0
+        ΔR .+= (F .+ Fexternal).*dt/3.0
 
         # 4th step of Runge-Kutta
-        tempR .= R .+ sum(F,dims=2)[:,1,:].*dt
+        tempR .= R .+ (F .+ Fexternal).*dt
         spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
         calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        ΔR .+= (sum(F,dims=2)[:,1,:] .+ Fexternal).*dt/6.0
+        ΔR .+= (F .+ Fexternal).*dt/6.0
 
         # Result of Runge-Kutta steps
         R .+= ΔR
