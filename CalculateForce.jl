@@ -27,10 +27,6 @@ using LinearAlgebra
         end
     end
 
-
-    
-
-
     # External pressure
     for k=1:nVerts
         if boundaryVertices[k] != 0

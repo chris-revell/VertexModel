@@ -33,20 +33,22 @@ using LinearAlgebra
     # and arrange in polar angle order (ordering will not change
     # without topology change, even if polar angles themselves do change)
     for i=1:nVerts
-        vertexEdges[i,:] .= findall(j->j!=0,Ā[:,i])
-        polarAngles = zeros(3)
-        for k = 1:3
-            # Multiply edge tangent vectors by corresponding incidence matrix component to ensure we consider all vectors point into the vertex
-            polarAngles[k] = atan(A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k],1],A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k], 2])
+        # Currently vertexEdges skips boundary vertices, since these are not used in torque calculations, and can have 2 edges rather than 3
+        if boundaryVertices[i] == 0
+            vertexEdges[i,:] .= findall(j->j!=0,Ā[:,i])
+            polarAngles = zeros(3)
+            for k = 1:3
+                # Multiply edge tangent vectors by corresponding incidence matrix component to ensure we consider all vectors point into the vertex
+                polarAngles[k] = atan(A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k],1],A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k], 2])
+            end
+            # Find order of indices around vertex.
+            orderAroundVertex = sortperm(polarAngles)
+            vertexEdges[i,:] .= vertexEdges[i,orderAroundVertex]
         end
-        # Find order of indices around vertex.
-        orderAroundVertex = sortperm(polarAngles)
-        vertexEdges[i,:] .= vertexEdges[i,orderAroundVertex]
     end
 
 
-
-    #
+    # List cells around each vertex
     # for i=1:nVerts
     #     if boundaryVertices[i] == 0
     #         vertexCells[i,:] .= findall(j->j!=0,C[:,i])

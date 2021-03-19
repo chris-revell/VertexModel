@@ -18,7 +18,7 @@ using TopologyChange
 using CreateRunDirectory
 using SpatialData
 using CalculateForce
-using SingleHexagon
+using InitialHexagons
 using Visualise
 
 @inline @views function simulate(initialSystem)
@@ -41,7 +41,9 @@ using Visualise
     pressureExternal   = 0.1
 
     if initialSystem=="single"
-        A,B,R = singleHexagon()
+        A,B,R = initialHexagons(1)
+    elseif initialSystem=="triple"
+        A,B,R = initialHexagons(3)
     else
         # Import system matrices from file
         A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n')) # Incidence matrix. Rows => edges; columns => vertices.
