@@ -20,35 +20,42 @@ using SpatialData
 using CalculateForce
 using InitialHexagons
 using Visualise
+using T1Transitions
 
 @inline @views function simulate(initialSystem)
 
     # Parameters
-    realTimetMax = 400.0     # Real time maximum system run time /seconds
-    gamma        = 0.2       # Parameters in energy relaxation.
-    lamda        = -0.3      # Parameters in energy relaxation.
-    tStar        = 20.0      # Relaxation rate. Approx from Sarah's data.
-    dt           = 0.01      # Non dimensionalised time step
-    ϵ            = [0.0 1.0
-                   -1.0 0.0] # Antisymmetric rotation matrix
-
+    realTimetMax       = 1600.0 # Real time maximum system run time /seconds
+    gamma              = 0.2   # Parameters in energy relaxation
+    lamda              = -0.3  # Parameters in energy relaxation
+    tStar              = 20.0  # Relaxation rate, approx from Sarah's data.
+    dt                 = 0.01  # Non dimensionalised time step
+    preferredArea      = 1.0   # Cell preferred area (1.0 by default)
+    pressureExternal   = 0.1   # External pressure applied isotropically to system boundary
+    cellCycleTime      = 100   # Cell cycle time in seconds
+    t1Threshold        = 0.01   # Edge length at which a T1 transition is triggered
     # Derived parameters
-    # NB Preferred area = 1.0 by default
     tMax               = realTimetMax/tStar  # Non dimensionalised maximum system run time
     outputInterval     = tMax/10.0           # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -lamda/(2*gamma)    # Cell preferred perimeter
-    preferredArea      = 1.0                 # Cell preferred area
-    pressureExternal   = 0.1
+    nonDimCycleTime    = cellCycleTime/tStar # Non dimensionalised cell cycle time
+    ϵ                  = [0.0 1.0
+                         -1.0 0.0]           # Antisymmetric rotation matrix
 
+    # Initialise system matrices from function or file
+    # A = Incidence matrix. Rows => edges; columns => vertices.
+    # B = Incidence matrix. Rows => cells; columns => edges. Values +/-1 for orientation
+    # (Derived) C = adjacency matrix. Rows => cells; Columns => vertices. = 0.5*B̄*Ā
+    # R = Coordinates of vertices
     if initialSystem=="single"
         A,B,R = initialHexagons(1)
     elseif initialSystem=="triple"
         A,B,R = initialHexagons(3)
     else
         # Import system matrices from file
-        A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n')) # Incidence matrix. Rows => edges; columns => vertices.
-        B = sparse(readdlm("input/$(initialSystem)_B.txt",',',Int64,'\n')) # Incidence matrix. Rows => cells; columns => edges. Values +/-1 for orientation
-        R = readdlm("input/$(initialSystem)_R.txt",',',Float64,'\n')       # Coordinates of vertices
+        A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n'))
+        B = sparse(readdlm("input/$(initialSystem)_B.txt",',',Int64,'\n'))
+        R = readdlm("input/$(initialSystem)_R.txt",',',Float64,'\n')
     end
 
     # Infer system information from matrices
@@ -73,6 +80,7 @@ using Visualise
     cellAreas         = zeros(nCells,1)              # 1D matrix of scalar cell areas
     cellTensions      = zeros(nCells,1)              # 1D matrix of scalar cell tensions
     cellPressures     = zeros(nCells,1)              # 1D matrix of scalar cell pressures
+    cellAges          = rand(nCells).*nonDimCycleTime# 1D vector of initial cell ages.
     edgeLengths       = zeros(nEdges,1)              # 1D matrix of scalar edge lengths
     edgeTangents      = zeros(nEdges,2)              # 2D matrix of tangent vectors for each edge (magnitude = edge length)
     edgeMidpoints     = zeros(nEdges,2)              # 2D matrix of position coordinates for each edge midpoint
@@ -85,8 +93,10 @@ using Visualise
     folderName = createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
 
     # Initialise time and output count
-    t = 1E-8
+    t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
     outputCount = 0
+    transitionOccurred = 0
+
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,edgeTangents,nVerts)
 
     while t<tMax
@@ -94,6 +104,12 @@ using Visualise
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
+        transitionOccurred = t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
+        if transitionOccurred==1
+            topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,edgeTangents,nVerts)
+            spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
+            transitionOccurred = 0
+        end
         if t%outputInterval<dt
             visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
             outputCount+=1
@@ -126,7 +142,7 @@ using Visualise
 
     end
 
-    # run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
+    run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`)
 
 end
 

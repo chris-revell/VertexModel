@@ -33,6 +33,8 @@ using SparseArrays
             R[k,1] = cos((k*π)/3.0)
             R[k,2] = sin((k*π)/3.0)
         end
+        # Set initial cell areas to 1.0
+        R.*=1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
     elseif n==3
 
