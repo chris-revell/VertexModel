@@ -21,22 +21,25 @@ using CalculateForce
 using InitialHexagons
 using Visualise
 using T1Transitions
+using Division
 
 @inline @views function simulate(initialSystem)
 
     # Parameters
-    realTimetMax       = 1600.0 # Real time maximum system run time /seconds
-    gamma              = 0.2   # Parameters in energy relaxation
-    lamda              = -0.3  # Parameters in energy relaxation
-    tStar              = 20.0  # Relaxation rate, approx from Sarah's data.
-    dt                 = 0.01  # Non dimensionalised time step
-    preferredArea      = 1.0   # Cell preferred area (1.0 by default)
-    pressureExternal   = 0.1   # External pressure applied isotropically to system boundary
-    cellCycleTime      = 100   # Cell cycle time in seconds
+    realTimetMax       = 10000.0 # Real time maximum system run time /seconds
+    gamma              = 0.2    # Parameters in energy relaxation
+    lamda              = -0.3   # Parameters in energy relaxation
+    tStar              = 20.0   # Relaxation rate, approx from Sarah's data.
+    dt                 = 0.01   # Non dimensionalised time step
+    preferredArea      = 1.0    # Cell preferred area (1.0 by default)
+    pressureExternal   = 0.1    # External pressure applied isotropically to system boundary
+    cellCycleTime      = 4000.0 # Cell cycle time in seconds
+    outputTotal        = 20                  # Number of data outputs
     t1Threshold        = 0.01   # Edge length at which a T1 transition is triggered
+
     # Derived parameters
     tMax               = realTimetMax/tStar  # Non dimensionalised maximum system run time
-    outputInterval     = tMax/10.0           # Time interval for storing system data (non dimensionalised)
+    outputInterval     = tMax/outputTotal    # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -lamda/(2*gamma)    # Cell preferred perimeter
     nonDimCycleTime    = cellCycleTime/tStar # Non dimensionalised cell cycle time
     ϵ                  = [0.0 1.0
@@ -79,7 +82,7 @@ using T1Transitions
     cellOrientedAreas = zeros(nCells,2,2)            # 3D array of oriented cell areas. Each row is a 2x2 antisymmetric matrix of the form [0 A / -A 0] where A is the scalar cell area
     cellAreas         = zeros(nCells,1)              # 1D matrix of scalar cell areas
     cellTensions      = zeros(nCells,1)              # 1D matrix of scalar cell tensions
-    cellPressures     = zeros(nCells,1)              # 1D matrix of scalar cell pressures
+    cellPressures     = zeros(nCells,1)              # 1D matrix of scalar cell pressures    
     cellAges          = rand(nCells).*nonDimCycleTime# 1D vector of initial cell ages.
     edgeLengths       = zeros(nEdges,1)              # 1D matrix of scalar edge lengths
     edgeTangents      = zeros(nEdges,2)              # 2D matrix of tangent vectors for each edge (magnitude = edge length)
@@ -97,23 +100,53 @@ using T1Transitions
     outputCount = 0
     transitionOccurred = 0
 
-    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,edgeTangents,nVerts)
+    topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
 
     while t<tMax
+
+        if maximum(cellAges) > nonDimCycleTime
+            A, B, nCells, nEdges = division!(A,B,C,R,cellAges,cellEdgeCount,cellPositions,edgeMidpoints,nonDimCycleTime,nCells,nEdges,nVerts)
+            append!(cellAges, zeros(nCells-length(cellEdgeCount)))
+            Aᵀ                = spzeros(Int64,nVerts,nEdges)
+            Ā                 = spzeros(Int64,nEdges,nVerts)
+            Āᵀ                = spzeros(Int64,nVerts,nEdges)
+            Bᵀ                = spzeros(Int64,nEdges,nCells)
+            B̄                 = spzeros(Int64,nCells,nEdges)
+            B̄ᵀ                = spzeros(Int64,nEdges,nCells)
+            C                 = spzeros(Int64,nCells,nVerts)
+            tempR             = zeros(nVerts,2)
+            ΔR                = zeros(nVerts,2)
+            cellEdgeCount     = zeros(Int64,nCells,1)
+            boundaryVertices  = zeros(Int64,nVerts,1)
+            cellPositions     = zeros(nCells,2)
+            cellPerimeters    = zeros(nCells,1)
+            cellOrientedAreas = zeros(nCells,2,2)
+            cellAreas         = zeros(nCells,1)
+            cellTensions      = zeros(nCells,1)
+            cellPressures     = zeros(nCells,1)
+            edgeLengths       = zeros(nEdges,1)
+            edgeTangents      = zeros(nEdges,2)
+            edgeMidpoints     = zeros(nEdges,2)
+            vertexEdges       = zeros(Int64,nVerts,3)
+            vertexCells       = zeros(Int64,nVerts,3)
+            F                 = zeros(nVerts,2)
+            Fexternal         = zeros(nVerts,2)
+            topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
+        end
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
         transitionOccurred = t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
         if transitionOccurred==1
-            topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,cellEdgeCount,boundaryVertices,vertexEdges,edgeTangents,nVerts)
+            topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
             spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
             transitionOccurred = 0
         end
         if t%outputInterval<dt
             visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
             outputCount+=1
-            println("$outputCount/10")
+            println("$outputCount/$outputTotal")
         end
         calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
         ΔR .= (F .+ Fexternal).*dt/6.0
@@ -139,6 +172,7 @@ using T1Transitions
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
+        cellAges .+= dt
 
     end
 

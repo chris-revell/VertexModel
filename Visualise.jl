@@ -39,24 +39,24 @@ using ColorSchemes
    end
 
    # Vertex moment kites
-   for i=1:nVerts
-      # Exclude boundary vertices.
-      if boundaryVertices[i] == 0
-         # Loop over 3 edges around the vertex.
-         for k=0:2
-            # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
-            dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1],:] .- edgeMidpoints[vertexEdges[i,k+1],:]
-            # Find cell bordered by these two edges
-            cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
-            xs = [cellPositions[cellID,1],edgeMidpoints[vertexEdges[i,k+1],1],R[i,1],edgeMidpoints[vertexEdges[i,(k+1)%3+1],1],cellPositions[cellID,1]]
-            ys = [cellPositions[cellID,2],edgeMidpoints[vertexEdges[i,k+1],2],R[i,2],edgeMidpoints[vertexEdges[i,(k+1)%3+1],2],cellPositions[cellID,2]]
-            dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1],:])⋅normalize(dM)
-            plot!(xs,ys,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
-         end
-      else
-         # Skip boundary vertices
-      end
-   end
+   # for i=1:nVerts
+   #    # Exclude boundary vertices.
+   #    if boundaryVertices[i] == 0
+   #       # Loop over 3 edges around the vertex.
+   #       for k=0:2
+   #          # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
+   #          dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1],:] .- edgeMidpoints[vertexEdges[i,k+1],:]
+   #          # Find cell bordered by these two edges
+   #          cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
+   #          xs = [cellPositions[cellID,1],edgeMidpoints[vertexEdges[i,k+1],1],R[i,1],edgeMidpoints[vertexEdges[i,(k+1)%3+1],1],cellPositions[cellID,1]]
+   #          ys = [cellPositions[cellID,2],edgeMidpoints[vertexEdges[i,k+1],2],R[i,2],edgeMidpoints[vertexEdges[i,(k+1)%3+1],2],cellPositions[cellID,2]]
+   #          dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1],:])⋅normalize(dM)
+   #          plot!(xs,ys,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
+   #       end
+   #    else
+   #       # Skip boundary vertices
+   #    end
+   # end
 
 
    # Plot connections between cell centres and edge midpoints
