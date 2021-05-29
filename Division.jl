@@ -24,11 +24,15 @@ function division!(A,B,C,R,cellAges,cellEdgeCount,cellPositions,edgeMidpoints,no
         # Cell divides if its age exceeds the cell cycle time
         if cellAges[i] > nonDimCycleTime
 
+            cellVertices = findall(j->j!=0,C[i,:])
+            cellEdges    = findall(j->j!=0,B[i,:])
+
+            # Add new column to matrix B to accommodate the new edge
+            newBColumn = spzeros(nCells,1)
+            B = [B newBColumn]
+
             # Separate routines for cells with odd and even vertex counts
             if iseven(cellEdgeCount[i])
-
-                cellVertices = findall(j->j!=0,C[i,:])
-                cellEdges    = findall(j->j!=0,B[i,:])
 
                 # Find longest axis of cell by calculating distances between all vertex pairs
                 dxMax = 0.0
@@ -42,9 +46,6 @@ function division!(A,B,C,R,cellAges,cellEdgeCount,cellPositions,edgeMidpoints,no
                         end
                     end
                 end
-
-                newBColumn = spzeros(nCells,1)
-                B = [B newBColumn]
 
                 # Find polar angles of the vertices between which a new edge is added
                 aPolarAngle = atan(R[maxPair[1],1] .- cellPositions[i,1], R[maxPair[1],2] .- cellPositions[i,2])
@@ -79,7 +80,29 @@ function division!(A,B,C,R,cellAges,cellEdgeCount,cellPositions,edgeMidpoints,no
                 cellAges[i] = 0.0
 
             else
-                #
+
+
+                # Find longest axis of cell by calculating distances between all vertex pairs and opposing edge midpoints
+                edgePolarAngles = Array{Float64}[]
+                for (j,k) in enumerate(cellEdges)
+                    push!(edgePolarAngles,atan(edgeMidpoints[k,1] .- cellPositions[i,1], edgeMidpoints[k,2] .- cellPositions[i,2]))
+
+
+                dxMax = 0.0
+                maxPair = [0,0]
+                for (a,aVert) in enumerate(cellVertices)
+                    for (b,bVert) in enumerate(cellVertices)
+                        dx = norm(R[aVert,:].-R[bVert,:])
+                        if dx > dxMax
+                            dxMax = dx
+                            maxPair .= [aVert,bVert]
+                        end
+                    end
+                end
+
+
+
+
             end
         end
     end
