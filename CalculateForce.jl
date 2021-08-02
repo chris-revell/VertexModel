@@ -11,29 +11,28 @@ module CalculateForce
 
 # Julia packages
 using LinearAlgebra
+using StaticArrays
 
-@inline @views function calculateForce!(F,Fexternal,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
+@inline @views function calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
 
-    fill!(F,0.0)
-    fill!(Fexternal,0.0)
+    fill!(F,SVector{2}(zeros(2)))
+    fill!(externalF,SVector{2}(zeros(2)))
 
     # Internal forces
     # NB This iteration could be improved to better leverage sparse arrays
     for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
-                F[k,:] .+= 0.5*cellPressures[i]*B[i,j]*Ā[j,k].*(ϵ*edgeTangents[j,:]) .+ cellTensions[i]*B̄[i,j]*A[j,k].*edgeTangents[j,:]./edgeLengths[j]
+                F[k] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) + cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
             end
         end
     end
 
     # External pressure
     for k=1:nVerts
-        if boundaryVertices[k] != 0
-            for i=1:nCells
-                for j=1:nEdges
-                    Fexternal[k,:] .= Fexternal[k,:] .+ 0.5*pressureExternal*B[i,j]*Ā[j,k].*ϵ*edgeTangents[j,:]
-                end
+        for i=1:nCells
+            for j=1:nEdges
+                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0 
             end
         end
     end

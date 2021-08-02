@@ -11,25 +11,26 @@ module SpatialData
 
 # Julia packages
 using LinearAlgebra
+using StaticArrays
 
-@inline @views function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter)
+@inline @views function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
 
     cellPositions  .= C*R./cellEdgeCount
     edgeTangents   .= A*R
-    edgeLengths    .= sqrt.(sum(edgeTangents.^2,dims=2))
+    edgeLengths    .= norm.(edgeTangents)
     edgeMidpoints  .= 0.5.*Ā*R
     cellPerimeters .= B̄*edgeLengths
     cellTensions   .= gamma.*(preferredPerimeter .- cellPerimeters)
-    cellPressures  .= cellAreas .- 1.0
+    cellPressures  .= cellAreas .- preferredArea
 
     # Calculate oriented cell areas
-    fill!(cellOrientedAreas,0.0)
+    fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
     for i=1:nCells
         for j=1:nEdges
-            cellOrientedAreas[i,:,:] .+= B[i,j].*edgeTangents[j,:]*edgeMidpoints[j,:]'
+            cellOrientedAreas[i] += B[i,j]*edgeTangents[j]*edgeMidpoints[j]'
         end
+        cellAreas[i] = cellOrientedAreas[i][1,2]
     end
-    cellAreas .= cellOrientedAreas[:,1,2]
 
     return nothing
 

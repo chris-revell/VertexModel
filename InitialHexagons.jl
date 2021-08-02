@@ -12,6 +12,7 @@ module InitialHexagons
 # Julia packages
 using LinearAlgebra
 using SparseArrays
+using StaticArrays
 
 # Local modules
 
@@ -27,14 +28,14 @@ using SparseArrays
 
         B = -1.0.*ones(1,6)
 
-        R = zeros(6,2)
+        R = Array{SVector{2,Float64}}(undef,nVerts)
 
         for k=1:6
-            R[k,1] = cos((k*π)/3.0)
-            R[k,2] = sin((k*π)/3.0)
+            R[k] = SVector{2}([cos((k*π)/3.0),sin((k*π)/3.0)])
         end
+
         # Set initial cell areas to 1.0
-        R.*=1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
     elseif n==3
 
@@ -90,24 +91,24 @@ using SparseArrays
         B[3,7] = -1
         B[3,6] = -1
 
-        R = zeros(13,2)
+        R = Array{SVector{2,Float64}}(undef,13)
         a = sin(π/3)
         b = cos(π/3)
-        R[1,:] .= [-1.0,-2*a]
-        R[2,:] .= [0.0,-2*a]
-        R[3,:] .= [b,-a]
-        R[4,:] .= [0.0,0.0]
-        R[5,:] .= [-1.0-b,-a]
-        R[6,:] .= [-1.0,0.0]
-        R[7,:] .= [-1.0-b,a]
-        R[8,:] .= [-1.0,2.0*a]
-        R[9,:] .= [0.0,2.0*a]
-        R[10,:] .= [b,a]
-        R[11,:] .= [1.0+b,-a]
-        R[12,:] .= [1.0+2*b,0.0]
-        R[13,:] .= [1.0+b,a]
+        R[1]  = SVector{2}([-1.0,-2*a])
+        R[2]  = SVector{2}([0.0,-2*a])
+        R[3]  = SVector{2}([b,-a])
+        R[4]  = SVector{2}([0.0,0.0])
+        R[5]  = SVector{2}([-1.0-b,-a])
+        R[6]  = SVector{2}([-1.0,0.0])
+        R[7]  = SVector{2}([-1.0-b,a])
+        R[8]  = SVector{2}([-1.0,2.0*a])
+        R[9]  = SVector{2}([0.0,2.0*a])
+        R[10] = SVector{2}([b,a])
+        R[11] = SVector{2}([1.0+b,-a])
+        R[12] = SVector{2}([1.0+2*b,0.0])
+        R[13] = SVector{2}([1.0+b,a])
         # Set initial cell areas to 1.0
-        R.*=1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
     end
 

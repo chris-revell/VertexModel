@@ -26,8 +26,8 @@ using LinearAlgebra
     B̄ᵀ .= abs.(Bᵀ)
 
     # Calculate additional topology data
-    cellEdgeCount    .= sum(B̄,dims=2)           # Number of edges around each cell found by summing columns of B̄
-    boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2)) # Find the vertices at the boundary
+    cellEdgeCount    .= sum(B̄,dims=2)[:,1]           # Number of edges around each cell found by summing columns of B̄
+    boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2))[:,1] # Find the vertices at the boundary
 
     # Use adjacency matrix Ā to find edges j that intersect vertex i,
     # and arrange in polar angle order (ordering will not change
