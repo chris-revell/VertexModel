@@ -23,19 +23,19 @@ using ColorSchemes
    plot(xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
 
    # Scatter vertices
-   scatter!(R[:,1],R[:,2])
+   # scatter!(R[:,1],R[:,2])
 
    # # Scatter edge midpoints
    # scatter!(edgeMidpoints[:,1],edgeMidpoints[:,2],color=:white,markersize=4)
 
    # Scatter cell positions
-   scatter!(cellPositions[:,1],cellPositions[:,2],color=:red,markersize=4,markerstroke=:red)
+   #scatter!(cellPositions[:,1],cellPositions[:,2],color=:red,markersize=4,markerstroke=:red)
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
    for i=1:nEdges
       x=findall(x->x!=0,Ā[i,:])
-      plot!([R[x[1],1],R[x[2],1]],[R[x[1],2],R[x[2],2]],color=:black,linewidth=4)
+      plot!([R[x[1]][1],R[x[2]][1]],[R[x[1]][2],R[x[2]][2]],color=:black,linewidth=4)
    end
 
    # Vertex moment kites

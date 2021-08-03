@@ -12,8 +12,9 @@ module SpatialData
 # Julia packages
 using LinearAlgebra
 using StaticArrays
+using LoopVectorization
 
-@inline @views function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
 
     cellPositions  .= C*R./cellEdgeCount
     edgeTangents   .= A*R

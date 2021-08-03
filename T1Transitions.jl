@@ -12,7 +12,7 @@ module T1Transitions
 # Julia packages
 using LinearAlgebra
 
-@inline @views function t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
+@views function t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
 
     transitionOccurred = 0
 
