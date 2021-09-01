@@ -16,13 +16,13 @@ using StaticArrays
 using LoopVectorization
 
 # Local modules
-using TopologyChange
-using CreateRunDirectory
-using SpatialData
-using CalculateForce
-using InitialHexagons
-using Visualise
-using T1Transitions
+include("TopologyChange.jl"); using .TopologyChange
+include("CreateRunDirectory.jl"); using .CreateRunDirectory
+include("SpatialData.jl"); using .SpatialData
+include("CalculateForce.jl"); using .CalculateForce
+include("InitialHexagons.jl"); using .InitialHexagons
+include("Visualise.jl"); using .Visualise
+include("T1Transitions.jl"); using .T1Transitions
 
 #f(x::AbstractArray{A}) where {T, A <: StaticArrays.SArray{<:Any,T}} = reinterpret(reshape, T, x)
 
