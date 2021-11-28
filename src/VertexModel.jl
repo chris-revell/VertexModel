@@ -1,6 +1,6 @@
 #
 #  Simulate.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 31/01/2021.
 #
@@ -107,6 +107,8 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
 
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
 
+
+
     while t<tMax
 
         # 4 step Runge-Kutta integration
@@ -155,9 +157,13 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
         #@turbo f(R) .+= f(ΔR)
         R .+= ΔR
         t +=dt
-        #cellAges .+= dt
 
     end
+
+
+
+
+
 
     outputToggle==1 ? run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`) : nothing
 

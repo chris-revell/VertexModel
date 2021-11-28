@@ -1,6 +1,6 @@
 #
 #  CreateRunDirectory.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 09/02/2021.
 #

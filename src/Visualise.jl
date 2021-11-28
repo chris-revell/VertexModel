@@ -1,6 +1,6 @@
 #
 #  Visualise.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 16/02/2021.
 #

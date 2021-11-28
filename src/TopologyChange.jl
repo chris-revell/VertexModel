@@ -1,6 +1,6 @@
 #
 #  TopologyChange.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 01/02/2021.
 #

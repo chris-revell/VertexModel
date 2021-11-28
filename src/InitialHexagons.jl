@@ -1,6 +1,6 @@
 #
 #  InitialHexagons.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 15/02/2021.
 #

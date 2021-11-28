@@ -1,6 +1,6 @@
 #
 #  T1Transitions.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 10/03/2021.
 #

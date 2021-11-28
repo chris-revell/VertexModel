@@ -1,6 +1,6 @@
 #
 #  CalculateForce.jl
-#  VertexModelJL
+#  VertexModel
 #
 #  Created by Christopher Revell on 11/02/2021.
 #
