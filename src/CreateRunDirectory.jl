@@ -18,10 +18,10 @@ function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,
 
     # Create directory for run data labelled with current time.
     foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
-    mkpath("output/$(foldername)")
+    mkpath("data/sims$(foldername)")
 
     # Store system parameters.
-    open("output/$(foldername)/conditions.txt","w") do conditionsfile
+    open("data/sims$(foldername)/conditions.txt","w") do conditionsfile
         println(conditionsfile, "nCells,             $nCells            ")
         println(conditionsfile, "nEdges,             $nEdges            ")
         println(conditionsfile, "nVerts,             $nVerts            ")
@@ -37,9 +37,9 @@ function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,
     end
 
     # Store initial system characteristic matrices
-    writedlm("output/$(foldername)/A.txt",A," ")
-    writedlm("output/$(foldername)/B.txt",B," ")
-    writedlm("output/$(foldername)/R.txt",R," ")
+    writedlm("data/sims$(foldername)/A.txt",A," ")
+    writedlm("data/sims$(foldername)/B.txt",B," ")
+    writedlm("data/sims$(foldername)/R.txt",R," ")
 
     return foldername
 

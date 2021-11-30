@@ -58,9 +58,9 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
         A,B,R = initialHexagons(3)
     else
         # Import system matrices from file
-        A = sparse(readdlm("input/$(initialSystem)_A.txt",',',Int64,'\n'))
-        B = sparse(readdlm("input/$(initialSystem)_B.txt",',',Int64,'\n'))
-        R0 = readdlm("input/$(initialSystem)_R.txt",',',Float64,'\n')
+        A = sparse(readdlm("data/input/$(initialSystem)_A.txt",',',Int64,'\n'))
+        B = sparse(readdlm("data/input/$(initialSystem)_B.txt",',',Int64,'\n'))
+        R0 = readdlm("data/input/$(initialSystem)_R.txt",',',Float64,'\n')
         R = Array{SVector{2,Float64}}(undef,size(A)[2])
         for i=1:size(R0)[1]
             R[i] = SVector{2}(R0[i,:])
@@ -165,7 +165,7 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
 
 
 
-    outputToggle==1 ? run(`convert -delay 0 -loop 0 output/$folderName/plot"*".png output/$folderName/animated.gif`) : nothing
+    outputToggle==1 ? run(`convert -delay 0 -loop 0 data/sims/$folderName/plot"*".png data/sims$folderName/animated.gif`) : nothing
 
 end
 
