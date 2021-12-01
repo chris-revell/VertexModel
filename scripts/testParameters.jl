@@ -1,4 +1,4 @@
-initialSystem    = "triple"
+initialSystem    = "test"
 realTimetMax     = 1000.0
 gamma            = 0.2
 lamda            = -0.3
@@ -8,4 +8,4 @@ preferredArea    = 1.0
 pressureExternal = 0.1
 outputTotal      = 20
 t1Threshold      = 0.01
-outputToggle     = 0
+outputToggle     = 1

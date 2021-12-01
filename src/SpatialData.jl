@@ -16,11 +16,16 @@ using LoopVectorization
 
 function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
 
-    cellPositions  .= C*R./cellEdgeCount
-    edgeTangents   .= A*R
+    #cellPositions  .= C*R./cellEdgeCount
+    mul!(cellPositions,C,R)
+    cellPositions .= cellPositions./cellEdgeCount
+    #edgeTangents   .= A*R
+    mul!(edgeTangents,A,R)
     edgeLengths    .= norm.(edgeTangents)
-    edgeMidpoints  .= 0.5.*Ā*R
-    cellPerimeters .= B̄*edgeLengths
+    #edgeMidpoints  .= 0.5.*Ā*R
+    mul!(edgeMidpoints,0.5.*Ā,R)
+    #cellPerimeters .= B̄*edgeLengths
+    mul!(cellPerimeters,B̄,edgeLengths)
     cellTensions   .= gamma.*(preferredPerimeter .- cellPerimeters)
     cellPressures  .= cellAreas .- preferredArea
 

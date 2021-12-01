@@ -12,15 +12,16 @@ module CalculateForce
 # Julia packages
 using LinearAlgebra
 using StaticArrays
+using LoopVectorization
 
-@inline @views function calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
+@inline function calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
 
     fill!(F,SVector{2}(zeros(2)))
     fill!(externalF,SVector{2}(zeros(2)))
 
     # Internal forces
     # NB This iteration could be improved to better leverage sparse arrays
-    for k=1:nVerts
+    @turbo for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
                 F[k] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) + cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]

@@ -14,6 +14,7 @@ using DelimitedFiles
 using SparseArrays
 using StaticArrays
 using LoopVectorization
+using FastBroadcast
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -24,9 +25,11 @@ include("InitialHexagons.jl"); using .InitialHexagons
 include("Visualise.jl"); using .Visualise
 include("T1Transitions.jl"); using .T1Transitions
 
-#f(x::AbstractArray{A}) where {T, A <: StaticArrays.SArray{<:Any,T}} = reinterpret(reshape, T, x)
+f(x::AbstractArray{A}) where {T, A <: StaticArrays.SArray{<:Any,T}} = reinterpret(reshape, T, x)
 
 function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredArea,pressureExternal,outputTotal,t1Threshold,outputToggle)
+
+    BLAS.set_num_threads(4)
 
     # Input parameters
     # realTimetMax     (eg. 10000.0)  Real time maximum system run time /seconds
@@ -107,8 +110,6 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
 
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
 
-
-
     while t<tMax
 
         # 4 step Runge-Kutta integration
@@ -126,36 +127,44 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
             println("$outputCount/$outputTotal")
         end
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        #@turbo f(ΔR) .= (f(F) .+ f(externalF)).*dt/6.0
-        ΔR .= (F .+ externalF).*dt/6.0
+        @turbo f(ΔR) .= (f(F) .+ f(externalF)).*dt/6.0
+        #ΔR .= (F .+ externalF).*dt/6.0
+        #@.. thread=true ΔR = (F + externalF)*dt/6.0
 
         # 2nd step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
-        tempR .= R .+ (F .+ externalF).*dt/2.0
+        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
+        #tempR .= R .+ (F .+ externalF).*dt/2.0
+        #@.. thread=true tempR = R + (F + externalF)*dt/2.0
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        #@turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
-        ΔR .+= (F .+ externalF).*dt/3.0
+        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
+        #ΔR .+= (F .+ externalF).*dt/3.0
+        #@.. thread=true ΔR += (F + externalF)*dt/3.0
 
         # 3rd step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
-        tempR .= R .+ (F .+ externalF).*dt/2.0
+        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
+        #tempR .= R .+ (F .+ externalF).*dt/2.0
+        #@.. thread=true tempR = R + (F + externalF)*dt/2.0
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        #@turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
-        ΔR .+= (F .+ externalF).*dt/3.0
+        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
+        #ΔR .+= (F .+ externalF).*dt/3.0
+        #@.. thread=true ΔR += (F + externalF)*dt/3.0
 
         # 4th step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt
-        tempR .= R .+ (F .+ externalF).*dt
+        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt
+        #tempR .= R .+ (F .+ externalF).*dt
+        #@.. thread=true tempR = R + (F + externalF)*dt
         spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        #@turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/6.0
-        ΔR .+= (F .+ externalF).*dt/6.0
+        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/6.0
+        #ΔR .+= (F .+ externalF).*dt/6.0
+        #@.. thread=true ΔR += (F + externalF)*dt/6.0
 
         # Result of Runge-Kutta steps
-        #@turbo f(R) .+= f(ΔR)
-        R .+= ΔR
+        @turbo f(R) .+= f(ΔR)
+        #R .+= ΔR
+        #@.. thread=true R += ΔR
         t +=dt
 
     end
