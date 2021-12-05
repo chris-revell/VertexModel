@@ -27,14 +27,14 @@ include("T1Transitions.jl"); using .T1Transitions
 
 f(x::AbstractArray{A}) where {T, A <: StaticArrays.SArray{<:Any,T}} = reinterpret(reshape, T, x)
 
-function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredArea,pressureExternal,outputTotal,t1Threshold,outputToggle)
+function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pressureExternal,outputTotal,t1Threshold,outputToggle)
 
     BLAS.set_num_threads(4)
 
     # Input parameters
     # realTimetMax     (eg. 10000.0)  Real time maximum system run time /seconds
-    # gamma            (eg. 0.2    )  Parameters in energy relaxation
-    # lamda            (eg. -0.3   )  Parameters in energy relaxation
+    # γ                (eg. 0.2    )  Parameters in energy relaxation
+    # λ                (eg. -0.3   )  Parameters in energy relaxation
     # tStar            (eg. 20.0   )  Relaxation rate, approx from Sarah's data.
     # dt               (eg. 0.01   )  Non dimensionalised time step
     # preferredArea    (eg. 1.0    )  Cell preferred area (1.0 by default)
@@ -45,7 +45,7 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
     # Derived parameters
     tMax               = realTimetMax/tStar       # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal         # Time interval for storing system data (non dimensionalised)
-    preferredPerimeter = -lamda/(2*gamma)         # Cell preferred perimeter
+    preferredPerimeter = -λ/(2*γ)                 # Cell preferred perimeter
     #nonDimCycleTime    = cellCycleTime/tStar      # Non dimensionalised cell cycle time
     ϵ                  = SMatrix{2,2}([0.0 1.0
                                        -1.0 0.0]) # Antisymmetric rotation matrix
@@ -101,7 +101,7 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)  # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
     # Create output directory in which to store results and parameters
-    outputToggle==1 ? folderName = createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R) : nothing
+    outputToggle==1 ? folderName = createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R) : nothing
 
     # Initialise time and output count
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
@@ -114,11 +114,11 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         transitionOccurred = t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
         if transitionOccurred==1
             topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
-            spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+            spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
             transitionOccurred = 0
         end
         if t%outputInterval<dt && outputToggle==1
@@ -132,30 +132,27 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
         #@.. thread=true ΔR = (F + externalF)*dt/6.0
 
         # 2nd step of Runge-Kutta
-        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
-        #tempR .= R .+ (F .+ externalF).*dt/2.0
-        #@.. thread=true tempR = R + (F + externalF)*dt/2.0
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
+        tempR .= R .+ (F .+ externalF).*dt/2.0
+        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
         @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
         #ΔR .+= (F .+ externalF).*dt/3.0
         #@.. thread=true ΔR += (F + externalF)*dt/3.0
 
         # 3rd step of Runge-Kutta
-        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
-        #tempR .= R .+ (F .+ externalF).*dt/2.0
-        #@.. thread=true tempR = R + (F + externalF)*dt/2.0
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
+        tempR .= R .+ (F .+ externalF).*dt/2.0
+        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
         @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
         #ΔR .+= (F .+ externalF).*dt/3.0
         #@.. thread=true ΔR += (F + externalF)*dt/3.0
 
         # 4th step of Runge-Kutta
-        @turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt
-        #tempR .= R .+ (F .+ externalF).*dt
-        #@.. thread=true tempR = R + (F + externalF)*dt
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt
+        tempR .= R .+ (F .+ externalF).*dt
+        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
         @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/6.0
         #ΔR .+= (F .+ externalF).*dt/6.0
@@ -174,7 +171,7 @@ function vertexModel(initialSystem,realTimetMax,gamma,lamda,tStar,dt,preferredAr
 
 
 
-    outputToggle==1 ? run(`convert -delay 0 -loop 0 data/sims/$folderName/plot"*".png data/sims$folderName/animated.gif`) : nothing
+    outputToggle==1 ? run(`convert -delay 0 -loop 0 data/sims/$folderName/plot"*".png data/sims/$folderName/animated.gif`) : nothing
 
 end
 

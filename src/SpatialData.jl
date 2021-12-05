@@ -14,7 +14,7 @@ using LinearAlgebra
 using StaticArrays
 using LoopVectorization
 
-function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,gamma,preferredPerimeter,preferredArea)
+function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
 
     #cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)
@@ -26,7 +26,7 @@ function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,
     mul!(edgeMidpoints,0.5.*Ā,R)
     #cellPerimeters .= B̄*edgeLengths
     mul!(cellPerimeters,B̄,edgeLengths)
-    cellTensions   .= gamma.*(preferredPerimeter .- cellPerimeters)
+    cellTensions   .= γ.*(preferredPerimeter .- cellPerimeters)
     cellPressures  .= cellAreas .- preferredArea
 
     # Calculate oriented cell areas

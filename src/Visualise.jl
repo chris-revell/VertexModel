@@ -98,7 +98,7 @@ using ColorSchemes
    # quiver!(xs,ys,quiver=(us,vs),color=:orange,legend=:false)
    # *************** End force vectors ***********************
 
-   savefig("data/sims$folderName/plot$(@sprintf("%03d",outputCount)).png")
+   savefig("data/sims/$folderName/plot$(@sprintf("%03d",outputCount)).png")
 
 end
 
