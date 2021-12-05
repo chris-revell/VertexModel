@@ -1,7 +1,7 @@
 initialSystem    = "test"
 realTimetMax     = 1000.0
-gamma            = 0.2
-lambda            = -0.3
+γ                = 0.2
+λ                = -0.3
 tStar            = 20.0
 dt               = 0.01
 preferredArea    = 1.0

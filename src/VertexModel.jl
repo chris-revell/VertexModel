@@ -14,7 +14,6 @@ using DelimitedFiles
 using SparseArrays
 using StaticArrays
 using LoopVectorization
-using FastBroadcast
 using Plots
 
 # Local modules
@@ -152,7 +151,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
         R .+= ΔR
         t +=dt
 
-        if t%outputInterval<dt && outputToggle==1            
+        if t%outputInterval<dt && outputToggle==1
             visualise(anim,A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
             println("$t/$tMax")
         end
