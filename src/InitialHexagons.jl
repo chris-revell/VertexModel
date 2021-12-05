@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 15/02/2021.
 #
 #
-# Function to create a starting system hexagonal cells.
+# Function to create an initial system of 1 or 3 hexagonal cells.
 
 module InitialHexagons
 
@@ -14,22 +14,22 @@ using LinearAlgebra
 using SparseArrays
 using StaticArrays
 
-# Local modules
+function initialHexagons(n)
 
-@inline @views function initialHexagons(n)
-
+    # Argument of n=1 produces a single initial hexagonal cell
     if n==1
-        A = [-1.0 1.0 0.0 0.0 0.0 0.0
+
+        ATmp= [-1.0 1.0 0.0 0.0 0.0 0.0
              0.0 -1.0 1.0 0.0 0.0 0.0
              0.0 0.0 -1.0 1.0 0.0 0.0
              0.0 0.0 0.0 -1.0 1.0 0.0
              0.0 0.0 0.0 0.0 -1.0 1.0
              1.0 0.0 0.0 0.0 0.0 -1.0]
+        A = sparse(A)
 
         B = -1.0.*ones(1,6)
 
         R = Array{SVector{2,Float64}}(undef,nVerts)
-
         for k=1:6
             R[k] = SVector{2}([cos((k*π)/3.0),sin((k*π)/3.0)])
         end

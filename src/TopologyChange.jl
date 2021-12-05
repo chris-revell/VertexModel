@@ -15,11 +15,11 @@ using LinearAlgebra
 @views function topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
 
     # Find adjacency matrices from incidence matrices
-    Ā .= abs.(A)    # All -1 components converted to +1 (Adjacency matrix - vertices to edges)
-    B̄ .= abs.(B)    # All -1 components converted to +1 (Adjacency matrix - cells to edges)
-    C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices NB Integer division
+    Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
+    C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
 
-    # Establish transpose matrices
+    # Update transpose matrices
     Aᵀ .= transpose(A)
     Āᵀ .= abs.(Aᵀ)
     Bᵀ .= transpose(B)

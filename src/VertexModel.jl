@@ -29,7 +29,7 @@ f(x::AbstractArray{A}) where {T, A <: StaticArrays.SArray{<:Any,T}} = reinterpre
 
 function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pressureExternal,outputTotal,t1Threshold,outputToggle)
 
-    BLAS.set_num_threads(4)
+    #BLAS.set_num_threads(4)
 
     # Input parameters
     # realTimetMax     (eg. 10000.0)  Real time maximum system run time /seconds
@@ -108,6 +108,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     outputCount = 0
     transitionOccurred = 0
 
+    t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
 
     while t<tMax
@@ -159,19 +160,18 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
         #@.. thread=true ΔR += (F + externalF)*dt/6.0
 
         # Result of Runge-Kutta steps
-        @turbo f(R) .+= f(ΔR)
-        #R .+= ΔR
-        #@.. thread=true R += ΔR
+        R .+= ΔR
         t +=dt
+
+        # if t%outputInterval<dt && outputToggle==1
+        #     visualise(anim,R,params,matrices)
+        #     println("$t/$tMax")
+        # end
 
     end
 
-
-
-
-
-
-    outputToggle==1 ? run(`convert -delay 0 -loop 0 data/sims/$folderName/plot"*".png data/sims/$folderName/animated.gif`) : nothing
+    # If outputToggle==1, save animation object as an animated gif
+    # outputToggle==1 ? gif(anim, "data/sims/$folderName/animated.gif", fps = 10) : nothing
 
 end
 
