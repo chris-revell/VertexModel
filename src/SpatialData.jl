@@ -15,10 +15,10 @@ using StaticArrays
 using LoopVectorization
 using UnPack
 
-function spatialData!(R,params,matrices)
+function spatialData!(R,nCells,nEdges,γ,preferredPerimeter,preferredArea,A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints)
 
-    @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
-    @unpack nCells,nEdges,γ,preferredPerimeter,preferredArea = params
+    # @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
+    # @unpack nCells,nEdges,γ,preferredPerimeter,preferredArea = params
 
     #cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)

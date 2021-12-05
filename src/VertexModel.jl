@@ -40,42 +40,42 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     # outputTotal      (eg. 20     )  Number of data outputs
     # t1Threshold      (eg. 0.01   )  Edge length at which a T1 transition is triggered
 
-    params,R,tempR,ΔR,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
+    R,tempR,ΔR,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputInterval,tStar,realTimetMax,tMax,t1Threshold,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,vertexEdges,vertexCells,F,ϵ = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
 
     # Create output directory in which to store results and parameters, and initialise animation object for plotting
     if outputToggle==1
-        folderName = createRunDirectory(R,params,matrices)
+        folderName = createRunDirectory(R,nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax,A,B)
         anim = Animation()
     end
 
     # Initial setup of matrices based on system topology
-    topologyChange!(matrices)
+    topologyChange!(A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices)
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
 
-    while t<params[:tMax]
+    while t<tMax
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        iterate1!(6.0,R,ΔR,params,matrices)
+        iterate1!(6.0,R,ΔR,F,dt,nVerts,nCells,nEdges,γ,preferredPerimeter,preferredArea,A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,boundaryVertices,ϵ,t1Threshold)
 
         # 2nd step of Runge-Kutta
-        iterate2!(2.0,3.0,R,tempR,ΔR,params,matrices)
+        iterate2!(2.0,3.0,R,tempR,ΔR,F,dt,nVerts,nCells,nEdges,γ,preferredPerimeter,preferredArea,A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,boundaryVertices,ϵ)
 
         # 3rd step of Runge-Kutta
-        iterate2!(2.0,3.0,R,tempR,ΔR,params,matrices)
+        iterate2!(2.0,3.0,R,tempR,ΔR,F,dt,nVerts,nCells,nEdges,γ,preferredPerimeter,preferredArea,A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,boundaryVertices,ϵ)
 
         # 4th step of Runge-Kutta
-        iterate2!(1.0,6.0,R,tempR,ΔR,params,matrices)
+        iterate2!(1.0,6.0,R,tempR,ΔR,F,dt,nVerts,nCells,nEdges,γ,preferredPerimeter,preferredArea,A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,boundaryVertices,ϵ)
 
 
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
 
-        if t%params[:outputInterval]<dt && outputToggle==1
-            visualise(anim,R,params,matrices)
-            println("$t/$(params[:tMax])")
+        if t%outputInterval<dt && outputToggle==1
+            visualise(anim,R,nEdges,nVerts,nCells,A,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges)
+            println("$t/$tMax)")
         end
 
     end

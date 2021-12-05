@@ -78,12 +78,12 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     F                 = Array{SVector{2,Float64}}(undef,nVerts)  # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
     # Pack matrces into a vector for convenience
-    matrices = @dict A B Aᵀ Ā Āᵀ Bᵀ B̄ B̄ᵀ C cellEdgeCount boundaryVertices cellPositions cellPerimeters cellOrientedAreas cellAreas cellTensions cellPressures edgeLengths edgeTangents edgeMidpoints vertexEdges vertexCells F ϵ
+    #matrices = @dict A B Aᵀ Ā Āᵀ Bᵀ B̄ B̄ᵀ C cellEdgeCount boundaryVertices cellPositions cellPerimeters cellOrientedAreas cellAreas cellTensions cellPressures edgeLengths edgeTangents edgeMidpoints vertexEdges vertexCells F ϵ
 
     # Pack parameters into a dictionary for convenience (using DrWatson @dict)
-    params = @dict nVerts nCells nEdges γ λ preferredPerimeter preferredArea pressureExternal dt outputInterval tStar realTimetMax tMax t1Threshold
+    #params = @dict nVerts nCells nEdges γ λ preferredPerimeter preferredArea pressureExternal dt outputInterval tStar realTimetMax tMax t1Threshold
 
-    return params,R,tempR,ΔR,matrices
+    return R,tempR,ΔR,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputInterval,tStar,realTimetMax,tMax,t1Threshold,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,vertexEdges,vertexCells,F,ϵ
 
 end
 
