@@ -17,7 +17,7 @@ using ColorSchemes
 
 # Local modules
 
-@inline @views function visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
+@inline @views function visualise(anim,A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
 
    # Create plot canvas
    plot(xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
@@ -98,7 +98,7 @@ using ColorSchemes
    # quiver!(xs,ys,quiver=(us,vs),color=:orange,legend=:false)
    # *************** End force vectors ***********************
 
-   savefig("data/sims/$folderName/plot$(@sprintf("%03d",outputCount)).png")
+   frame(anim)
 
 end
 

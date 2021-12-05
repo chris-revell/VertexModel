@@ -15,6 +15,7 @@ using SparseArrays
 using StaticArrays
 using LoopVectorization
 using FastBroadcast
+using Plots
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -101,7 +102,10 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)  # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
     # Create output directory in which to store results and parameters
-    outputToggle==1 ? folderName = createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R) : nothing
+    if outputToggle==1
+        folderName = createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
+        anim=Animation()
+    end
 
     # Initialise time and output count
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
@@ -110,6 +114,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
     topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
+
 
     while t<tMax
 
@@ -122,56 +127,40 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
             spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
             transitionOccurred = 0
         end
-        if t%outputInterval<dt && outputToggle==1
-            visualise(A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
-            outputCount+=1
-            println("$outputCount/$outputTotal")
-        end
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        @turbo f(ΔR) .= (f(F) .+ f(externalF)).*dt/6.0
-        #ΔR .= (F .+ externalF).*dt/6.0
-        #@.. thread=true ΔR = (F + externalF)*dt/6.0
+        ΔR .= (F .+ externalF).*dt/6.0
 
         # 2nd step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
         tempR .= R .+ (F .+ externalF).*dt/2.0
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
+        spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
-        #ΔR .+= (F .+ externalF).*dt/3.0
-        #@.. thread=true ΔR += (F + externalF)*dt/3.0
+        ΔR .+= (F .+ externalF).*dt/3.0
 
         # 3rd step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt/2.0
         tempR .= R .+ (F .+ externalF).*dt/2.0
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
+        spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/3.0
-        #ΔR .+= (F .+ externalF).*dt/3.0
-        #@.. thread=true ΔR += (F + externalF)*dt/3.0
+        ΔR .+= (F .+ externalF).*dt/3.0
 
         # 4th step of Runge-Kutta
-        #@turbo f(tempR) .= f(R) .+ (f(F) .+ f(externalF)).*dt
         tempR .= R .+ (F .+ externalF).*dt
-        spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
+        spatialData!(A,Ā,B,B̄,C,tempR,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
         calculateForce!(F,externalF,A,Ā,B,B̄,cellPressures,cellTensions,edgeTangents,edgeLengths,nVerts,nCells,nEdges,ϵ,pressureExternal,boundaryVertices)
-        @turbo f(ΔR) .+= (f(F) .+ f(externalF)).*dt/6.0
-        #ΔR .+= (F .+ externalF).*dt/6.0
-        #@.. thread=true ΔR += (F + externalF)*dt/6.0
+        ΔR .+= (F .+ externalF).*dt/6.0
 
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
 
-        # if t%outputInterval<dt && outputToggle==1
-        #     visualise(anim,R,params,matrices)
-        #     println("$t/$tMax")
-        # end
+        if t%outputInterval<dt && outputToggle==1            
+            visualise(anim,A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
+            println("$t/$tMax")
+        end
 
     end
 
     # If outputToggle==1, save animation object as an animated gif
-    # outputToggle==1 ? gif(anim, "data/sims/$folderName/animated.gif", fps = 10) : nothing
+    outputToggle==1 ? gif(anim, "data/sims/$folderName/animated.gif", fps = 10) : nothing
 
 end
 
