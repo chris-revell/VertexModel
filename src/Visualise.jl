@@ -14,10 +14,15 @@ using Plots
 using Printf
 using LinearAlgebra
 using ColorSchemes
+using UnPack
 
 # Local modules
 
-@inline @views function visualise(anim,A,Ā,B̄,R,C,F,cellPositions,edgeTangents,edgeMidpoints,nEdges,nVerts,nCells,outputCount,folderName,ϵ,boundaryVertices,vertexEdges)
+@inline @views function visualise(anim,R,params,matrices)
+
+
+   @unpack A,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
+   @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas
    plot(xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))

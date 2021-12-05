@@ -13,8 +13,12 @@ module SpatialData
 using LinearAlgebra
 using StaticArrays
 using LoopVectorization
+using UnPack
 
-function spatialData!(A,Ā,B,B̄,C,R,nCells,nEdges,cellPositions,cellEdgeCount,cellAreas,cellOrientedAreas,cellPerimeters,cellTensions,cellPressures,edgeLengths,edgeMidpoints,edgeTangents,γ,preferredPerimeter,preferredArea)
+function spatialData!(R,params,matrices)
+
+    @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
+    @unpack nCells,nEdges,γ,preferredPerimeter,preferredArea = params
 
     #cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)

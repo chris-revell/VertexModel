@@ -11,8 +11,11 @@ module TopologyChange
 
 # Julia packages
 using LinearAlgebra
+using UnPack
 
-@views function topologyChange!(A,Ā,Aᵀ,Āᵀ,B,B̄,Bᵀ,B̄ᵀ,C,R,cellEdgeCount,cellPositions,boundaryVertices,vertexEdges,edgeTangents,nVerts,nCells)
+@views function topologyChange!(matrices)
+
+    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices = matrices
 
     # Find adjacency matrices from incidence matrices
     Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)

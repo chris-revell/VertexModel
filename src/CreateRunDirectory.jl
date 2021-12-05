@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 09/02/2021.
 #
 #
-# Function to create a directory in which to store run results and parameters, with directory name given by currentdate and time
+# Function to create a directory in which to store simulations results and parameters, with directory name given by current date and time
 
 module CreateRunDirectory
 
@@ -13,8 +13,12 @@ module CreateRunDirectory
 using Dates
 using Base.Filesystem
 using DelimitedFiles
+using UnPack
 
-function createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
+function createRunDirectory(R,params,matrices)
+
+    @unpack A,B = matrices
+    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax = params
 
     # Create directory for run data labelled with current time.
     foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
@@ -25,8 +29,8 @@ function createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,d
         println(conditionsfile, "nCells,             $nCells            ")
         println(conditionsfile, "nEdges,             $nEdges            ")
         println(conditionsfile, "nVerts,             $nVerts            ")
-        println(conditionsfile, "γ,              $γ             ")
-        println(conditionsfile, "λ,              $λ             ")
+        println(conditionsfile, "γ,                  $γ                 ")
+        println(conditionsfile, "λ,                  $λ                 ")
         println(conditionsfile, "tStar,              $tStar             ")
         println(conditionsfile, "realTimetMax,       $realTimetMax      ")
         println(conditionsfile, "tMax,               $tMax              ")

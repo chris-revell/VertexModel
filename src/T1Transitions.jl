@@ -11,8 +11,12 @@ module T1Transitions
 
 # Julia packages
 using LinearAlgebra
+using UnPack
 
-@views function t1Transitions!(A,Ā,B,B̄,C,R,nEdges,edgeLengths,edgeTangents,t1Threshold,ϵ)
+@views function t1Transitions!(R,params,matrices)
+
+    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents = matrices
+    @unpack nEdges,t1Threshold = params
 
     transitionOccurred = 0
 
