@@ -15,10 +15,10 @@ using Base.Filesystem
 using DelimitedFiles
 using UnPack
 
-function createRunDirectory(R,nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax,A,B)
+function createRunDirectory(R,params,matrices)
 
-    # @unpack A,B = matrices
-    # @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax = params
+    @unpack A,B = matrices
+    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax = params
 
     # Create directory for run data labelled with current time.
     foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")

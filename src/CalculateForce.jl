@@ -15,10 +15,10 @@ using StaticArrays
 using LoopVectorization
 using UnPack
 
-function calculateForce!(R,nVerts,nCells,nEdges,A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,ϵ)
+function calculateForce!(R,params,matrices)
 
-    # @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,ϵ = matrices
-    # @unpack nVerts,nCells,nEdges = params
+    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,ϵ = matrices
+    @unpack nVerts,nCells,nEdges = params
 
     fill!(F,SVector{2}(zeros(2)))
     #fill!(externalF,SVector{2}(zeros(2)))

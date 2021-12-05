@@ -13,10 +13,12 @@ module Initialise
 using SparseArrays
 using StaticArrays
 using DelimitedFiles
-using DrWatson
+#using DrWatson
 
 # Local modules
 include("InitialHexagons.jl"); using .InitialHexagons
+include("VertexModelContainers.jl"); using .VertexModelContainers
+
 
 function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
 
@@ -77,13 +79,27 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)  # 2D matrix containing the labels of all 2-3 cells around each vertex
     F                 = Array{SVector{2,Float64}}(undef,nVerts)  # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
 
-    # Pack matrces into a vector for convenience
-    #matrices = @dict A B Aᵀ Ā Āᵀ Bᵀ B̄ B̄ᵀ C cellEdgeCount boundaryVertices cellPositions cellPerimeters cellOrientedAreas cellAreas cellTensions cellPressures edgeLengths edgeTangents edgeMidpoints vertexEdges vertexCells F ϵ
+    # Pack matrces into a struct for convenience
+    matrices = MatricesContainer(A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,vertexEdges,vertexCells,F,ϵ)
+    
+    # Pack parameters into a struct for convenience
+    params = ParametersContainer(nVerts,
+        nCells,
+        nEdges,
+        γ,
+        λ,
+        preferredPerimeter,
+        preferredArea,
+        pressureExternal,
+        dt,
+        outputInterval,
+        tStar,
+        realTimetMax,
+        tMax,
+        t1Threshold
+    )
 
-    # Pack parameters into a dictionary for convenience (using DrWatson @dict)
-    #params = @dict nVerts nCells nEdges γ λ preferredPerimeter preferredArea pressureExternal dt outputInterval tStar realTimetMax tMax t1Threshold
-
-    return R,tempR,ΔR,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputInterval,tStar,realTimetMax,tMax,t1Threshold,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,vertexEdges,vertexCells,F,ϵ
+    return R,tempR,ΔR,params,matrices
 
 end
 
