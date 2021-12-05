@@ -14,19 +14,19 @@ using Dates
 using Base.Filesystem
 using DelimitedFiles
 
-function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
+function createRunDirectory(nCells,nEdges,nVerts,γ,λ,tStar,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,A,B,R)
 
     # Create directory for run data labelled with current time.
     foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
-    mkpath("data/sims$(foldername)")
+    mkpath("data/sims/$(foldername)")
 
     # Store system parameters.
-    open("data/sims$(foldername)/conditions.txt","w") do conditionsfile
+    open("data/sims/$(foldername)/conditions.txt","w") do conditionsfile
         println(conditionsfile, "nCells,             $nCells            ")
         println(conditionsfile, "nEdges,             $nEdges            ")
         println(conditionsfile, "nVerts,             $nVerts            ")
-        println(conditionsfile, "gamma,              $gamma             ")
-        println(conditionsfile, "lamda,              $lamda             ")
+        println(conditionsfile, "γ,              $γ             ")
+        println(conditionsfile, "λ,              $λ             ")
         println(conditionsfile, "tStar,              $tStar             ")
         println(conditionsfile, "realTimetMax,       $realTimetMax      ")
         println(conditionsfile, "tMax,               $tMax              ")
@@ -37,9 +37,9 @@ function createRunDirectory(nCells,nEdges,nVerts,gamma,lamda,tStar,realTimetMax,
     end
 
     # Store initial system characteristic matrices
-    writedlm("data/sims$(foldername)/A.txt",A," ")
-    writedlm("data/sims$(foldername)/B.txt",B," ")
-    writedlm("data/sims$(foldername)/R.txt",R," ")
+    writedlm("data/sims/$(foldername)/A.txt",A," ")
+    writedlm("data/sims/$(foldername)/B.txt",B," ")
+    writedlm("data/sims/$(foldername)/R.txt",R," ")
 
     return foldername
 
