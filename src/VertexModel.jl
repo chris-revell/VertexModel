@@ -52,31 +52,32 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     topologyChange!(matrices)
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
+    rkCoefficients = @SMatrix [
+        0.0 0.5 0.5 0.5
+        1.0 2.0 2.0 1.0
+    ]
     visualise(anim,R,params,matrices)
 
     while t<params.tMax
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        iterate1!(6.0,R,ΔR,params,matrices)
-
+        iterate!(1,rkCoefficients,R,tempR,ΔR,params,matrices)
         # 2nd step of Runge-Kutta
-        iterate2!(2.0,3.0,R,tempR,ΔR,params,matrices)
-
+        iterate!(2,rkCoefficients,R,tempR,ΔR,params,matrices)
         # 3rd step of Runge-Kutta
-        iterate2!(2.0,3.0,R,tempR,ΔR,params,matrices)
-
+        iterate!(2,rkCoefficients,R,tempR,ΔR,params,matrices)
         # 4th step of Runge-Kutta
-        iterate2!(1.0,6.0,R,tempR,ΔR,params,matrices)
-
+        iterate!(4,rkCoefficients,R,tempR,ΔR,params,matrices)
 
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
 
+        # Visualise system at every output interval
         if t%params.outputInterval<dt && outputToggle==1
             visualise(anim,R,params,matrices)
-            println("$t/$(params.tMax))")
+            println("$t/$(params.tMax)")
         end
 
     end
