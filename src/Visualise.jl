@@ -18,10 +18,10 @@ using UnPack
 
 # Local modules
 
-@inline @views function visualise(anim,R,params,matrices)
+@inline @views function visualise(anim,params,matrices)
 
 
-   @unpack A,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
+   @unpack R,A,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
    @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas

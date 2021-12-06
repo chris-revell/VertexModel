@@ -23,11 +23,9 @@ include("VertexModelContainers.jl"); using .VertexModelContainers
 function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
 
     # Derived parameters
-    tMax               = realTimetMax/tStar       # Non dimensionalised maximum system run time
-    outputInterval     = tMax/outputTotal         # Time interval for storing system data (non dimensionalised)
-    preferredPerimeter = -λ/(2*γ)        # Cell preferred perimeter
-    ϵ                  = SMatrix{2,2}([0.0 1.0
-                                       -1.0 0.0]) # Antisymmetric rotation matrix
+    tMax               = realTimetMax/tStar # Non dimensionalised maximum system run time
+    outputInterval     = tMax/outputTotal   # Time interval for storing system data (non dimensionalised)
+    preferredPerimeter = -λ/(2*γ)           # Cell preferred perimeter
 
     # Initialise system matrices from function or file
     # A is an incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
@@ -50,38 +48,75 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     end
 
     # Infer system information from matrices
-    nCells            = size(B)[1]                               # Number of cells
-    nEdges            = size(A)[1]                               # Number of edges
-    nVerts            = size(A)[2]                               # Number of vertices
+    nCells            = size(B)[1]
+    nEdges            = size(A)[1]
+    nVerts            = size(A)[2]
 
-    # Preallocate empty arrays for additional system matrices
-    Aᵀ                = spzeros(Int64,nVerts,nEdges)             # Transpose of incidence matrix A
-    Ā                 = spzeros(Int64,nEdges,nVerts)             # Undirected adjacency matrix from absolute values of incidence matrix A
-    Āᵀ                = spzeros(Int64,nVerts,nEdges)             # Undirected adjacency matrix from absolute values of transpose of incidence matrix Aᵀ
-    Bᵀ                = spzeros(Int64,nEdges,nCells)             # Transpose of incidence matrix B
-    B̄                 = spzeros(Int64,nCells,nEdges)             # Undirected adjacency matrix from absolute values of incidence matrix B
-    B̄ᵀ                = spzeros(Int64,nEdges,nCells)             # Undirected adjacency matrix from absolute values of transpose of incidence matrix Bᵀ
-    C                 = spzeros(Int64,nCells,nVerts)             # C adjacency matrix. Rows => cells; Columns => vertices. = 0.5*B̄*Ā
-    tempR             = Array{SVector{2,Float64}}(undef,nVerts)  # Vector to store temporary positions in Runge-Kutta integration as static arrays
-    ΔR                = Array{SVector{2,Float64}}(undef,nVerts)  # Vector to store change in R during Runge-Kutta integration as static arrays
-    cellEdgeCount     = zeros(Int64,nCells)                      # 1D matrix containing number of edges around each cell, found by summing columns of B̄
-    boundaryVertices  = zeros(Int64,nVerts)                      # 1D matrix containing labels of vertices at system boundary
-    cellPositions     = Array{SVector{2,Float64}}(undef,nCells)  # Vector of 2D cell centre positions as static arrays
-    cellPerimeters    = zeros(nCells)                            # 1D matrix of scalar cell perimeter lengths
-    cellOrientedAreas = Array{SMatrix{2,2,Float64}}(undef,nCells)# Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area
-    cellAreas         = zeros(nCells)                            # 1D matrix of scalar cell areas
-    cellTensions      = zeros(nCells)                            # 1D matrix of scalar cell tensions
-    cellPressures     = zeros(nCells)                            # 1D matrix of scalar cell pressures
-    edgeLengths       = zeros(nEdges)                            # 1D matrix of scalar edge lengths
-    edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)  # 2D matrix of tangent vectors for each edge (magnitude = edge length)
-    edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)  # 2D matrix of position coordinates for each edge midpoint
-    vertexEdges       = Array{SVector{3,Float64}}(undef,nVerts)  # 2D matrix containing the labels of all 3 edges around each vertex
-    vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)  # 2D matrix containing the labels of all 2-3 cells around each vertex
-    F                 = Array{SVector{2,Float64}}(undef,nVerts)  # 3D array containing force vectors on vertex k from cell i, Fᵢₖ
+    # Preallocate empty arrays for additional system matrices. See VertexModelContainers for explanations.
+    Aᵀ                = spzeros(Int64,nVerts,nEdges)
+    Ā                 = spzeros(Int64,nEdges,nVerts)
+    Āᵀ                = spzeros(Int64,nVerts,nEdges)
+    Bᵀ                = spzeros(Int64,nEdges,nCells)
+    B̄                 = spzeros(Int64,nCells,nEdges)
+    B̄ᵀ                = spzeros(Int64,nEdges,nCells)
+    C                 = spzeros(Int64,nCells,nVerts)
+    tempR             = Array{SVector{2,Float64}}(undef,nVerts)
+    ΔR                = Array{SVector{2,Float64}}(undef,nVerts)
+    cellEdgeCount     = zeros(Int64,nCells)
+    boundaryVertices  = zeros(Int64,nVerts)
+    cellPositions     = Array{SVector{2,Float64}}(undef,nCells)
+    cellPerimeters    = zeros(nCells)
+    cellOrientedAreas = Array{SMatrix{2,2,Float64}}(undef,nCells)
+    cellAreas         = zeros(nCells)
+    cellTensions      = zeros(nCells)
+    cellPressures     = zeros(nCells)
+    edgeLengths       = zeros(nEdges)
+    edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
+    edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
+    vertexEdges       = Array{SVector{3,Float64}}(undef,nVerts)
+    vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)
+    F                 = Array{SVector{2,Float64}}(undef,nVerts)
+    rkCoefficients    = @SMatrix [
+        0.0 0.5 0.5 0.5
+        1.0 2.0 2.0 1.0
+    ]
+    ϵ                 = @SMatrix [
+        0.0 1.0
+        -1.0 0.0
+    ]
 
     # Pack matrces into a struct for convenience
-    matrices = MatricesContainer(A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,vertexEdges,vertexCells,F,ϵ)
-    
+    matrices = MatricesContainer(
+        R,
+        tempR,
+        ΔR,
+        A,
+        B,
+        Aᵀ,
+        Ā,
+        Āᵀ,
+        Bᵀ,
+        B̄,
+        B̄ᵀ,
+        C,
+        cellEdgeCount,
+        boundaryVertices,
+        cellPositions,
+        cellPerimeters,
+        cellOrientedAreas,
+        cellAreas,
+        cellTensions,
+        cellPressures,
+        edgeLengths,
+        edgeTangents,
+        edgeMidpoints,
+        vertexEdges,
+        vertexCells,
+        F,
+        ϵ,
+        rkCoefficients
+    )
+
     # Pack parameters into a struct for convenience
     params = ParametersContainer(nVerts,
         nCells,
@@ -99,7 +134,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         t1Threshold
     )
 
-    return R,tempR,ΔR,params,matrices
+    return params,matrices
 
 end
 

@@ -20,16 +20,16 @@ include("CalculateForce.jl"); using .CalculateForce
 include("T1Transitions.jl"); using .T1Transitions
 include("TopologyChange.jl"); using .TopologyChange
 
-function iterate!(iteration,rkCoefficients,R,tempR,ΔR,params,matrices)
+function iterate!(iteration,params,matrices)
 
-    @unpack F = matrices
+    @unpack R, tempR, ΔR, F, rkCoefficients = matrices
     @unpack dt = params
 
     tempR .= R .+ F.*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
-        if (t1Transitions!(R,params,matrices))==1
+        if (t1Transitions!(tempR,params,matrices))==1
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end
@@ -41,21 +41,6 @@ function iterate!(iteration,rkCoefficients,R,tempR,ΔR,params,matrices)
     return nothing
 end
 
-
-
-# function iterate2!(coefficient1,coefficient2,R,tempR,ΔR,params,matrices)
-#
-#     @unpack F = matrices
-#     @unpack dt = params
-#
-#     tempR .= R .+ F.*dt/coefficient1
-#     spatialData!(tempR,params,matrices)
-#     calculateForce!(tempR,params,matrices)
-#     ΔR .+= F.*dt/coefficient2
-#
-#     return nothing
-# end
-
-export iterate!#, iterate2!
+export iterate!
 
 end

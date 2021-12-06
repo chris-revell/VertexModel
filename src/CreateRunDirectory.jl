@@ -15,9 +15,9 @@ using Base.Filesystem
 using DelimitedFiles
 using UnPack
 
-function createRunDirectory(R,params,matrices)
+function createRunDirectory(params,matrices)
 
-    @unpack A,B = matrices
+    @unpack A,B,R = matrices
     @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax = params
 
     # Create directory for run data labelled with current time.
