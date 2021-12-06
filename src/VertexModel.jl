@@ -52,6 +52,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     topologyChange!(matrices)
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
+    visualise(anim,R,params,matrices)
 
     while t<params.tMax
 
