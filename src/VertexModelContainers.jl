@@ -26,13 +26,14 @@ struct ParametersContainer
     tStar              ::Float64  # Relaxation rate, approx from Sarah's data.
     realTimetMax       ::Float64  # Dimensionalised run time in seconds
     tMax               ::Float64  # Non dimensionalised run time
+    nonDimCellCycleTime::Float64  # Non dimensionalised cell cycle time 
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
 end
 
 struct MatricesContainer
     R                ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors for each vertex (x,y) position
     tempR            ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors to hold intermediate positions of each vertex in Runge-Kutta integration
-    ΔR               ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors to hold overall change of position of each vertex in Runge-Kutta integration 
+    ΔR               ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors to hold overall change of position of each vertex in Runge-Kutta integration
     A                ::SparseMatrixCSC{Int64, Int64}  # Incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
     B                ::SparseMatrixCSC{Int64, Int64}  # Incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
     Aᵀ               ::SparseMatrixCSC{Int64, Int64}  # Transpose of incidence matrix A
@@ -50,6 +51,7 @@ struct MatricesContainer
     cellAreas        ::Vector{Float64}                # Vector of scalar cell areas
     cellTensions     ::Vector{Float64}                # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                # Vector of internal pressures for each cell
+    cellAges         ::Vector{Float64}                # Vector of cell ages
     edgeLengths      ::Vector{Float64}                # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors containing edge midpoints as (x,y) positions

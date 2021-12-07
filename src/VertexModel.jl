@@ -42,15 +42,17 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     # t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
     # outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
 
+    nonDimCellCycleTime = 24.0/tStar
+
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
+    params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,nonDimCellCycleTime)
 
     # Initial setup of matrices based on system topology
     topologyChange!(matrices)
 
     # Extract some variables from containers
     @unpack tMax, outputInterval = params
-    @unpack R, tempR, ΔR = matrices
+    @unpack R, tempR, ΔR, cellAges = matrices
 
     # Setup output if outputToggle argument == 1
     if outputToggle==1
@@ -78,6 +80,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
+        cellAges .+= dt
 
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1

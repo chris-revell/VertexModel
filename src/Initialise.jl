@@ -20,7 +20,7 @@ include("InitialHexagons.jl"); using .InitialHexagons
 include("VertexModelContainers.jl"); using .VertexModelContainers
 
 
-function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold)
+function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,nonDimCycleTime)
 
     # Derived parameters
     tMax               = realTimetMax/tStar # Non dimensionalised maximum system run time
@@ -70,6 +70,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
+    cellAges          = rand(nCells).*nonDimCycleTime
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
     edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
@@ -131,6 +132,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         tStar,
         realTimetMax,
         tMax,
+        nonDimCycleTime,
         t1Threshold
     )
 
