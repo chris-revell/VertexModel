@@ -15,7 +15,7 @@ using UnPack
 
 @views function t1Transitions!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents = matrices
+    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,ϵ = matrices
     @unpack nEdges,t1Threshold = params
 
     transitionOccurred = 0
