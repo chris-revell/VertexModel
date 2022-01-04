@@ -20,12 +20,13 @@ include("InitialHexagons.jl"); using .InitialHexagons
 include("VertexModelContainers.jl"); using .VertexModelContainers
 
 
-function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,nonDimCycleTime)
+function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,cellCycleTime)
 
     # Derived parameters
     tMax               = realTimetMax/tStar # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal   # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -λ/(2*γ)           # Cell preferred perimeter
+    nonDimCellCycleTime= cellCycleTime/tStar
 
     # Initialise system matrices from function or file
     # A is an incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
@@ -70,7 +71,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    cellAges          = rand(nCells).*nonDimCycleTime
+    cellAges          = rand(nCells).*nonDimCellCycleTime
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
     edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
@@ -108,6 +109,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellAreas,
         cellTensions,
         cellPressures,
+        cellAges,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
@@ -132,7 +134,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         tStar,
         realTimetMax,
         tMax,
-        nonDimCycleTime,
+        nonDimCellCycleTime,
         t1Threshold
     )
 

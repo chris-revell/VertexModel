@@ -25,11 +25,11 @@ function initialHexagons(n)
              0.0 0.0 0.0 -1.0 1.0 0.0
              0.0 0.0 0.0 0.0 -1.0 1.0
              1.0 0.0 0.0 0.0 0.0 -1.0]
-        A = sparse(A)
+        A = sparse(ATmp)
 
         B = -1.0.*ones(1,6)
 
-        R = Array{SVector{2,Float64}}(undef,nVerts)
+        R = Array{SVector{2,Float64}}(undef,6)
         for k=1:6
             R[k] = SVector{2}([cos((k*π)/3.0),sin((k*π)/3.0)])
         end

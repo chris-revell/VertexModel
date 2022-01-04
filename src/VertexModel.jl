@@ -16,6 +16,8 @@ using StaticArrays
 using LoopVectorization
 using Plots
 using UnPack
+using DrWatson
+@quickactivate
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -42,10 +44,10 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     # t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
     # outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
 
-    nonDimCellCycleTime = 24.0/tStar
+    cellCycleTime = 24
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,nonDimCellCycleTime)
+    params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,cellCycleTime)
 
     # Initial setup of matrices based on system topology
     topologyChange!(matrices)
@@ -64,7 +66,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
         visualise(anim,params,matrices)
     end
 
-    t = 1E-8   # Initial time is very small but slightly above 0 to avoid issues with remainders in output interval calculation
+    t = 1E-8   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
     while t<tMax
 
         # 4 step Runge-Kutta integration

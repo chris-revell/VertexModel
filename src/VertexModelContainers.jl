@@ -12,7 +12,7 @@ module VertexModelContainers
 using SparseArrays
 using StaticArrays
 
-struct ParametersContainer
+mutable struct ParametersContainer
     nVerts             ::Int64    # Number of cells
     nCells             ::Int64    # Number of edges
     nEdges             ::Int64    # Number of vertices
@@ -26,11 +26,11 @@ struct ParametersContainer
     tStar              ::Float64  # Relaxation rate, approx from Sarah's data.
     realTimetMax       ::Float64  # Dimensionalised run time in seconds
     tMax               ::Float64  # Non dimensionalised run time
-    nonDimCellCycleTime::Float64  # Non dimensionalised cell cycle time 
+    nonDimCellCycleTime::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
 end
 
-struct MatricesContainer
+mutable struct MatricesContainer
     R                ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors for each vertex (x,y) position
     tempR            ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors to hold intermediate positions of each vertex in Runge-Kutta integration
     ΔR               ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors to hold overall change of position of each vertex in Runge-Kutta integration
