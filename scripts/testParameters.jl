@@ -1,11 +1,11 @@
-initialSystem    = "test"
-realTimetMax     = 1000.0
+initialSystem    = "single"
+realTimetMax     = 24.0
 γ                = 0.2
 λ                = -0.3
 tStar            = 20.0
 dt               = 0.01
-preferredArea    = 1.0
-pressureExternal = 0.1
-outputTotal      = 20
+preferredArea    = 0.5
+pressureExternal = 0.0
+outputTotal      = 100
 t1Threshold      = 0.01
 outputToggle     = 1

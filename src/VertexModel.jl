@@ -79,7 +79,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
         # 4th step of Runge-Kutta
         iterate!(4,params,matrices)
 
-        # Result of Runge-Kutta steps
+        # Result of Runge-Kutta steps        
         R .+= ΔR
         t +=dt
         cellAges .+= dt

@@ -15,6 +15,7 @@ using Printf
 using LinearAlgebra
 using ColorSchemes
 using UnPack
+using GeometryBasics
 
 # Local modules
 
@@ -28,7 +29,7 @@ using UnPack
    plot(xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
 
    # Scatter vertices
-   # scatter!(R[:,1],R[:,2])
+   scatter!(Point2f0.(R))
 
    # # Scatter edge midpoints
    # scatter!(edgeMidpoints[:,1],edgeMidpoints[:,2],color=:white,markersize=4)

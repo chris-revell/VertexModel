@@ -15,19 +15,26 @@ using StaticArrays
 using SparseArrays
 using UnPack
 
-include("TopologyChange.jl"); using .TopologyChange
+#include("TopologyChange.jl"); using .TopologyChange
 
 indexLoop(a,N) = (N+a-1)%(N)+1
 
 function division!(params,matrices)
 
-    @unpack nCells, nonDimCellCycleTime = params
-    @unpack R, B, C, cellAges, edgeMidpoints, ϵ = matrices
+    @unpack nCells, nEdges, nVerts, nonDimCellCycleTime = params
+    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
+    Atmp = copy(A)
+    Btmp = copy(B)
+    newRs = Array{SVector{2,Float64}}(undef,0)
+
     for i=1:nCells
         if cellAges[i] > nonDimCellCycleTime
+
+            Atmp = copy(A)
+            Btmp = copy(B)
 
             divisionCount += 1
 
@@ -59,13 +66,13 @@ function division!(params,matrices)
             shortAngle = (atan(shortAxis...)+2π)%2π
 
             # Calculate polar angles of vertices and edges around centrePoint
-            vertexAngles = similar(cellVertices)
-            edgeAngles = similar(cellEdges)
+            vertexAngles = zeros(size(cellVertices))
+            edgeAngles = zeros(size(cellEdges))
             for (k,v) in enumerate(cellVertices)
-                vertexAngles[k] = atan(R[v]-centrePoint...)
+                vertexAngles[k] = atan((R[v].-centrePoint)...)
             end
             for (k,e) in enumerate(cellEdges)
-                edgeAngles[k]   = atan(edgeMidpoints[e]-centrePoint...)
+                edgeAngles[k]   = atan((edgeMidpoints[e].-centrePoint)...)
             end
 
             # Adjust angles so that one vertex is at 0 and all other angles are relative
@@ -94,57 +101,58 @@ function division!(params,matrices)
             sort!(intersectedIndex)
 
             # Add new rows and columns to B matrix for new cell and edges
-            B = [B; spzeros(1,nEdges)]
-            B = [B spzeros(nCells+1,3)]
+            Btmp = [Btmp; spzeros(1,nEdges)]
+            Btmp = [Btmp spzeros(nCells+1,3)]
 
             # Add edges to new cell with existing orientations
-            B[nCells+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= B[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
+            Btmp[nCells+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= Btmp[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
             # Remove edges from existing cell that have been moved to new cell
-            B[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= 0
+            Btmp[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= 0
             # Add new short axis edge to existing cell
-            B[i,nEdges+1] = 1
+            Btmp[i,nEdges+1] = 1
             # Add new short axis edge to new cell
-            B[nCells+1,nEdges+1] = -1
+            Btmp[nCells+1,nEdges+1] = -1
             # Add new edges created by splitting intersected edges to new cell with the same orientation as the edge that was split
-            B[nCells+1,nEdges+2] = B[i,cellEdges[intersectedIndex[1]]]
-            B[nCells+1,nEdges+3] = B[i,cellEdges[intersectedIndex[2]]]
+            Btmp[nCells+1,nEdges+2] = Btmp[i,cellEdges[intersectedIndex[1]]]
+            Btmp[nCells+1,nEdges+3] = Btmp[i,cellEdges[intersectedIndex[2]]]
 
             # Find the two neighbouring cells that share the intersected edges
-            neighbour1 = findall(j->j!=0,B[:,cellEdges[intersectedIndex[1]]])[1]
-            neighbour2 = findall(j->j!=0,B[:,cellEdges[intersectedIndex[2]]])[1]
+            neighbour1 = findall(j->j!=0,Btmp[:,cellEdges[intersectedIndex[1]]])[1]
+            neighbour2 = findall(j->j!=0,Btmp[:,cellEdges[intersectedIndex[2]]])[1]
 
             # Add new edges to these neighbour cells
-            B[neighbour1,nEdges+2] = B[neighbour1,cellEdges[intersectedIndex[1]]]
-            B[neighbour2,nEdges+3] = B[neighbour2,cellEdges[intersectedIndex[2]]]
+            Btmp[neighbour1,nEdges+2] = Btmp[neighbour1,cellEdges[intersectedIndex[1]]]
+            Btmp[neighbour2,nEdges+3] = Btmp[neighbour2,cellEdges[intersectedIndex[2]]]
 
             # Add new rows and columns to A matrix for new vertices and edges
-            A = [A; spzeros(3,nVerts)]
-            A = [A spzeros(nEdges+3,2)]
+            Atmp = [Atmp; spzeros(3,nVerts)]
+            Atmp = [Atmp spzeros(nEdges+3,2)]
 
             # Allocate new vertices to new and existing edges and existing vertices to new edges
-            A[nEdges+2,cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = A[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
-            A[nEdges+2,nVerts+1] = A[cellEdges[intersectedIndex[1]],cellVertices[intersectedIndex[1]]]
-            A[cellEdges[intersectedIndex[1]],nVerts+1] = A[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
-            A[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = 0
+            Atmp[nEdges+2,cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
+            Atmp[nEdges+2,nVerts+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[intersectedIndex[1]]]
+            Atmp[cellEdges[intersectedIndex[1]],nVerts+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
+            Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = 0
 
-            A[nEdges+3,cellVertices[intersectedIndex[2]]] = A[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
-            A[nEdges+3,nVerts+2] = A[cellEdges[intersectedIndex[2]],cellVertices[indexLoop(intersectedIndex[2]+1,n)]]
-            A[cellEdges[intersectedIndex[2]],nVerts+2] = A[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
-            A[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]] = 0
+            Atmp[nEdges+3,cellVertices[intersectedIndex[2]]] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
+            Atmp[nEdges+3,nVerts+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[indexLoop(intersectedIndex[2]+1,n)]]
+            Atmp[cellEdges[intersectedIndex[2]],nVerts+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
+            Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]] = 0
 
-            A[nEdges+1,nVerts+1] = -1
-            A[nEdges+1,nVerts+2] = 1
+            Atmp[nEdges+1,nVerts+1] = -1
+            Atmp[nEdges+1,nVerts+2] = 1
 
             # Add new vertex position
             newPos1 = (R[cellVertices[indexLoop(intersectedIndex[1]+1,n)]].+R[cellVertices[intersectedIndex[1]]])./2
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
-            R = vcat(R, [newPos1,newPos2])
+            append!(newRs,[newPos1,newPos2])
+
+            cellAges[i] = 0
 
         else
             #nothing
         end
     end
-
 
     if divisionCount>0
 
@@ -153,36 +161,39 @@ function division!(params,matrices)
         params.nEdges += 3*divisionCount
 
         # Add 1 component to vectors for new cell
-        cellEdgeCount = vcat(cellEdgeCount,zeros(Int64,divisionCount))
-        cellPositions = vcat(cellPositions,Array{SVector{2,Float64}}(undef,divisionCount))
-        cellPerimeters = vcat(cellPerimeters,zeros(Float64,divisionCount))
-        cellOrientedAreas = vcat(cellOrientedAreas,Array{SMatrix{2,2,Float64}}(undef,divisionCount))
-        cellAreas = vcat(cellAreas,zeros(Float64,divisionCount))
-        cellTensions = vcat(cellTensions,zeros(Float64,divisionCount))
-        cellPressures = vcat(cellPressures,zeros(Float64,divisionCount))
-        cellAges = vcat(cellAges,zeros(Float64,divisionCount))
+        append!(cellEdgeCount,zeros(Int64,divisionCount))
+        append!(cellPositions,Array{SVector{2,Float64}}(undef,divisionCount))
+        append!(cellPerimeters,zeros(Float64,divisionCount))
+        append!(cellOrientedAreas,Array{SMatrix{2,2,Float64}}(undef,divisionCount))
+        append!(cellAreas,zeros(Float64,divisionCount))
+        append!(cellTensions,zeros(Float64,divisionCount))
+        append!(cellPressures,zeros(Float64,divisionCount))
+        append!(cellAges,zeros(Float64,divisionCount))
+
         # Add 2 components to vectors for new vertices
-        tempR = vcat(tempR,Array{SVector{2,Float64}}(undef,2*divisionCount))
-        ΔR = vcat(ΔR,Array{SVector{2,Float64}}(undef,2*divisionCount))
-        boundaryVertices = vcat(boundaryVertices,zeros(Int64,2*divisionCount))
-        F = vcat(F,Array{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(R,newRs)
+        append!(tempR,newRs)
+        append!(ΔR,Array{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(boundaryVertices,zeros(Int64,2*divisionCount))
+        append!(F,Array{SVector{2,Float64}}(undef,2*divisionCount))
         # Add 3 components to vectors for new edges
-        edgeLengths = vcat(edgeLengths,zeros(Float64,3*divisionCount))
-        edgeTangents = vcat(edgeTangents,Array{SVector{2,Float64}}(undef,3*divisionCount))
-        edgeMidpoints = vcat(edgeMidpoints,Array{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeLengths,zeros(Float64,3*divisionCount))
+        append!(edgeTangents,Array{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeMidpoints,Array{SVector{2,Float64}}(undef,3*divisionCount))
 
+        matrices.A = Atmp
+        matrices.B = Btmp
+        matrices.Aᵀ = spzeros(Int64,params.nVerts,params.nEdges)
+        matrices.Ā  = spzeros(Int64,params.nEdges,params.nVerts)
+        matrices.Āᵀ = spzeros(Int64,params.nVerts,params.nEdges)
+        matrices.Bᵀ = spzeros(Int64,params.nEdges,params.nCells)
+        matrices.B̄  = spzeros(Int64,params.nCells,params.nEdges)
+        matrices.B̄ᵀ = spzeros(Int64,params.nEdges,params.nCells)
+        matrices.C  = spzeros(Int64,params.nCells,params.nVerts)
 
-        Aᵀ = spzeros(Int64,nVerts,nEdges)
-        Ā  = spzeros(Int64,nEdges,nVerts)
-        Āᵀ = spzeros(Int64,nVerts,nEdges)
-        Bᵀ = spzeros(Int64,nEdges,nCells)
-        B̄  = spzeros(Int64,nCells,nEdges)
-        B̄ᵀ = spzeros(Int64,nEdges,nCells)
-        C  = spzeros(Int64,nCells,nVerts)
-        topologyChange!(matrices)
     end
 
-    return nothing
+    return divisionCount
 
 end
 
