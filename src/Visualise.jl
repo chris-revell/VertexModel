@@ -16,10 +16,14 @@ using LinearAlgebra
 using ColorSchemes
 using UnPack
 using GeometryBasics
+using Random
 
-# Local modules
+function getRandomColor(seed)
+    Random.seed!(seed)
+    rand(RGB{})
+end
 
-@inline @views function visualise(anim,params,matrices)
+@views function visualise(anim,params,matrices)
 
 
    @unpack R,A,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
@@ -29,63 +33,53 @@ using GeometryBasics
    plot(xlims=(-2,2),ylims=(-2,2),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
 
    # Scatter vertices
-   scatter!(Point2f0.(R))
+   scatter!(Point2f.(R))
 
    # # Scatter edge midpoints
-   # scatter!(edgeMidpoints[:,1],edgeMidpoints[:,2],color=:white,markersize=4)
+   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=4)
 
    # Scatter cell positions
-   #scatter!(cellPositions[:,1],cellPositions[:,2],color=:red,markersize=4,markerstroke=:red)
+   scatter!(Point2f.(cellPositions),color=:red,markersize=4,markerstroke=:red)
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
    for i=1:nEdges
       x=findall(x->x!=0,Ā[i,:])
-      plot!([R[x[1]][1],R[x[2]][1]],[R[x[1]][2],R[x[2]][2]],color=:black,linewidth=4)
+      plot!(Point2f.(R[x]),color=:black,linewidth=4)
+   end
+
+   # Plot cells
+   for i=1:nCells
+      cellVertices = findall(x->x!=0,C[i,:])
+      vertexAngles = zeros(size(cellVertices))
+      for (k,v) in enumerate(cellVertices)
+         vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+      end
+      cellVertices .= cellVertices[sortperm(vertexAngles)]
+      Cell = Shape(Point2f.(R[cellVertices]))
+      plot!(Cell,color=getRandomColor(i),alpha=0.75)
    end
 
    # Vertex moment kites
    # for i=1:nVerts
    #    # Exclude boundary vertices.
    #    if boundaryVertices[i] == 0
+   #       vertexEdges = findall(x->x!=0,A[:,i])
    #       # Loop over 3 edges around the vertex.
    #       for k=0:2
    #          # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
-   #          dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1],:] .- edgeMidpoints[vertexEdges[i,k+1],:]
-   #          # Find cell bordered by these two edges
+   #          dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1]] .- edgeMidpoints[vertexEdges[i,k+1]] # Could use arrayLoop function here
+   #          # Find cell bordered by both these two edges
    #          cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
-   #          xs = [cellPositions[cellID,1],edgeMidpoints[vertexEdges[i,k+1],1],R[i,1],edgeMidpoints[vertexEdges[i,(k+1)%3+1],1],cellPositions[cellID,1]]
-   #          ys = [cellPositions[cellID,2],edgeMidpoints[vertexEdges[i,k+1],2],R[i,2],edgeMidpoints[vertexEdges[i,(k+1)%3+1],2],cellPositions[cellID,2]]
-   #          dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1],:])⋅normalize(dM)
-   #          plot!(xs,ys,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
+   #          kite = Shape(Point2f.([cellPositions[cellID],edgeMidpoints[vertexEdges[i,k+1]],R[i],edgeMidpoints[vertexEdges[i,(k+1)%3+1]]]))
+   #          dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1]])⋅normalize(dM)
+   #          plot!(kite,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
    #       end
    #    else
    #       # Skip boundary vertices
    #    end
    # end
 
-
-   # Plot connections between cell centres and edge midpoints
-   # for i=1:nCells
-   #    x=findall(x->x>0.5,B̄[i,:])
-   #    for j in x
-   #       plot!([cellPositions[i,1],edgeMidpoints[j,1]],[cellPositions[i,2],edgeMidpoints[j,2]],color=:red,linewidth=3)
-   #    end
-   # end
-
-   # Plot connections between neighbouring cell centres
-   # xs = zeros(2)
-   # ys = zeros(2)
-   # for i=1:nEdges
-   #    x=findall(x->x>0.5,B̄[:,i])
-   #    if size(x)[1] > 1
-   #       xs[1] = cellPositions[x[1],1]
-   #       xs[2] = cellPositions[x[2],1]
-   #       ys[1] = cellPositions[x[1],2]
-   #       ys[2] = cellPositions[x[2],2]
-   #       plot!(xs,ys,color=:red,alpha=edgeDots[i],linewidth=3)
-   #    end
-   # end
 
    # *************** Force vectors ***************************
    # xs = zeros(0)
