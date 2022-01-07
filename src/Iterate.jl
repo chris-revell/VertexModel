@@ -30,7 +30,6 @@ function iterate!(iteration,params,matrices)
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
-
         if division!(params,matrices)>0
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)

@@ -1,6 +1,8 @@
 using DrWatson
 @quickactivate "VertexModel"
-
+using Revise
+using VertexModel
+includet("scripts/testParameters.jl")
 println(
 """
 Currently active project is: $(projectname())
