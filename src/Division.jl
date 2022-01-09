@@ -113,13 +113,16 @@ function division!(params,matrices)
             Btmp[nCells+1,nEdges+2] = B[i,cellEdges[intersectedIndex[1]]]
             Btmp[nCells+1,nEdges+3] = B[i,cellEdges[intersectedIndex[2]]]
 
-            # # Find the two neighbouring cells that share the intersected edges
-            # neighbour1 = findall(j->j!=0,B[:,cellEdges[intersectedIndex[1]]])[1]
-            # neighbour2 = findall(j->j!=0,B[:,cellEdges[intersectedIndex[2]]])[1]
-            #
-            # # Add new edges to these neighbour cells
-            # Btmp[neighbour1,nEdges+2] = B[neighbour1,cellEdges[intersectedIndex[1]]]
-            # Btmp[neighbour2,nEdges+3] = B[neighbour2,cellEdges[intersectedIndex[2]]]
+            # Find the neighbouring cells that share the intersected edges
+            # Add new edges to these neighbour cells
+            neighbours1 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[1]]]),[i])
+            if size(neighbours1)[1] > 0
+                Btmp[neighbours1[1],nEdges+2] = B[neighbours1[1],cellEdges[intersectedIndex[1]]]
+            end
+            neighbours2 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[2]]]),[i])
+            if size(neighbours2)[1] > 0
+                Btmp[neighbours2[1],nEdges+3] = B[neighbours2[2],cellEdges[intersectedIndex[2]]]
+            end
 
             # Add new rows and columns to A matrix for new vertices and edges
             Atmp = [Atmp; spzeros(3,nVerts)]
@@ -152,8 +155,6 @@ function division!(params,matrices)
     end
 
     if divisionCount>0
-
-        display(Btmp*Atmp)
 
         params.nCells += 1*divisionCount
         params.nVerts += 2*divisionCount
