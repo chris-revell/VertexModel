@@ -29,6 +29,9 @@ function division!(params,matrices)
     Atmp = copy(A)
     Btmp = copy(B)
     newRs = Array{SVector{2,Float64}}(undef,0)
+    nCellsLocal = nCells
+    nEdgesLocal = nEdges
+    nVertsLocal = nVerts
 
     for i=1:nCells
         if cellAges[i] > nonDimCellCycleTime
@@ -98,49 +101,49 @@ function division!(params,matrices)
             sort!(intersectedIndex)
 
             # Add new rows and columns to B matrix for new cell and edges
-            Btmp = [Btmp; spzeros(1,nEdges)]
-            Btmp = [Btmp spzeros(nCells+1,3)]
+            Btmp = [Btmp; spzeros(1,nEdgesLocal)]
+            Btmp = [Btmp spzeros(nCellsLocal+1,3)]
 
             # Add edges to new cell with existing orientations
-            Btmp[nCells+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= B[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
+            Btmp[nCellsLocal+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= B[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
             # Remove edges from existing cell that have been moved to new cell
             Btmp[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= 0
             # Add new short axis edge to existing cell
-            Btmp[i,nEdges+1] = 1
+            Btmp[i,nEdgesLocal+1] = 1
             # Add new short axis edge to new cell
-            Btmp[nCells+1,nEdges+1] = -1
+            Btmp[nCellsLocal+1,nEdgesLocal+1] = -1
             # Add new edges created by splitting intersected edges to new cell with the same orientation as the edge that was split
-            Btmp[nCells+1,nEdges+2] = B[i,cellEdges[intersectedIndex[1]]]
-            Btmp[nCells+1,nEdges+3] = B[i,cellEdges[intersectedIndex[2]]]
+            Btmp[nCellsLocal+1,nEdgesLocal+2] = B[i,cellEdges[intersectedIndex[1]]]
+            Btmp[nCellsLocal+1,nEdgesLocal+3] = B[i,cellEdges[intersectedIndex[2]]]
 
             # Find the neighbouring cells that share the intersected edges
             # Add new edges to these neighbour cells
             neighbours1 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[1]]]),[i])
             if size(neighbours1)[1] > 0
-                Btmp[neighbours1[1],nEdges+2] = B[neighbours1[1],cellEdges[intersectedIndex[1]]]
+                Btmp[neighbours1[1],nEdgesLocal+2] = B[neighbours1[1],cellEdges[intersectedIndex[1]]]
             end
             neighbours2 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[2]]]),[i])
             if size(neighbours2)[1] > 0
-                Btmp[neighbours2[1],nEdges+3] = B[neighbours2[2],cellEdges[intersectedIndex[2]]]
+                Btmp[neighbours2[1],nEdgesLocal+3] = B[neighbours2[1],cellEdges[intersectedIndex[2]]]
             end
 
             # Add new rows and columns to A matrix for new vertices and edges
-            Atmp = [Atmp; spzeros(3,nVerts)]
-            Atmp = [Atmp spzeros(nEdges+3,2)]
+            Atmp = [Atmp; spzeros(3,nVertsLocal)]
+            Atmp = [Atmp spzeros(nEdgesLocal+3,2)]
 
             # Allocate new vertices to new and existing edges and existing vertices to new edges
-            Atmp[nEdges+2,cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
-            Atmp[nEdges+2,nVerts+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[intersectedIndex[1]]]
-            Atmp[cellEdges[intersectedIndex[1]],nVerts+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
+            Atmp[nEdgesLocal+2,cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
+            Atmp[nEdgesLocal+2,nVertsLocal+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[intersectedIndex[1]]]
+            Atmp[cellEdges[intersectedIndex[1]],nVertsLocal+1] = Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]]
             Atmp[cellEdges[intersectedIndex[1]],cellVertices[indexLoop(intersectedIndex[1]+1,n)]] = 0
 
-            Atmp[nEdges+3,cellVertices[intersectedIndex[2]]] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
-            Atmp[nEdges+3,nVerts+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[indexLoop(intersectedIndex[2]+1,n)]]
-            Atmp[cellEdges[intersectedIndex[2]],nVerts+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
+            Atmp[nEdgesLocal+3,cellVertices[intersectedIndex[2]]] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
+            Atmp[nEdgesLocal+3,nVertsLocal+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[indexLoop(intersectedIndex[2]+1,n)]]
+            Atmp[cellEdges[intersectedIndex[2]],nVertsLocal+2] = Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]]
             Atmp[cellEdges[intersectedIndex[2]],cellVertices[intersectedIndex[2]]] = 0
 
-            Atmp[nEdges+1,nVerts+1] = -1
-            Atmp[nEdges+1,nVerts+2] = 1
+            Atmp[nEdgesLocal+1,nVertsLocal+1] = -1
+            Atmp[nEdgesLocal+1,nVertsLocal+2] = 1
 
             # Add new vertex position
             newPos1 = (R[cellVertices[indexLoop(intersectedIndex[1]+1,n)]].+R[cellVertices[intersectedIndex[1]]])./2
@@ -149,6 +152,10 @@ function division!(params,matrices)
 
             cellAges[i] = 0
 
+            nCellsLocal += 1
+            nVertsLocal += 2
+            nEdgesLocal += 3
+
         else
             #nothing
         end
@@ -156,9 +163,9 @@ function division!(params,matrices)
 
     if divisionCount>0
 
-        params.nCells += 1*divisionCount
-        params.nVerts += 2*divisionCount
-        params.nEdges += 3*divisionCount
+        params.nCells = nCellsLocal
+        params.nVerts = nVertsLocal
+        params.nEdges = nEdgesLocal
 
         # Add 1 component to vectors for new cell
         append!(cellEdgeCount,zeros(Int64,divisionCount))
@@ -183,13 +190,13 @@ function division!(params,matrices)
 
         matrices.A = Atmp
         matrices.B = Btmp
-        matrices.Aᵀ = spzeros(Int64,params.nVerts,params.nEdges)
-        matrices.Ā  = spzeros(Int64,params.nEdges,params.nVerts)
-        matrices.Āᵀ = spzeros(Int64,params.nVerts,params.nEdges)
-        matrices.Bᵀ = spzeros(Int64,params.nEdges,params.nCells)
-        matrices.B̄  = spzeros(Int64,params.nCells,params.nEdges)
-        matrices.B̄ᵀ = spzeros(Int64,params.nEdges,params.nCells)
-        matrices.C  = spzeros(Int64,params.nCells,params.nVerts)
+        matrices.Aᵀ = spzeros(Int64,nVertsLocal,nEdgesLocal)
+        matrices.Ā  = spzeros(Int64,nEdgesLocal,nVertsLocal)
+        matrices.Āᵀ = spzeros(Int64,nVertsLocal,nEdgesLocal)
+        matrices.Bᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
+        matrices.B̄  = spzeros(Int64,nCellsLocal,nEdgesLocal)
+        matrices.B̄ᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
+        matrices.C  = spzeros(Int64,nCellsLocal,nVertsLocal)
 
     end
 

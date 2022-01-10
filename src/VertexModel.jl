@@ -93,7 +93,7 @@ function vertexModel(initialSystem,realTimetMax,γ,λ,tStar,dt,preferredArea,pre
     end
 
     # If outputToggle==1, save animation object as an animated gif
-    outputToggle==1 ? gif(anim, "data/sims/$folderName/animated.gif", fps = 10) : nothing
+    outputToggle==1 ? gif(anim, "data/sims/$folderName/animated.gif", fps = 5) : nothing
 
 end
 
