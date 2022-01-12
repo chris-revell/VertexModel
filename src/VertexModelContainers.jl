@@ -23,10 +23,10 @@ mutable struct ParametersContainer
     pressureExternal   ::Float64  # External pressure applied uniformly to system
     dt                 ::Float64  # Non dimensionalised time step
     outputInterval     ::Float64  # Non dimensionalised data output interval
-    tStar              ::Float64  # Relaxation rate, approx from Sarah's data.
+    viscousTimeScale   ::Float64  # Relaxation rate, approx from Sarah's data.
     realTimetMax       ::Float64  # Dimensionalised run time in seconds
     tMax               ::Float64  # Non dimensionalised run time
-    nonDimCellCycleTime::Float64  # Non dimensionalised cell cycle time
+    nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
 end
 

@@ -18,20 +18,20 @@ using UnPack
 function createRunDirectory(params,matrices)
 
     @unpack A,B,R = matrices
-    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, tStar, realTimetMax, tMax = params
+    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, viscousTimeScale, realTimetMax, tMax = params
 
     # Create directory for run data labelled with current time.
-    foldername = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
-    mkpath("data/sims/$(foldername)")
+    folderName = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
+    mkpath("data/sims/$(folderName)")
 
     # Store system parameters.
-    open("data/sims/$(foldername)/conditions.txt","w") do conditionsfile
+    open("data/sims/$(folderName)/conditions.txt","w") do conditionsfile
         println(conditionsfile, "nCells,             $nCells            ")
         println(conditionsfile, "nEdges,             $nEdges            ")
         println(conditionsfile, "nVerts,             $nVerts            ")
         println(conditionsfile, "γ,                  $γ                 ")
         println(conditionsfile, "λ,                  $λ                 ")
-        println(conditionsfile, "tStar,              $tStar             ")
+        println(conditionsfile, "viscousTimeScale,   $viscousTimeScale  ")
         println(conditionsfile, "realTimetMax,       $realTimetMax      ")
         println(conditionsfile, "tMax,               $tMax              ")
         println(conditionsfile, "dt,                 $dt                ")
@@ -41,11 +41,11 @@ function createRunDirectory(params,matrices)
     end
 
     # Store initial system characteristic matrices
-    writedlm("data/sims/$(foldername)/A.txt",A," ")
-    writedlm("data/sims/$(foldername)/B.txt",B," ")
-    writedlm("data/sims/$(foldername)/R.txt",R," ")
+    writedlm("data/sims/$(folderName)/Ainitial.txt",A," ")
+    writedlm("data/sims/$(folderName)/Binitial.txt",B," ")
+    writedlm("data/sims/$(folderName)/Rinitial.txt",R," ")
 
-    return foldername
+    return folderName
 
 end
 

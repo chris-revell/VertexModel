@@ -21,7 +21,7 @@ indexLoop(a,N) = (N+a-1)%(N)+1
 
 function division!(params,matrices)
 
-    @unpack nCells, nEdges, nVerts, nonDimCellCycleTime = params
+    @unpack nCells, nEdges, nVerts, nonDimCycleTime = params
     @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
@@ -34,7 +34,7 @@ function division!(params,matrices)
     nVertsLocal = nVerts
 
     for i=1:nCells
-        if cellAges[i] > nonDimCellCycleTime
+        if cellAges[i] > nonDimCycleTime
 
             divisionCount += 1
 
@@ -105,7 +105,7 @@ function division!(params,matrices)
             Btmp = [Btmp spzeros(nCellsLocal+1,3)]
 
             # Add edges to new cell with existing orientations
-            Btmp[nCellsLocal+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= B[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
+            Btmp[nCellsLocal+1,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= Btmp[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]]
             # Remove edges from existing cell that have been moved to new cell
             Btmp[i,cellEdges[indexLoop(intersectedIndex[1]+1,n):intersectedIndex[2]-1]] .= 0
             # Add new short axis edge to existing cell
@@ -113,18 +113,18 @@ function division!(params,matrices)
             # Add new short axis edge to new cell
             Btmp[nCellsLocal+1,nEdgesLocal+1] = -1
             # Add new edges created by splitting intersected edges to new cell with the same orientation as the edge that was split
-            Btmp[nCellsLocal+1,nEdgesLocal+2] = B[i,cellEdges[intersectedIndex[1]]]
-            Btmp[nCellsLocal+1,nEdgesLocal+3] = B[i,cellEdges[intersectedIndex[2]]]
+            Btmp[nCellsLocal+1,nEdgesLocal+2] = Btmp[i,cellEdges[intersectedIndex[1]]]
+            Btmp[nCellsLocal+1,nEdgesLocal+3] = Btmp[i,cellEdges[intersectedIndex[2]]]
 
             # Find the neighbouring cells that share the intersected edges
             # Add new edges to these neighbour cells
             neighbours1 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[1]]]),[i])
             if size(neighbours1)[1] > 0
-                Btmp[neighbours1[1],nEdgesLocal+2] = B[neighbours1[1],cellEdges[intersectedIndex[1]]]
+                Btmp[neighbours1[1],nEdgesLocal+2] = Btmp[neighbours1[1],cellEdges[intersectedIndex[1]]]
             end
             neighbours2 = symdiff(findall(j->j!=0,B[:,cellEdges[intersectedIndex[2]]]),[i])
             if size(neighbours2)[1] > 0
-                Btmp[neighbours2[1],nEdgesLocal+3] = B[neighbours2[1],cellEdges[intersectedIndex[2]]]
+                Btmp[neighbours2[1],nEdgesLocal+3] = Btmp[neighbours2[1],cellEdges[intersectedIndex[2]]]
             end
 
             # Add new rows and columns to A matrix for new vertices and edges
@@ -148,6 +148,17 @@ function division!(params,matrices)
             # Add new vertex position
             newPos1 = (R[cellVertices[indexLoop(intersectedIndex[1]+1,n)]].+R[cellVertices[intersectedIndex[1]]])./2
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
+            # Add new vertex positions at axis intersection with existing edges
+            # a = edgeTangents[intersectedIndex[1]][2]/edgeTangents[intersectedIndex[1]][1]
+            # c = R[intersectedIndex[1]][2] - R[intersectedIndex[1]][1]*a
+            # b = shortAxis[2]/shortAxis[1]
+            # d = centrePoint[2] - centrePoint[1]*b
+            # newPos1 = SVector{2}([(d-c)/(a-b), a*(d-c)/(a-b)+c])
+            # a = edgeTangents[intersectedIndex[2]][2]/edgeTangents[intersectedIndex[2]][1]
+            # c = R[intersectedIndex[2]][2] - R[intersectedIndex[2]][1]*a
+            # b = shortAxis[2]/shortAxis[1]
+            # d = centrePoint[2] - centrePoint[1]*b
+            # newPos2 = SVector{2}([(d-c)/(a-b), a*(d-c)/(a-b)+c])
             append!(newRs,[newPos1,newPos2])
 
             cellAges[i] = 0
@@ -155,6 +166,8 @@ function division!(params,matrices)
             nCellsLocal += 1
             nVertsLocal += 2
             nEdgesLocal += 3
+
+            break
 
         else
             #nothing

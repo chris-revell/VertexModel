@@ -31,39 +31,9 @@ end
    @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas
-   #plot(xlims=(-0.5,0.5),ylims=(-0.5,0.5),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
-   plot(aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(1000,1000))
-
-   # Scatter vertices
-   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=10)
-
-   # # Scatter edge midpoints
-   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=4,series_annotations=text.(1:length(edgeMidpoints),:bottom))
-
-   # Scatter cell positions
-   scatter!(Point2f.(cellPositions),color=:red,markersize=4,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom))
-
-   # Plot edges
-   # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
-   # for c=1:nCells
-   #    es = findall(x->x!=0,B[c,:])
-   #    for i in es
-   #       x=findall(x->x!=0,Ā[i,:])
-   #       colour=:black
-   #       if matrices.B[c,i] < 0
-   #          colour = :red
-   #       else
-   #          colour = :blue
-   #       end
-   #       if A[i,x[1]] < 0
-   #          #arrows!([R[x[1]]],[R[x[2]]],[edgeTangents[i][1]],[edgeTangents[i][2]],color=colour)
-   #          plot!(Point2f.([R[x[1]], R[x[2]]]),arrow=true,color=colour,linewidth=8,arrowsize=16,alpha=0.5)
-   #       else
-   #          #arrows!([R[x[1]]],[R[x[2]]],[edgeTangents[i][1]],[edgeTangents[i][2]],color=colour)
-   #          plot!(Point2f.([R[x[2]], R[x[1]]]),arrow=true,color=colour,linewidth=8,arrowsize=16,alpha=0.5)
-   #       end
-   #    end
-   # end
+   #lim=
+   #plot(xlims=(-lim,lim),ylims=(-lim,lim),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(scale,scale))
+   plot(aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=1,markerstroke=:black,dpi=300,size=(500,500))
 
    # Plot cells
    for i=1:nCells
@@ -74,28 +44,61 @@ end
       end
       cellVertices .= cellVertices[sortperm(vertexAngles)]
       Cell = Shape(Point2f.(R[cellVertices]))
-      plot!(Cell,color=getRandomColor(i),alpha=0.5)
+      plot!(Cell,color=getRandomColor(i),alpha=0.5,linealpha=0.0)
    end
 
-   # Vertex moment kites
-   for i=1:nVerts
-      # Exclude boundary vertices.
-      if boundaryVertices[i] == 0
-         vertexEdges = findall(x->x!=0,A[:,i])
-         # Loop over 3 edges around the vertex.
-         for k=0:2
-            # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
-            dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1]] .- edgeMidpoints[vertexEdges[i,k+1]] # Could use arrayLoop function here
-            # Find cell bordered by both these two edges
-            cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
-            kite = Shape(Point2f.([cellPositions[cellID],edgeMidpoints[vertexEdges[i,k+1]],R[i],edgeMidpoints[vertexEdges[i,(k+1)%3+1]]]))
-            dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1]])⋅normalize(dM)
-            plot!(kite,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
+   # Scatter vertices
+   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2)
+
+   # # Scatter edge midpoints
+   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom))
+
+   # Scatter cell positions
+   scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom))
+
+   # Plot edges
+   # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
+   for c=1:nCells
+      es = findall(x->x!=0,B[c,:])
+      for i in es
+         x=findall(x->x!=0,Ā[i,:])
+         colour=:black
+         # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
+         if matrices.B[c,i] < 0
+            colour = :red
+         else
+            colour = :blue
          end
-      else
-         # Skip boundary vertices
+         # Use A to set direction of arrow along edge
+         if A[i,x[1]] < 0
+            plot!(Point2f.([R[x[1]], R[x[2]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
+         else
+            plot!(Point2f.([R[x[2]], R[x[1]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
+         end
       end
    end
+
+
+
+   # Vertex moment kites
+   # for i=1:nVerts
+   #    # Exclude boundary vertices.
+   #    if boundaryVertices[i] == 1
+   #       # Do nothing
+   #    else
+   #       vertexEdges = findall(x->x!=0,A[:,i])
+   #       # Loop over 3 edges around the vertex.
+   #       for k=0:2
+   #          # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
+   #          dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1]] .- edgeMidpoints[vertexEdges[i,k+1]] # Could use arrayLoop function here
+   #          # Find cell bordered by both these two edges
+   #          cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
+   #          kite = Shape(Point2f.([cellPositions[cellID],edgeMidpoints[vertexEdges[i,k+1]],R[i],edgeMidpoints[vertexEdges[i,(k+1)%3+1]]]))
+   #          dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1]])⋅normalize(dM)
+   #          plot!(kite,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
+   #       end
+   #    end
+   # end
 
 
    # *************** Force vectors ***************************
@@ -116,6 +119,8 @@ end
    # *************** End force vectors ***********************
 
    frame(anim)
+
+   return 0
 
 end
 

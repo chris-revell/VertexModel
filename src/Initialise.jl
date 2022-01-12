@@ -20,13 +20,13 @@ include("InitialHexagons.jl"); using .InitialHexagons
 include("VertexModelContainers.jl"); using .VertexModelContainers
 
 
-function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,tStar,outputTotal,t1Threshold,cellCycleTime)
+function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
 
     # Derived parameters
-    tMax               = realTimetMax/tStar # Non dimensionalised maximum system run time
-    outputInterval     = tMax/outputTotal   # Time interval for storing system data (non dimensionalised)
-    preferredPerimeter = -λ/(2*γ)           # Cell preferred perimeter
-    nonDimCellCycleTime= cellCycleTime/tStar
+    tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
+    outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
+    preferredPerimeter = -λ/(2*γ)                       # Cell preferred perimeter
+    nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time 
 
     # Initialise system matrices from function or file
     # A is an incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
@@ -71,7 +71,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    cellAges          = rand(nCells).*nonDimCellCycleTime
+    cellAges          = rand(nCells).*nonDimCycleTime
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
     edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
@@ -131,10 +131,10 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         pressureExternal,
         dt,
         outputInterval,
-        tStar,
+        viscousTimeScale,
         realTimetMax,
         tMax,
-        nonDimCellCycleTime,
+        nonDimCycleTime,
         t1Threshold
     )
 
