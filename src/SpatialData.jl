@@ -14,6 +14,7 @@ using LinearAlgebra
 using StaticArrays
 using UnPack
 
+
 function spatialData!(R,params,matrices)
 
     @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices

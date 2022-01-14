@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 31/01/2021.
 #
 #
-# Function to initialise initial system
+# Function to initialise vertex model system matrices and derived parameters
 
 module Initialise
 
@@ -13,7 +13,6 @@ module Initialise
 using SparseArrays
 using StaticArrays
 using DelimitedFiles
-#using DrWatson
 
 # Local modules
 include("InitialHexagons.jl"); using .InitialHexagons
@@ -22,14 +21,15 @@ include("VertexModelContainers.jl"); using .VertexModelContainers
 
 function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
 
-    # Derived parameters
+    # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
-    preferredPerimeter = -λ/(2*γ)                       # Cell preferred perimeter
+    preferredPerimeter = -λ/(2*γ)                       # Preferred perimeter length for each cell
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Initialise system matrices from function or file
     if initialSystem in ["one","three","seven"]
+        # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
     else
         # Import system matrices from final state of previous run
@@ -47,7 +47,8 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     nEdges            = size(A)[1]
     nVerts            = size(A)[2]
 
-    # Preallocate empty arrays for additional system matrices. See VertexModelContainers for explanations.
+    # Preallocate empty arrays for additional system matrices.
+    # See VertexModelContainers for explanations.
     Aᵀ                = spzeros(Int64,nVerts,nEdges)
     Ā                 = spzeros(Int64,nEdges,nVerts)
     Āᵀ                = spzeros(Int64,nVerts,nEdges)
@@ -65,18 +66,18 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    cellAges          = rand(nCells).*nonDimCycleTime
+    cellAges          = rand(nCells).*nonDimCycleTime   # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
     edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
     vertexEdges       = Array{SVector{3,Float64}}(undef,nVerts)
     vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)
     F                 = Array{SVector{2,Float64}}(undef,nVerts)
-    rkCoefficients    = @SMatrix [
+    rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
         0.0 0.5 0.5 0.5
         1.0 2.0 2.0 1.0
     ]
-    ϵ                 = @SMatrix [
+    ϵ                 = @SMatrix [  # Rotation matrix setting orientation of cell faces
         0.0 -1.0
         1.0 0.0
     ]

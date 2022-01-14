@@ -12,6 +12,7 @@ module TopologyChange
 # Julia packages
 using LinearAlgebra
 using UnPack
+using SparseArrays
 
 @views function topologyChange!(matrices)
 
@@ -19,36 +20,25 @@ using UnPack
 
     # Find adjacency matrices from incidence matrices
     Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    dropzeros!(Ā)
     B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
+    dropzeros!(B̄)
     C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
+    dropzeros!(C)
 
     # Update transpose matrices
     Aᵀ .= transpose(A)
+    dropzeros!(Aᵀ)
     Āᵀ .= abs.(Aᵀ)
+    dropzeros!(Āᵀ)
     Bᵀ .= transpose(B)
+    dropzeros!(Bᵀ)
     B̄ᵀ .= abs.(Bᵀ)
+    dropzeros!(B̄ᵀ)
 
     # Calculate additional topology data
     cellEdgeCount    .= sum(B̄,dims=2)[:,1]           # Number of edges around each cell found by summing columns of B̄
     boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2))[:,1] # Find the vertices at the boundary
-
-    # Use adjacency matrix Ā to find edges j that intersect vertex i,
-    # and arrange in polar angle order (ordering will not change
-    # without topology change, even if polar angles themselves do change)
-    # for i=1:nVerts
-    #     # Currently vertexEdges skips boundary vertices, since these are not used in torque calculations, and can have 2 edges rather than 3
-    #     if boundaryVertices[i] == 0
-    #         vertexEdges[i,:] .= findall(j->j!=0,Ā[:,i])
-    #         polarAngles = zeros(3)
-    #         for k = 1:3
-    #             # Multiply edge tangent vectors by corresponding incidence matrix component to ensure we consider all vectors point into the vertex
-    #             polarAngles[k] = atan(A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k],1],A[vertexEdges[i,k],k]*edgeTangents[vertexEdges[i,k], 2])
-    #         end
-    #         # Find order of indices around vertex.
-    #         orderAroundVertex = sortperm(polarAngles)
-    #         vertexEdges[i,:] .= vertexEdges[i,orderAroundVertex]
-    #     end
-    # end
 
     return nothing
 

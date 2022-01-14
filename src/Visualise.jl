@@ -46,35 +46,35 @@ end
    end
 
    # Scatter vertices
-   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
+   # scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
 
    # # Scatter edge midpoints
-   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
+   # scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
 
    # Scatter cell positions
-   scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
+   # scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
-   for c=1:nCells
-      es = findall(x->x!=0,B[c,:])
-      for i in es
-         x=findall(x->x!=0,Ā[i,:])
-         colour=:black
-         # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
-         if matrices.B[c,i] < 0
-            colour = :red
-         else
-            colour = :blue
-         end
-         # Use A to set direction of arrow along edge
-         if A[i,x[1]] < 0
-            plot!(Point2f.([R[x[1]], R[x[2]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
-         else
-            plot!(Point2f.([R[x[2]], R[x[1]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
-         end
-      end
-   end
+   # for c=1:nCells
+   #    es = findall(x->x!=0,B[c,:])
+   #    for i in es
+   #       x=findall(x->x!=0,Ā[i,:])
+   #       colour=:black
+   #       # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
+   #       if matrices.B[c,i] < 0
+   #          colour = :red
+   #       else
+   #          colour = :blue
+   #       end
+   #       # Use A to set direction of arrow along edge
+   #       if A[i,x[1]] < 0
+   #          plot!(Point2f.([R[x[1]], R[x[2]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
+   #       else
+   #          plot!(Point2f.([R[x[2]], R[x[1]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
+   #       end
+   #    end
+   # end
 
    # Vertex moment kites
    # for i=1:nVerts
