@@ -31,8 +31,6 @@ end
    @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas
-   #lim=
-   #plot(xlims=(-lim,lim),ylims=(-lim,lim),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(scale,scale))
    plot(aspect_ratio=:equal,color=:black,legend=:false,dpi=300,size=(500,500))
 
    # Plot cells
@@ -78,8 +76,6 @@ end
       end
    end
 
-
-
    # Vertex moment kites
    # for i=1:nVerts
    #    # Exclude boundary vertices.
@@ -99,24 +95,6 @@ end
    #       end
    #    end
    # end
-
-
-   # *************** Force vectors ***************************
-   # xs = zeros(0)
-   # ys = zeros(0)
-   # us = zeros(0)
-   # vs = zeros(0)
-   # for i=1:nVerts
-   #    x=findall(x->x>0.5,C[:,i])
-   #    for j in x
-   #       append!(xs,R[i,1])
-   #       append!(ys,R[i,2])
-   #       append!(us,5.0*F[i,j,2])
-   #       append!(vs,-5.0*F[i,j,1])
-   #    end
-   # end
-   # quiver!(xs,ys,quiver=(us,vs),color=:orange,legend=:false)
-   # *************** End force vectors ***********************
 
    frame(anim)
 
