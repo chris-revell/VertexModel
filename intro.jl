@@ -1,13 +1,18 @@
 using DrWatson
+println("Activating environment...")
 @quickactivate "VertexModel"
 using Revise
-if "src/" in LOAD_PATH ? nothing : push!(LOAD_PATH,"src/")
+# includet("src/VertexModel.jl")
+# using .VertexModel
+println("Loading VertexModel.jl...")
 using VertexModel
+println("Loading test parameters...")
 includet("scripts/testParameters.jl")
-println(
-"""
-Currently active project is: $(projectname())
-
-Path of active project: $(projectdir())
-"""
-)
+#
+# println(
+# """
+# Currently active project is: $(projectname())
+#
+# Path of active project: $(projectdir())
+# """
+# )

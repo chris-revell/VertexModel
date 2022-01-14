@@ -21,6 +21,7 @@ using DrWatson
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
+include("SpatialData.jl"); using .SpatialData
 include("CreateRunDirectory.jl"); using .CreateRunDirectory
 include("Visualise.jl"); using .Visualise
 include("Initialise.jl"); using .Initialise
@@ -61,6 +62,9 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         folderName = createRunDirectory(params,matrices)
         # Create animation object for visualisation
         anim = Animation()
+        # topologyChange!(matrices)
+        # spatialData!(R,params,matrices)
+        visualise(anim,params,matrices)
     end
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation

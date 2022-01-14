@@ -30,16 +30,16 @@ function iterate!(iteration,params,matrices)
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
-        # if params.nCells<8
-            if division!(params,matrices)>0
-                topologyChange!(matrices)
-                spatialData!(tempR,params,matrices)
-            end
+        # # if params.nCells<8
+        #     if division!(params,matrices)>0
+        #         topologyChange!(matrices)
+        #         spatialData!(tempR,params,matrices)
+        #     end
+        # # end
+        # if (t1Transitions!(tempR,params,matrices))==1
+        #     topologyChange!(matrices)
+        #     spatialData!(tempR,params,matrices)
         # end
-        if (t1Transitions!(tempR,params,matrices))==1
-            topologyChange!(matrices)
-            spatialData!(tempR,params,matrices)
-        end
 
         test = matrices.B*matrices.A
         for i=1:params.nCells

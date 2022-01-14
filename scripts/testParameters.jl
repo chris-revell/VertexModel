@@ -1,4 +1,4 @@
-initialSystem    = "single"
+initialSystem    = "seven"
 realTimetMax     = 86400.0 # = 24 hours
 realCycleTime    = 86400.0 # = 24 hours
 γ                = 0.2

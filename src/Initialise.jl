@@ -26,17 +26,19 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
     preferredPerimeter = -λ/(2*γ)                       # Cell preferred perimeter
-    nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time 
+    nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Initialise system matrices from function or file
     # A is an incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
     # B is an incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
     # C is an adjacency matrix (derived from A and B) mapping cells to vertices. Rows => cells; Columns => vertices. C=0.5*B̄*Ā
     # R is a vector of vertex positions in 2D. Each position stored as a 2-component static vector.
-    if initialSystem=="single"
+    if initialSystem=="one"
         A,B,R = initialHexagons(1)
-    elseif initialSystem=="triple"
+    elseif initialSystem=="three"
         A,B,R = initialHexagons(3)
+    elseif initialSystem=="seven"
+        A,B,R = initialHexagons(7)
     else
         # Import system matrices from file
         A = sparse(readdlm("data/input/$(initialSystem)_A.txt",',',Int64,'\n'))
