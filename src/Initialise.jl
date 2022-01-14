@@ -29,21 +29,13 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Initialise system matrices from function or file
-    # A is an incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
-    # B is an incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
-    # C is an adjacency matrix (derived from A and B) mapping cells to vertices. Rows => cells; Columns => vertices. C=0.5*B̄*Ā
-    # R is a vector of vertex positions in 2D. Each position stored as a 2-component static vector.
-    if initialSystem=="one"
-        A,B,R = initialHexagons(1)
-    elseif initialSystem=="three"
-        A,B,R = initialHexagons(3)
-    elseif initialSystem=="seven"
-        A,B,R = initialHexagons(7)
+    if initialSystem in ["one","three","seven"]
+        A,B,R = initialHexagons(initialSystem)
     else
-        # Import system matrices from file
-        A = sparse(readdlm("data/input/$(initialSystem)_A.txt",',',Int64,'\n'))
-        B = sparse(readdlm("data/input/$(initialSystem)_B.txt",',',Int64,'\n'))
-        R0 = readdlm("data/input/$(initialSystem)_R.txt",',',Float64,'\n')
+        # Import system matrices from final state of previous run
+        A = sparse(readdlm("$(initialSystem)/Afinal.txt",',',Int64,'\n'))
+        B = sparse(readdlm("$(initialSystem)/Bfinal.txt",',',Int64,'\n'))
+        R0 = readdlm("$(initialSystem)/Rfinal.txt",',',Float64,'\n')
         R = Array{SVector{2,Float64}}(undef,size(A)[2])
         for i=1:size(R0)[1]
             R[i] = SVector{2}(R0[i,:])

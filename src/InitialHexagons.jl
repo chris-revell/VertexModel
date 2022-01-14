@@ -19,7 +19,7 @@ indexLoop(a,N) = (N+a-1)%(N)+1
 function initialHexagons(n)
 
     # Argument of n=1 produces a single initial hexagonal cell
-    if n==1
+    if n=="one"
 
         ATmp= [-1.0 1.0 0.0 0.0 0.0 0.0
              0.0 -1.0 1.0 0.0 0.0 0.0
@@ -39,7 +39,7 @@ function initialHexagons(n)
         # Set initial cell areas to 1.0
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
-    elseif n==3
+    elseif n=="three"
 
         A = spzeros(Int64,15,13)
         A[1,1] = -1
@@ -112,7 +112,7 @@ function initialHexagons(n)
         # Set initial cell areas to 1.0
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
-    elseif n==7
+    elseif n=="seven"
         A = spzeros(Int64,30,24)
         B = spzeros(Int64,7, 30)
         R = Array{SVector{2,Float64}}(undef,24)

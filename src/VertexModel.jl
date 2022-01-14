@@ -13,11 +13,9 @@ using LinearAlgebra
 using DelimitedFiles
 using SparseArrays
 using StaticArrays
-using LoopVectorization
 using Plots
 using UnPack
 using DrWatson
-@quickactivate
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -107,9 +105,9 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     # If outputToggle==1, save animation object as an animated gif
     if outputToggle==1
         # Store final system characteristic matrices
-        writedlm("data/sims/$folderName/Afinal.txt",matrices.A," ")
-        writedlm("data/sims/$folderName/Bfinal.txt",matrices.B," ")
-        writedlm("data/sims/$folderName/Rfinal.txt",matrices.R," ")
+        writedlm("data/sims/$folderName/Afinal.txt",matrices.A,",")
+        writedlm("data/sims/$folderName/Bfinal.txt",matrices.B,",")
+        writedlm("data/sims/$folderName/Rfinal.txt",matrices.R,",")
         # Save animated gif
         gif(anim, "data/sims/$folderName/animated.gif", fps = 5)
     end
