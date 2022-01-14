@@ -31,7 +31,7 @@ end
    @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas
-   plot(aspect_ratio=:equal,color=:black,legend=:false,dpi=300,size=(500,500))
+   plot(aspect_ratio=:equal,border=:none,legend=:false,dpi=300,size=(500,500))
 
    # Plot cells
    for i=1:nCells
