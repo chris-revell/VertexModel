@@ -85,8 +85,8 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         1.0 2.0 2.0 1.0
     ]
     ϵ                 = @SMatrix [
-        0.0 1.0
-        -1.0 0.0
+        0.0 -1.0
+        1.0 0.0
     ]
 
     # Pack matrces into a struct for convenience

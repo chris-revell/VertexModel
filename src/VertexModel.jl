@@ -62,8 +62,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         folderName = createRunDirectory(params,matrices)
         # Create animation object for visualisation
         anim = Animation()
-        # topologyChange!(matrices)
-        # spatialData!(R,params,matrices)
+        topologyChange!(matrices)
+        spatialData!(R,params,matrices)
         visualise(anim,params,matrices)
     end
 

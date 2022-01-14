@@ -33,7 +33,7 @@ end
    # Create plot canvas
    #lim=
    #plot(xlims=(-lim,lim),ylims=(-lim,lim),aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=4,markerstroke=:black,dpi=300,size=(scale,scale))
-   plot(aspect_ratio=:equal,color=:black,legend=:false,border=:none,markersize=1,markerstroke=:black,dpi=300,size=(500,500))
+   plot(aspect_ratio=:equal,color=:black,legend=:false,dpi=300,size=(500,500))
 
    # Plot cells
    for i=1:nCells
@@ -48,13 +48,13 @@ end
    end
 
    # Scatter vertices
-   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2)
+   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
 
    # # Scatter edge midpoints
-   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom))
+   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
 
    # Scatter cell positions
-   scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom))
+   scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
