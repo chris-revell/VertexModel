@@ -12,7 +12,6 @@ module CalculateForce
 # Julia packages
 using LinearAlgebra
 using StaticArrays
-using LoopVectorization
 using UnPack
 using Plots
 using GeometryBasics

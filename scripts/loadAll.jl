@@ -3,7 +3,6 @@ using LinearAlgebra
 using DelimitedFiles
 using SparseArrays
 using StaticArrays
-using LoopVectorization
 using Plots
 using UnPack
 using DrWatson

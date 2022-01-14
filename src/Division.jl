@@ -148,7 +148,7 @@ function division!(params,matrices)
             # Add new vertex position
             newPos1 = (R[cellVertices[indexLoop(intersectedIndex[1]+1,n)]].+R[cellVertices[intersectedIndex[1]]])./2
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
-            # Add new vertex positions at axis intersection with existing edges
+            # Add new vertex positions at axis intersection with existing edges using line intersection https://en.wikipedia.org/wiki/Line–line_intersection
             # a = edgeTangents[intersectedIndex[1]][2]/edgeTangents[intersectedIndex[1]][1]
             # c = R[intersectedIndex[1]][2] - R[intersectedIndex[1]][1]*a
             # b = shortAxis[2]/shortAxis[1]
