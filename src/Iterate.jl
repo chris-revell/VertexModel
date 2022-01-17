@@ -35,11 +35,11 @@ function iterate!(iteration,params,matrices)
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end
+        if (t1Transitions!(tempR,params,matrices))>1
+            topologyChange!(matrices)
+            spatialData!(tempR,params,matrices)
+        end
 
-        # if (t1Transitions!(tempR,params,matrices))==1
-        #     topologyChange!(matrices)
-        #     spatialData!(tempR,params,matrices)
-        # end
 
         fill!(ΔR,@SVector zeros(2))
     end

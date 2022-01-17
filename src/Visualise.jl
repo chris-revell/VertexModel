@@ -46,10 +46,10 @@ end
    end
 
    # Scatter vertices
-   # scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
+   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
 
    # # Scatter edge midpoints
-   # scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
+   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
 
    # Scatter cell positions
    # scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
