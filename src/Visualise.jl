@@ -17,7 +17,7 @@ using ColorSchemes
 using UnPack
 using GeometryBasics
 using Random
-#using CairoMakie
+using CairoMakie
 
 function getRandomColor(seed)
     Random.seed!(seed)
@@ -31,7 +31,10 @@ end
    @unpack nEdges,nVerts,nCells = params
 
    # Create plot canvas
-   plot(aspect_ratio=:equal,border=:none,legend=:false,dpi=300,size=(500,500))
+   #plot(aspect_ratio=:equal,border=:none,legend=:false,dpi=300,size=(500,500))
+   fig1 = CairoMakie.Figure()
+   ga1 = fig1[1,1] = CairoMakie.GridLayout()
+   ax1 = CairoMakie.Axis(ga1[1,1],aspect=CairoMakie.DataAspect())
 
    # Plot cells
    for i=1:nCells
@@ -41,18 +44,22 @@ end
          vertexAngles[k] = atan((R[v].-cellPositions[i])...)
       end
       cellVertices .= cellVertices[sortperm(vertexAngles)]
-      Cell = Shape(Point2f.(R[cellVertices]))
-      plot!(Cell,color=getRandomColor(i),alpha=0.5,linealpha=0.0)
+      # Cell = Shape(Point2f.(R[cellVertices]))
+      # plot!(Cell,color=getRandomColor(i),alpha=0.5,linealpha=0.0)
+      CairoMakie.poly!(ax1,Point2f.(R[cellVertices]),color=getRandomColor(i),alpha=0.5,linealpha=0.0)
    end
 
    # Scatter vertices
-   scatter!(Point2f.(R),series_annotations=text.(1:length(R),:bottom),markersize=2,seriescolor=:green)
+   CairoMakie.scatter!(ax1,Point2f.(R),markersize=2,color=:green)
+   CairoMakie.annotations!(ax1,string.(collect(1:length(R))), Point2f.(R),color=:green)
 
    # # Scatter edge midpoints
-   scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
+   CairoMakie.scatter!(ax1,Point2f.(edgeMidpoints),markersize=1,color=:blue)
+   CairoMakie.annotations!(ax1,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints))
 
    # Scatter cell positions
-   # scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
+   CairoMakie.scatter!(ax1,Point2f.(cellPositions),markersize=1,color=:red)
+   CairoMakie.annotations!(ax1,string.(collect(1:length(cellPositions))), Point2f.(cellPositions))
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
@@ -96,7 +103,7 @@ end
    #    end
    # end
 
-   frame(anim)
+   frame(anim,fig1)
 
    return 0
 
