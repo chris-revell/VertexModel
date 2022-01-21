@@ -26,17 +26,17 @@ function createRunDirectory(params,matrices)
 
     # Store system parameters.
     open("data/sims/$(folderName)/conditions.txt","w") do conditionsfile
-        println(conditionsfile, "initialSystem,     $initialSystem"
-        println(conditionsfile, "realTimetMax,      $realTimetMax"
-        println(conditionsfile, "γ,                 $γ"
-        println(conditionsfile, "λ,                 $λ"
-        println(conditionsfile, "preferredArea,     $preferredArea"
-        println(conditionsfile, "pressureExternal,  $pressureExternal"
-        println(conditionsfile, "dt,                $dt"
-        println(conditionsfile, "viscousTimeScale,  $viscousTimeScale"
-        println(conditionsfile, "outputTotal,       $outputTotal"
-        println(conditionsfile, "t1Threshold,       $t1Threshold"
-        println(conditionsfile, "realCycleTime,     $realCycleTime"
+        println(conditionsfile, "initialSystem,     $initialSystem")
+        println(conditionsfile, "realTimetMax,      $realTimetMax")
+        println(conditionsfile, "γ,                 $γ")
+        println(conditionsfile, "λ,                 $λ")
+        println(conditionsfile, "preferredArea,     $preferredArea")
+        println(conditionsfile, "pressureExternal,  $pressureExternal")
+        println(conditionsfile, "dt,                $dt")
+        println(conditionsfile, "viscousTimeScale,  $viscousTimeScale")
+        println(conditionsfile, "outputTotal,       $outputTotal")
+        println(conditionsfile, "t1Threshold,       $t1Threshold")
+        println(conditionsfile, "realCycleTime,     $realCycleTime")
     end
 
     # Store initial system characteristic matrices
