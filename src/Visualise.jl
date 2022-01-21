@@ -52,7 +52,7 @@ end
    scatter!(Point2f.(edgeMidpoints),color=:white,markersize=1,series_annotations=text.(1:length(edgeMidpoints),:bottom),seriescolor=:blue)
 
    # Scatter cell positions
-   # scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
+   scatter!(Point2f.(cellPositions),color=:red,markersize=1,markerstroke=:red,series_annotations=text.(1:length(cellPositions),:bottom),seriescolor=:red)
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
