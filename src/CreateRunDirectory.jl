@@ -18,7 +18,7 @@ using UnPack
 function createRunDirectory(params,matrices)
 
     @unpack A,B,R = matrices
-    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, viscousTimeScale, realTimetMax, tMax = params
+    @unpack initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime = params
 
     # Create directory for run data labelled with current time.
     folderName = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
@@ -26,18 +26,17 @@ function createRunDirectory(params,matrices)
 
     # Store system parameters.
     open("data/sims/$(folderName)/conditions.txt","w") do conditionsfile
-        println(conditionsfile, "nCells,             $nCells            ")
-        println(conditionsfile, "nEdges,             $nEdges            ")
-        println(conditionsfile, "nVerts,             $nVerts            ")
-        println(conditionsfile, "γ,                  $γ                 ")
-        println(conditionsfile, "λ,                  $λ                 ")
-        println(conditionsfile, "viscousTimeScale,   $viscousTimeScale  ")
-        println(conditionsfile, "realTimetMax,       $realTimetMax      ")
-        println(conditionsfile, "tMax,               $tMax              ")
-        println(conditionsfile, "dt,                 $dt                ")
-        println(conditionsfile, "outputInterval,     $outputInterval    ")
-        println(conditionsfile, "preferredPerimeter, $preferredPerimeter")
-        println(conditionsfile, "preferredArea,      $preferredArea     ")
+        println(conditionsfile, "initialSystem,     $initialSystem")
+        println(conditionsfile, "realTimetMax,      $realTimetMax")
+        println(conditionsfile, "γ,                 $γ")
+        println(conditionsfile, "λ,                 $λ")
+        println(conditionsfile, "preferredArea,     $preferredArea")
+        println(conditionsfile, "pressureExternal,  $pressureExternal")
+        println(conditionsfile, "dt,                $dt")
+        println(conditionsfile, "viscousTimeScale,  $viscousTimeScale")
+        println(conditionsfile, "outputTotal,       $outputTotal")
+        println(conditionsfile, "t1Threshold,       $t1Threshold")
+        println(conditionsfile, "realCycleTime,     $realCycleTime")
     end
 
     # Store initial system characteristic matrices
