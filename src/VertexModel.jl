@@ -70,19 +70,14 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        try
-            iterate!(1,params,matrices)
-            # 2nd step of Runge-Kutta
-            iterate!(2,params,matrices)
-            # 3rd step of Runge-Kutta
-            iterate!(2,params,matrices)
-            # 4th step of Runge-Kutta
-            iterate!(4,params,matrices)
-        catch p
-            visualise(anim,params,matrices)
-            gif(anim, "data/sims/$folderName/animated.gif", fps = 5)
-            throw(p)
-        end
+        iterate!(1,params,matrices)
+        # 2nd step of Runge-Kutta
+        iterate!(2,params,matrices)
+        # 3rd step of Runge-Kutta
+        iterate!(2,params,matrices)
+        # 4th step of Runge-Kutta
+        iterate!(4,params,matrices)
+
         # Result of Runge-Kutta steps
         R .+= ΔR
         t +=dt
@@ -99,9 +94,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     # If outputToggle==1, save animation object as an animated gif and save final system matrices
     if outputToggle==1
         # Store final system characteristic matrices
-        writedlm("data/sims/$folderName/Afinal.txt",matrices.A,",")
-        writedlm("data/sims/$folderName/Bfinal.txt",matrices.B,",")
-        writedlm("data/sims/$folderName/Rfinal.txt",matrices.R,",")
+        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R)
         # Save animated gif
         gif(anim, "data/sims/$folderName/animated.gif", fps = 5)
     end

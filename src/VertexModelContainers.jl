@@ -13,6 +13,7 @@ using SparseArrays
 using StaticArrays
 
 mutable struct ParametersContainer
+    initialSystem      ::String   # System used for initialising simulations
     nVerts             ::Int64    # Number of cells
     nCells             ::Int64    # Number of edges
     nEdges             ::Int64    # Number of vertices
@@ -22,10 +23,12 @@ mutable struct ParametersContainer
     preferredArea      ::Float64  # Cell preferred area
     pressureExternal   ::Float64  # External pressure applied uniformly to system
     dt                 ::Float64  # Non dimensionalised time step
+    outputTotal        ::Int64    # Total number of data outputs
     outputInterval     ::Float64  # Non dimensionalised data output interval
     viscousTimeScale   ::Float64  # Relaxation rate, approx from Sarah's data.
     realTimetMax       ::Float64  # Dimensionalised run time in seconds
     tMax               ::Float64  # Non dimensionalised run time
+    realCycleTime      ::Float64  # Cell cycle time in seconds
     nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
 end
