@@ -31,23 +31,20 @@ function iterate!(iteration,params,matrices)
 
     if iteration == 1
 
-        # if division!(params,matrices)>0
-        #     topologyChange!(matrices)
-        #     spatialData!(tempR,params,matrices)
+        if division!(params,matrices)>0
+            topologyChange!(matrices)
+            spatialData!(tempR,params,matrices)
+        # else
+        end
+        if (t1Transitions!(tempR,params,matrices))>1
+            topologyChange!(matrices)
+            spatialData!(tempR,params,matrices)
+        end
         # end
-        # if (t1Transitions!(tempR,params,matrices))>1
-        #     topologyChange!(matrices)
-        #     spatialData!(tempR,params,matrices)
-        # end
-
 
         fill!(ΔR,@SVector zeros(2))
     end
-    for i=1:params.nCells
-        if isnan(R[i][1]) || isnan(R[i][2])
-            throw()
-        end
-    end
+
     calculateForce!(tempR,params,matrices)
     ΔR .+= F.*dt*rkCoefficients[2,iteration]/6.0
 

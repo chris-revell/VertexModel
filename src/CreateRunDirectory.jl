@@ -14,36 +14,43 @@ using Dates
 using Base.Filesystem
 using DelimitedFiles
 using UnPack
+using JLD2 
 
 function createRunDirectory(params,matrices)
 
     @unpack A,B,R = matrices
-    @unpack nVerts, nCells, nEdges, γ, λ, preferredPerimeter, preferredArea, pressureExternal, dt, outputInterval, viscousTimeScale, realTimetMax, tMax = params
+    @unpack initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,preferredPerimeter,outputInterval,tMax,nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
     folderName = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
     mkpath("data/sims/$(folderName)")
 
     # Store system parameters.
-    open("data/sims/$(folderName)/conditions.txt","w") do conditionsfile
-        println(conditionsfile, "nCells,             $nCells            ")
-        println(conditionsfile, "nEdges,             $nEdges            ")
-        println(conditionsfile, "nVerts,             $nVerts            ")
-        println(conditionsfile, "γ,                  $γ                 ")
-        println(conditionsfile, "λ,                  $λ                 ")
-        println(conditionsfile, "viscousTimeScale,   $viscousTimeScale  ")
-        println(conditionsfile, "realTimetMax,       $realTimetMax      ")
-        println(conditionsfile, "tMax,               $tMax              ")
-        println(conditionsfile, "dt,                 $dt                ")
-        println(conditionsfile, "outputInterval,     $outputInterval    ")
-        println(conditionsfile, "preferredPerimeter, $preferredPerimeter")
-        println(conditionsfile, "preferredArea,      $preferredArea     ")
+    open("data/sims/$(folderName)/conditions.txt","w") do conditionsFile
+        println(conditionsFile, "initialSystem,     $initialSystem")
+        println(conditionsFile, "realTimetMax,      $realTimetMax")
+        println(conditionsFile, "realCycleTime,     $realCycleTime")
+        println(conditionsFile, "γ,                 $γ")
+        println(conditionsFile, "λ,                 $λ")
+        println(conditionsFile, "viscousTimeScale,  $viscousTimeScale")
+        println(conditionsFile, "dt,                $dt")
+        println(conditionsFile, "preferredArea,     $preferredArea")
+        println(conditionsFile, "pressureExternal,  $pressureExternal")
+        println(conditionsFile, "outputTotal,       $outputTotal")
+        println(conditionsFile, "t1Threshold,       $t1Threshold")
+        println(conditionsFile, "nVerts,            $nVerts")
+        println(conditionsFile, "nCells,            $nCells")
+        println(conditionsFile, "nEdges,            $nEdges")
+        println(conditionsFile, "preferredPerimeter,$preferredPerimeter")
+        println(conditionsFile, "outputInterval,    $outputInterval")
+        println(conditionsFile, "tMax,              $tMax")
+        println(conditionsFile, "nonDimCycleTime,   $nonDimCycleTime")
     end
 
+    jldsave("data/sims/$(folderName)/params.jld2";params)
+
     # Store initial system characteristic matrices
-    writedlm("data/sims/$(folderName)/Ainitial.txt",A," ")
-    writedlm("data/sims/$(folderName)/Binitial.txt",B," ")
-    writedlm("data/sims/$(folderName)/Rinitial.txt",R," ")
+    jldsave("data/sims/$(folderName)/matricesInitial.jld2";A,B,R)
 
     return folderName
 

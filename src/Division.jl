@@ -79,6 +79,8 @@ function division!(params,matrices)
             minVertexAngle = minimum(vertexAngles)
             # Set vertex angles relative to minimum angle vertex
             vertexAngles .= (vertexAngles.-minVertexAngle).%2π
+            shortAngle = (shortAngle-minVertexAngle+2π)%2π
+            
             # Use polar angles to sort cellVertices list
             cellVertices .= cellVertices[sortperm(vertexAngles)]
             sort!(vertexAngles)

@@ -8,5 +8,5 @@ dt               = 0.5
 preferredArea    = 1.0
 pressureExternal = 0.0
 outputTotal      = 100
-t1Threshold      = 0.1
+t1Threshold      = 0.01
 outputToggle     = 1

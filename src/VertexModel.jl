@@ -10,12 +10,12 @@ module VertexModel
 
 # Julia packages
 using LinearAlgebra
-using DelimitedFiles
+using JLD2
 using SparseArrays
 using StaticArrays
-using Plots
 using UnPack
 using DrWatson
+using CairoMakie
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -59,9 +59,16 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices)
+        # Create plot canvas
+        fig = Figure(resolution=(1000,1000))
+        grid = fig[1,1] = GridLayout()
+        ax = Axis(grid[1,1],aspect=DataAspect())
+        hidedecorations!(ax)
+        hidespines!(ax)
         # Create animation object for visualisation
-        anim = Animation()
-        visualise(anim,params,matrices)
+        mov = VideoStream(fig, framerate=15)
+        # Visualise initial system
+        visualise(fig,ax,mov,params,matrices)
     end
 
     t = 1E-8   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
@@ -85,7 +92,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
 
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
-            visualise(anim,params,matrices)
+            visualise(fig,ax,mov,params,matrices)
             println("$(t*viscousTimeScale)/$realTimetMax")
         end
 
@@ -94,11 +101,9 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     # If outputToggle==1, save animation object as an animated gif and save final system matrices
     if outputToggle==1
         # Store final system characteristic matrices
-        writedlm("data/sims/$folderName/Afinal.txt",matrices.A,",")
-        writedlm("data/sims/$folderName/Bfinal.txt",matrices.B,",")
-        writedlm("data/sims/$folderName/Rfinal.txt",matrices.R,",")
+        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R)
         # Save animated gif
-        gif(anim, "data/sims/$folderName/animated.gif", fps = 5)
+        save("data/sims/$folderName/animated.gif",mov)
     end
 
 end
