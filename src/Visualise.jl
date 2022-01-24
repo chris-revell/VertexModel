@@ -10,10 +10,10 @@
 module Visualise
 
 # Julia packages
-using Plots
 using Printf
 using LinearAlgebra
 using ColorSchemes
+using Colors
 using UnPack
 using GeometryBasics
 using Random
@@ -24,64 +24,86 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-@views function visualise(anim,params,matrices)
+@views function visualise(fig,ax,mov,params,matrices)
 
 
    @unpack R,A,B,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
    @unpack nEdges,nVerts,nCells = params
 
-   # Create plot canvas
-   #plot(aspect_ratio=:equal,border=:none,legend=:false,dpi=300,size=(500,500))
-   fig1 = CairoMakie.Figure()
-   ga1 = fig1[1,1] = CairoMakie.GridLayout()
-   ax1 = CairoMakie.Axis(ga1[1,1],aspect=CairoMakie.DataAspect())
+   empty!(ax)
+
+   plotCells         = 1
+   plotEdges         = 1
+   scatterEdges      = 1
+   scatterVertices   = 1
+   scatterCells      = 1
 
    # Plot cells
-   for i=1:nCells
-      cellVertices = findall(x->x!=0,C[i,:])
-      vertexAngles = zeros(size(cellVertices))
-      for (k,v) in enumerate(cellVertices)
-         vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+   if plotCells == 1
+      for i=1:nCells
+         cellVertices = findall(x->x!=0,C[i,:])
+         vertexAngles = zeros(size(cellVertices))
+         for (k,v) in enumerate(cellVertices)
+            vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+         end
+         cellVertices .= cellVertices[sortperm(vertexAngles)]
+         poly!(ax,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.5))
       end
-      cellVertices .= cellVertices[sortperm(vertexAngles)]
-      # Cell = Shape(Point2f.(R[cellVertices]))
-      # plot!(Cell,color=getRandomColor(i),alpha=0.5,linealpha=0.0)
-      CairoMakie.poly!(ax1,Point2f.(R[cellVertices]),color=getRandomColor(i),alpha=0.5,linealpha=0.0)
    end
 
    # Scatter vertices
-   CairoMakie.scatter!(ax1,Point2f.(R),markersize=2,color=:green)
-   CairoMakie.annotations!(ax1,string.(collect(1:length(R))), Point2f.(R),color=:green)
+   if scatterEdges == 1
+      scatter!(ax,Point2f.(R),color=:green)
+      annotations!(ax,string.(collect(1:length(R))), Point2f.(R),color=:green)
+   end
 
-   # # Scatter edge midpoints
-   CairoMakie.scatter!(ax1,Point2f.(edgeMidpoints),markersize=1,color=:blue)
-   CairoMakie.annotations!(ax1,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints))
+   # Scatter edge midpoints
+   if scatterEdges == 1
+      scatter!(ax,Point2f.(edgeMidpoints),color=:blue)
+      annotations!(ax,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints),color=:blue)
+   end
 
    # Scatter cell positions
-   CairoMakie.scatter!(ax1,Point2f.(cellPositions),markersize=1,color=:red)
-   CairoMakie.annotations!(ax1,string.(collect(1:length(cellPositions))), Point2f.(cellPositions))
+   if scatterCells == 1
+      scatter!(ax,Point2f.(cellPositions),color=:red)
+      annotations!(ax,string.(collect(1:length(cellPositions))), Point2f.(cellPositions),color=:red)
+   end
 
    # Plot edges
    # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
-   # for c=1:nCells
-   #    es = findall(x->x!=0,B[c,:])
-   #    for i in es
-   #       x=findall(x->x!=0,Ā[i,:])
-   #       colour=:black
-   #       # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
-   #       if matrices.B[c,i] < 0
-   #          colour = :red
-   #       else
-   #          colour = :blue
-   #       end
-   #       # Use A to set direction of arrow along edge
-   #       if A[i,x[1]] < 0
-   #          plot!(Point2f.([R[x[1]], R[x[2]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
-   #       else
-   #          plot!(Point2f.([R[x[2]], R[x[1]]]),arrow=true,color=colour,linewidth=2,arrowsize=16,alpha=0.25)
-   #       end
-   #    end
-   # end
+   if plotEdges == 1
+      xs = Point2f[]
+      us = Vec2f[]
+      colours = Tuple{Symbol, Float64}[]
+      for c=1:nCells
+         es = findall(x->x!=0,B[c,:])
+         for i in es
+            x=findall(x->x!=0,Ā[i,:])
+            colour=:black
+            # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
+            if matrices.B[c,i] < 0
+               colour = (:red,0.25)
+            else
+               colour = (:blue,0.25)
+            end
+            # Use A to set direction of arrow along edge
+            if A[i,x[1]] < 0
+               #arrows!(ax,Point2f.([R[x[1]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
+               push!(xs, Point2f(R[x[1]]))
+               push!(us, Vec2f(edgeTangents[i]))
+               push!(colours, colour)
+            else
+               #arrows!(ax,Point2f.([R[x[2]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
+               push!(xs, Point2f(R[x[2]]))
+               push!(us, Vec2f(edgeTangents[i]))
+               push!(colours, colour)
+            end
+         end
+      end
+      arrows!(ax,xs,us,color=colours,arrowsize=25,linewidth=5)
+   end
+
+   recordframe!(mov)
 
    # Vertex moment kites
    # for i=1:nVerts
@@ -102,8 +124,6 @@ end
    #       end
    #    end
    # end
-
-   frame(anim,fig1)
 
    return 0
 
