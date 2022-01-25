@@ -13,6 +13,7 @@ using GeometryBasics
 using DelimitedFiles
 using Random
 using Colors
+using JLD2
 
 # Local modules
 includet("$(projectdir())/src/TopologyChange.jl"); using .TopologyChange
@@ -32,20 +33,12 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "/Users/christopher/Dropbox (The University of Manchester)/Other/VertexModelStuff/2022-01-20-14-52-51"
+initialSystem = "data/sims/2022-01-24-20-29-36"
 #initialSystem      = "$(projectdir())/data/sims/2022-01-20-14-52-51"
 
-conditionsArray    = readdlm("$initialSystem/conditions.txt",',')
+conditionsDict    = load("$initialSystem/params.jld2")
 
-γ                  = Float64(conditionsArray[4,2])
-λ                  = Float64(conditionsArray[5,2])
-viscousTimeScale   = Float64(conditionsArray[6,2])
-realTimetMax       = Float64(conditionsArray[7,2])
-tMax               = Float64(conditionsArray[8,2])
-dt                 = Float64(conditionsArray[9,2])
-outputInterval     = Float64(conditionsArray[10,2])
-preferredPerimeter = Float64(conditionsArray[11,2])
-preferredArea      = Float64(conditionsArray[12,2])
+@unpack γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea = conditionsDict["params"]
 pressureExternal   = 0.1
 outputTotal        = 100
 realCycleTime      = 24.0*60*60
@@ -74,6 +67,8 @@ end
 
 calculateForce!(params,matrices,matrixF)
 
+#%% This section plots the full system as fig1
+
 fig1 = Figure(resolution=(1000,1000))
 grid1 = fig1[1,1] = GridLayout()
 ax1 = Axis(grid1[1,1],aspect=DataAspect(),)
@@ -86,9 +81,9 @@ for i=1:params.nCells
      vertexAngles[k] = atan((matrices.R[v].-matrices.cellPositions[i])...)
   end
   cellVertices .= cellVertices[sortperm(vertexAngles)]
-  poly!(ax1,Point2f0.(matrices.R[cellVertices]),color=(getRandomColor(i),0.25))
+  poly!(ax1,Point2f.(matrices.R[cellVertices]),color=(getRandomColor(i),0.25))
 end
-scatter!(ax1,Point2f0.(matrices.R),alpha=0.5,color=:black,size=0.5)
+scatter!(ax1,Point2f.(matrices.R),alpha=0.5,color=:black,size=0.5)
 scatter!(ax1,Point2f.(matrices.cellPositions),color=:red)
 annotations!(ax1,string.(collect(1:params.nCells)),Point2f.(matrices.cellPositions),color=:red)
 display(fig1)
@@ -119,22 +114,26 @@ for c=1:params.nCells
     arrows!(ax1,[matrices.cellPositions[c][1]],[matrices.cellPositions[c][2]],[cellForce[1]],[cellForce[2]],linecolor=:red)
 end
 
-#%%
+#%% This section plots, for a given cell, the forces from each neighbouring cell on each vertex, and the force on the cell from each vertex
 
+# Work with cell 31
+cell=31
 
-# Work with cell 4
-cell=4
 fig2 = Figure(resolution=(1000,1000))
 grid2 = fig2[1,1] = GridLayout()
 ax2 = Axis(grid2[1,1],aspect=DataAspect(),)
 hidedecorations!(ax2)
 hidespines!(ax2)
-cellVertices = findall(x->x!=0,matrices.C[cell,:])
 
+# Find all vertices around the cell
+cellVertices = findall(x->x!=0,matrices.C[cell,:])
+# Find all cells around each vertex of original cell
 vertexCells = Int64[]
 for v in cellVertices
     append!(vertexCells,findall(x->x!=0,matrices.C[:,v]))
 end
+# Remove duplicates to obtain list of neighbouring cells
+
 neighbouringCells = unique(vertexCells)
 for c in neighbouringCells
     if c != cell
@@ -169,10 +168,10 @@ for (i,v) in enumerate(cellVertices)
     for f in nonZeroIndices
         rotatedForce = ϵ*matrixF[v,f]
         vertexForce += rotatedForce
-        arrows!(ax2,[matrices.R[v][1]],[matrices.R[v][2]],[rotatedForce[1]],[rotatedForce[2]],color=:blue)
+        arrows!(ax2,Point2f.([matrices.R[v]]),Vec2f.([rotatedForce]),color=:blue)
         annotations!(ax2,["c$f"],Point2f.([(matrices.R[v].+rotatedForce)]),color=:blue)
     end
-    arrows!(ax2,[matrices.R[v][1]],[matrices.R[v][2]],[vertexForce[1]],[vertexForce[2]],color=:red)
+    arrows!(ax2,Point2f.([matrices.R[v]]),Vec2f.([vertexForce]),color=:red)
 end
 
 # Display force vectors on each cell from surrounding vertices
@@ -181,9 +180,9 @@ cellForce = @SVector zeros(2)
 for f in nonZeroIndices
     rotatedForce = ϵ*matrixF[f,cell]
     cellForce += rotatedForce
-    arrows!(ax2,[matrices.cellPositions[cell][1]],[matrices.cellPositions[cell][2]],[rotatedForce[1]],[rotatedForce[2]],color=:blue)
+    arrows!(ax2,Point2f.([matrices.cellPositions[cell]]),Vec2f.([rotatedForce]),color=:blue)
     annotations!(ax2,["v$f"],Point2f.([(matrices.cellPositions[cell].+rotatedForce)]),color=:blue)
 end
-arrows!(ax1,[matrices.cellPositions[cell][1]],[matrices.cellPositions[cell][2]],[cellForce[1]],[cellForce[2]],linecolor=:red)
+arrows!(ax2,Point2f.([matrices.cellPositions[cell]]),Vec2f.([cellForce]),linecolor=:red)
 
 display(fig2)
