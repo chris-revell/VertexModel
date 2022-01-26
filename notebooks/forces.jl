@@ -33,7 +33,8 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-01-24-20-29-36"
+# initialSystem = "data/sims/2022-01-24-20-29-36"
+initialSystem = "/Users/christopher/Dropbox (The University of Manchester)/Other/VertexModelStuff/2022-01-25-12-48-54"
 #initialSystem      = "$(projectdir())/data/sims/2022-01-20-14-52-51"
 
 conditionsDict    = load("$initialSystem/params.jld2")
@@ -176,13 +177,15 @@ end
 
 # Display force vectors on each cell from surrounding vertices
 nonZeroIndices = findall(!iszero,norm.(matrixF[:,cell]))
-cellForce = @SVector zeros(2)
+cellForceResultant = @SVector zeros(2)
 for f in nonZeroIndices
     rotatedForce = ϵ*matrixF[f,cell]
-    cellForce += rotatedForce
+    cellForceResultant += rotatedForce
     arrows!(ax2,Point2f.([matrices.cellPositions[cell]]),Vec2f.([rotatedForce]),color=:blue)
     annotations!(ax2,["v$f"],Point2f.([(matrices.cellPositions[cell].+rotatedForce)]),color=:blue)
 end
 arrows!(ax2,Point2f.([matrices.cellPositions[cell]]),Vec2f.([cellForce]),linecolor=:red)
 
 display(fig2)
+
+#%%
