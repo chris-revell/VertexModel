@@ -35,8 +35,16 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         A,B,R = initialHexagons(initialSystem)
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem/matricesFinal.jld2")
-        @unpack A,B,R = importedArrays
+        A = sparse(readdlm("$(initialSystem)/Afinal.txt",',',Int64,'\n'))
+        B = sparse(readdlm("$(initialSystem)/Bfinal.txt",',',Int64,'\n'))
+        R0 = readdlm("$(initialSystem)/Rfinal.txt",',',Float64,'\n')
+        R = Array{SVector{2,Float64}}(undef,size(A)[2])
+        for i=1:size(R0)[1]
+           R[i] = SVector{2}(R0[i,:])
+        end
+
+        # importedArrays = load("$initialSystem/matricesFinal.jld2")
+        # @unpack A,B,R = importedArrays
     end
 
     # Infer system information from matrices

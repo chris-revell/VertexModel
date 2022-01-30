@@ -40,6 +40,11 @@ using SparseArrays
     cellEdgeCount    .= sum(B̄,dims=2)[:,1]           # Number of edges around each cell found by summing columns of B̄
     boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2))[:,1] # Find the vertices at the boundary
 
+    # Test for inconsistencies in the incidence matrices
+    test = B*A
+    dropzeros!(test)
+    length(findnz(test)[1]) > 0 ? throw() : nothing
+
     return nothing
 
 end
