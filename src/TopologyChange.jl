@@ -41,9 +41,9 @@ using SparseArrays
     boundaryVertices .= Āᵀ*abs.(sum(Bᵀ,dims=2))[:,1] # Find the vertices at the boundary
 
     # Test for inconsistencies in the incidence matrices
-    test = B*A
-    dropzeros!(test)
-    length(findnz(test)[1]) > 0 ? throw() : nothing
+    # test = B*A
+    # dropzeros!(test)
+    # length(findnz(test)[1]) > 0 ? throw() : nothing
 
     return nothing
 
