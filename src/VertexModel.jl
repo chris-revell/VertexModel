@@ -24,6 +24,7 @@ include("CreateRunDirectory.jl"); using .CreateRunDirectory
 include("Visualise.jl"); using .Visualise
 include("Initialise.jl"); using .Initialise
 include("Iterate.jl"); using .Iterate
+include("Energy.jl"); using .Energy
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
@@ -91,6 +92,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
             println("$(t*viscousTimeScale)/$realTimetMax")
+            display(energy(params,matrices))
             visualise(t,fig,ax,mov,params,matrices)
         end
 

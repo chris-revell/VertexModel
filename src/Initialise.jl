@@ -67,6 +67,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
     cellAges          = rand(nCells).*nonDimCycleTime   # Random initial cell ages
+    cellEnergies      = zeros(nCells)
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
@@ -110,6 +111,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellTensions,
         cellPressures,
         cellAges,
+        cellEnergies,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
