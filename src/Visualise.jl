@@ -32,7 +32,7 @@ end
    scatterVertices   = 1
    scatterCells      = 1
 
-   @unpack R,A,B,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
+   @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints = matrices
    @unpack nEdges,nVerts,nCells = params
 
    empty!(ax)
@@ -71,7 +71,7 @@ end
    end
 
    # Plot edges
-   # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
+   # For each edge, use A incidence matrix to find corresponding vertices x, and plot line between x[1] and x[2]
    if plotEdges == 1
       xs = Point2f[]
       us = Vec2f[]
@@ -79,7 +79,7 @@ end
       for c=1:nCells
          es = findall(x->x!=0,B[c,:])
          for i in es
-            vs =findall(x->x!=0,Ā[i,:])
+            vs = findall(x->x!=0,A[i,:])
             colour=:black
             # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
             if matrices.B[c,i] < 0
@@ -89,12 +89,10 @@ end
             end
             # Use A to set direction of arrow along edge
             if A[i,vs[1]] < 0
-               #arrows!(ax,Point2f.([R[x[1]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
                push!(xs, Point2f(R[vs[1]]))
                push!(us, Vec2f(edgeTangents[i]))
                push!(colours, colour)
             else
-               #arrows!(ax,Point2f.([R[x[2]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
                push!(xs, Point2f(R[vs[2]]))
                push!(us, Vec2f(edgeTangents[i]))
                push!(colours, colour)
@@ -106,7 +104,7 @@ end
 
    recordframe!(mov)
 
-   return 0
+   return nothing
 
 end
 
