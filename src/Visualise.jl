@@ -24,19 +24,20 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-@views function visualise(fig,ax,mov,params,matrices)
+@views function visualise(t,fig,ax,mov,params,matrices)
 
+   plotCells         = 1
+   plotEdges         = 0
+   scatterEdges      = 1
+   scatterVertices   = 1
+   scatterCells      = 1
 
-   @unpack R,A,B,Ā,B̄,C,F,cellPositions,edgeTangents,edgeMidpoints,boundaryVertices,vertexEdges = matrices
+   @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints = matrices
    @unpack nEdges,nVerts,nCells = params
 
    empty!(ax)
 
-   plotCells         = 1
-   plotEdges         = 1
-   scatterEdges      = 1
-   scatterVertices   = 1
-   scatterCells      = 1
+   ax.title="t = $t"
 
    # Plot cells
    if plotCells == 1
@@ -70,7 +71,7 @@ end
    end
 
    # Plot edges
-   # For each edge, use Ā adjacency matrix to find corresponding vertices x, and plot line between x[1] and x[2]
+   # For each edge, use A incidence matrix to find corresponding vertices x, and plot line between x[1] and x[2]
    if plotEdges == 1
       xs = Point2f[]
       us = Vec2f[]
@@ -78,7 +79,7 @@ end
       for c=1:nCells
          es = findall(x->x!=0,B[c,:])
          for i in es
-            x=findall(x->x!=0,Ā[i,:])
+            vs = findall(x->x!=0,A[i,:])
             colour=:black
             # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
             if matrices.B[c,i] < 0
@@ -87,14 +88,12 @@ end
                colour = (:blue,0.25)
             end
             # Use A to set direction of arrow along edge
-            if A[i,x[1]] < 0
-               #arrows!(ax,Point2f.([R[x[1]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
-               push!(xs, Point2f(R[x[1]]))
+            if A[i,vs[1]] < 0
+               push!(xs, Point2f(R[vs[1]]))
                push!(us, Vec2f(edgeTangents[i]))
                push!(colours, colour)
             else
-               #arrows!(ax,Point2f.([R[x[2]]]), Vec2f.([edgeTangents[i]]),color=(colour,0.25),arrowsize=25,linewidth=5)
-               push!(xs, Point2f(R[x[2]]))
+               push!(xs, Point2f(R[vs[2]]))
                push!(us, Vec2f(edgeTangents[i]))
                push!(colours, colour)
             end
@@ -105,27 +104,7 @@ end
 
    recordframe!(mov)
 
-   # Vertex moment kites
-   # for i=1:nVerts
-   #    # Exclude boundary vertices.
-   #    if boundaryVertices[i] == 1
-   #       # Do nothing
-   #    else
-   #       vertexEdges = findall(x->x!=0,A[:,i])
-   #       # Loop over 3 edges around the vertex.
-   #       for k=0:2
-   #          # Find vector separating the midpoint of an edge and the midpoint of the next edge around the vertex.
-   #          dM = edgeMidpoints[vertexEdges[i,(k+1)%3+1]] .- edgeMidpoints[vertexEdges[i,k+1]] # Could use arrayLoop function here
-   #          # Find cell bordered by both these two edges
-   #          cellID = intersect(findall(x->x!=0,B̄[:,vertexEdges[i,(k+1)%3+1]]),findall(x->x!=0,B̄[:,vertexEdges[i,k+1]]))[1]
-   #          kite = Shape(Point2f.([cellPositions[cellID],edgeMidpoints[vertexEdges[i,k+1]],R[i],edgeMidpoints[vertexEdges[i,(k+1)%3+1]]]))
-   #          dotProduct = normalize(edgeTangents[vertexEdges[i,((k+2)%3)+1]])⋅normalize(dM)
-   #          plot!(kite,linewidth=0,fillcolor=:blue,fillalpha=abs(dotProduct),seriestype=:shape)
-   #       end
-   #    end
-   # end
-
-   return 0
+   return nothing
 
 end
 

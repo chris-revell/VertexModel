@@ -42,8 +42,6 @@ include("Iterate.jl"); using .Iterate
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeScale,dt,preferredArea,pressureExternal,outputTotal,t1Threshold,outputToggle)
 
-    #BLAS.set_num_threads(4)
-
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
 
@@ -55,23 +53,23 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     topologyChange!(matrices)
     spatialData!(R,params,matrices)
 
-    # Setup output if outputToggle argument == 1
+    # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices)
         # Create plot canvas
-        fig = Figure(resolution=(1000,1000))
+        fig = Figure(resolution=(500,500))
         grid = fig[1,1] = GridLayout()
         ax = Axis(grid[1,1],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
         # Create animation object for visualisation
-        mov = VideoStream(fig, framerate=15)
+        mov = VideoStream(fig, framerate=10)
         # Visualise initial system
-        visualise(fig,ax,mov,params,matrices)
+        visualise(0.0,fig,ax,mov,params,matrices)
     end
 
-    t = 1E-8   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
+    t = 0.01   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
 
     while t<tMax
 
@@ -87,13 +85,13 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
 
         # Result of Runge-Kutta steps
         R .+= ΔR
-        t +=dt
+        t += dt
         cellAges .+= dt
 
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
-            visualise(fig,ax,mov,params,matrices)
             println("$(t*viscousTimeScale)/$realTimetMax")
+            visualise(t,fig,ax,mov,params,matrices)
         end
 
     end
@@ -102,6 +100,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     if outputToggle==1
         # Store final system characteristic matrices
         jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R)
+        jldsave("data/sims/$folderName/dataFinal.jld2";params)
         # Save animated gif
         save("data/sims/$folderName/animated.gif",mov)
     end
