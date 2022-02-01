@@ -31,15 +31,15 @@ function iterate!(iteration,params,matrices)
 
     if iteration == 1
 
-        # if division!(params,matrices)>0
-        #     topologyChange!(matrices)
-        #     spatialData!(tempR,params,matrices)
-        # # else
+        # if params.nCells < 100
+        #     if division!(params,matrices)>0
+        #         topologyChange!(matrices)
+        #         spatialData!(tempR,params,matrices)
+        #     end
         # end
         # if (t1Transitions!(tempR,params,matrices))>1
         #     topologyChange!(matrices)
         #     spatialData!(tempR,params,matrices)
-        # end
         # end
 
         fill!(ΔR,@SVector zeros(2))

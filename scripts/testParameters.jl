@@ -1,5 +1,5 @@
-initialSystem    = "seven"
-realTimetMax     = 0.25*86400.0 # = 24 hours
+initialSystem    = "three"
+realTimetMax     = 86400.0 # = 24 hours
 realCycleTime    = 86400.0 # = 24 hours
 γ                = 0.2
 λ                = -0.3
@@ -7,6 +7,6 @@ viscousTimeScale = 100.0 #20.0
 dt               = 0.1
 preferredArea    = 1.0
 pressureExternal = 0.0
-outputTotal      = 50
+outputTotal      = 200
 t1Threshold      = 0.01
 outputToggle     = 1

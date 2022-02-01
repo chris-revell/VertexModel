@@ -28,9 +28,9 @@ end
 
    plotCells         = 1
    plotEdges         = 0
-   scatterEdges      = 1
-   scatterVertices   = 1
-   scatterCells      = 1
+   scatterEdges      = 0
+   scatterVertices   = 0
+   scatterCells      = 0
 
    @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints = matrices
    @unpack nEdges,nVerts,nCells = params

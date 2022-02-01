@@ -16,6 +16,7 @@ using StaticArrays
 using UnPack
 using DrWatson
 using CairoMakie
+using DelimitedFiles
 
 # Local modules
 include("TopologyChange.jl"); using .TopologyChange
@@ -62,8 +63,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         fig = Figure(resolution=(500,500))
         grid = fig[1,1] = GridLayout()
         ax = Axis(grid[1,1],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
+        #hidedecorations!(ax)
+        #hidespines!(ax)
         # Create animation object for visualisation
         mov = VideoStream(fig, framerate=10)
         # Visualise initial system
@@ -71,6 +72,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     end
 
     t = 0.01   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
+    energies = Float64[]
 
     while t<tMax
 
@@ -80,7 +82,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # 2nd step of Runge-Kutta
         iterate!(2,params,matrices)
         # 3rd step of Runge-Kutta
-        iterate!(2,params,matrices)
+        iterate!(3,params,matrices)
         # 4th step of Runge-Kutta
         iterate!(4,params,matrices)
 
@@ -92,7 +94,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
             println("$(t*viscousTimeScale)/$realTimetMax")
-            display(energy(params,matrices))
+            push!(energies,energy(params,matrices))
             visualise(t,fig,ax,mov,params,matrices)
         end
 
@@ -103,6 +105,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Store final system characteristic matrices
         jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R)
         jldsave("data/sims/$folderName/dataFinal.jld2";params)
+        writedlm("data/sims/$folderName/energies.txt",energies,",")
         # Save animated gif
         save("data/sims/$folderName/animated.gif",mov)
     end
