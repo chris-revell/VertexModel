@@ -80,7 +80,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # 2nd step of Runge-Kutta
         iterate!(2,params,matrices)
         # 3rd step of Runge-Kutta
-        iterate!(2,params,matrices)
+        iterate!(3,params,matrices)
         # 4th step of Runge-Kutta
         iterate!(4,params,matrices)
 
