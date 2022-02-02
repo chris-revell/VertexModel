@@ -31,12 +31,12 @@ function iterate!(iteration,params,matrices)
 
     if iteration == 1
 
-        # if params.nCells < 100
-        #     if division!(params,matrices)>0
-        #         topologyChange!(matrices)
-        #         spatialData!(tempR,params,matrices)
-        #     end
-        # end
+        if params.nCells < 100
+            if division!(params,matrices)>0
+                topologyChange!(matrices)
+                spatialData!(tempR,params,matrices)
+            end
+        end
         # if (t1Transitions!(tempR,params,matrices))>1
         #     topologyChange!(matrices)
         #     spatialData!(tempR,params,matrices)
@@ -46,7 +46,7 @@ function iterate!(iteration,params,matrices)
     end
 
     calculateForce!(tempR,params,matrices)
-    ΔR .+= F.*dt*rkCoefficients[2,iteration]/6.0
+    ΔR .+= F.*dt#*rkCoefficients[2,iteration]/6.0
 
     return nothing
 end

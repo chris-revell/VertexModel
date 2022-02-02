@@ -21,6 +21,7 @@ includet("$(projectdir())/src/Visualise.jl"); using .Visualise
 includet("$(projectdir())/src/Initialise.jl"); using .Initialise
 includet("$(projectdir())/src/Iterate.jl"); using .Iterate
 includet("$(projectdir())/src/SpatialData.jl"); using .SpatialData
+includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
     Random.seed!(seed)
@@ -33,7 +34,8 @@ end
 # initialSystem = "/Users/christopher/Dropbox (The University of Manchester)/Other/VertexModelStuff/2022-01-31-18-25-23"
 # initialSystem = "data/sims/2022-01-31-13-34-41"
 # initialSystem = "data/sims/2022-02-01-10-20-47"
-initialSystem = "data/sims/2022-02-01-10-53-17"
+# initialSystem = "data/sims/2022-02-01-10-53-17"
+initialSystem = "data/sims/2022-02-01-18-15-16"
 
 # Import system data
 conditionsDict    = load("$initialSystem/params.jld2")

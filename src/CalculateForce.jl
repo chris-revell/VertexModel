@@ -29,8 +29,11 @@ function calculateForce!(R,params,matrices)
         for i=1:nCells
             for j=1:nEdges
                 F[k] -= 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) - cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
+                # First term: pressure acting on edge j.
+                # B[i,j] gives directionality to perpendicular vector ϵ*edgeTangents[i], Ā[j,k] ensures that this term contributes to both vertices k that border edge j.
+
                 # External force
-                F[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+                #F[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
             end
         end
     end
