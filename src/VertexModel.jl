@@ -92,7 +92,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
             println("$(t*viscousTimeScale)/$realTimetMax")
-            display(energy(params,matrices))
+            #display(energy(params,matrices))
             visualise(t,fig,ax,mov,params,matrices)
         end
 
