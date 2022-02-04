@@ -35,7 +35,10 @@ end
 # initialSystem = "data/sims/2022-01-31-13-34-41"
 # initialSystem = "data/sims/2022-02-01-10-20-47"
 # initialSystem = "data/sims/2022-02-01-10-53-17"
-initialSystem = "data/sims/2022-02-01-18-15-16"
+# initialSystem = "data/sims/2022-02-01-18-15-16"
+# initialSystem = "data/sims/2022-02-02-19-49-50"
+# initialSystem = "data/sims/2022-02-02-20-09-39"
+initialSystem = "data/sims/2022-02-04-10-41-29"
 
 # Import system data
 conditionsDict    = load("$initialSystem/params.jld2")
@@ -81,6 +84,9 @@ end
 # Scatter vertex locations
 scatter!(allForceAx,Point2f.(matrices.R),alpha=0.5,color=:blue)
 annotations!(allForceAx,string.(collect(1:params.nVerts)),Point2f.(matrices.R),color=:red)
+
+# Edge labels
+annotations!(allForceAx,string.(collect(1:params.nEdges)),Point2f.(matrices.edgeMidpoints),color=:green)
 
 # Scatter cell centroid locations
 scatter!(allForceAx,Point2f.(matrices.cellPositions),color=:red)

@@ -60,15 +60,18 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices)
         # Create plot canvas
-        fig = Figure(resolution=(500,500))
+        fig = Figure(resolution=(1000,1000))
         grid = fig[1,1] = GridLayout()
         ax = Axis(grid[1,1],aspect=DataAspect())
-        #hidedecorations!(ax)
-        #hidespines!(ax)
+        ax2 = Axis(grid[1,2],aspect=DataAspect())
+        hidedecorations!(ax)
+        # hidespines!(ax)
+        hidedecorations!(ax2)
+        # hidespines!(ax2)
         # Create animation object for visualisation
         mov = VideoStream(fig, framerate=10)
         # Visualise initial system
-        visualise(0.0,fig,ax,mov,params,matrices)
+        visualise(0.0,fig,ax,ax2,mov,params,matrices)
     end
 
     t = 0.01   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
@@ -80,11 +83,11 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # 1st step of Runge-Kutta
         iterate!(1,params,matrices)
         # 2nd step of Runge-Kutta
-        # iterate!(2,params,matrices)
+        iterate!(2,params,matrices)
         # 3rd step of Runge-Kutta
-        # iterate!(3,params,matrices)
+        iterate!(3,params,matrices)
         # 4th step of Runge-Kutta
-        # iterate!(4,params,matrices)
+        iterate!(4,params,matrices)
 
         # Result of Runge-Kutta steps
         R .+= ΔR
@@ -95,7 +98,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         if t%outputInterval<dt && outputToggle==1
             println("$(t*viscousTimeScale)/$realTimetMax")
             push!(energies,energy(params,matrices))
-            visualise(t,fig,ax,mov,params,matrices)
+            visualise(t,fig,ax,ax2,mov,params,matrices)
+            #display(maximum(norm.(matrices.F)))
         end
 
     end
@@ -103,7 +107,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     # If outputToggle==1, save animation object as an animated gif and save final system matrices
     if outputToggle==1
         # Store final system characteristic matrices
-        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R)
+        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R,matrices.F)
         jldsave("data/sims/$folderName/dataFinal.jld2";params)
         writedlm("data/sims/$folderName/energies.txt",energies,",")
         # Save animated gif

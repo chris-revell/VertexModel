@@ -24,16 +24,11 @@ function calculateForce!(R,params,matrices)
     fill!(F,@SVector zeros(2))
 
     # Internal forces
-    # NB This iteration could be improved to better leverage sparse arrays
+    # NB This iteration could probably be improved to better leverage sparse arrays
     for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
-                F[k] -= 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) - cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
-                # First term: pressure acting on edge j.
-                # B[i,j] gives directionality to perpendicular vector ϵ*edgeTangents[i], Ā[j,k] ensures that this term contributes to both vertices k that border edge j.
-
-                # External force
-                #F[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+                F[k,i] -= (0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) - cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j])
             end
         end
     end
