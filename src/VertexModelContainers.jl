@@ -62,6 +62,7 @@ mutable struct MatricesContainer
     vertexEdges      ::Vector{SVector{3, Float64}}    # Vector of 3 component static vectors containing the labels of edges around each vertex.
     vertexCells      ::Vector{SVector{3, Float64}}    # Vector of 3 component static vectors containing the labels of cells around each vertex.
     F                ::Matrix{SVector{2, Float64}}    # Matrix of 2 component static vectors containing force vectors acting on each vertex and cell
+    externalF        ::Vector{SVector{2, Float64}}    # 
     ϵ                ::SMatrix{2, 2, Float64, 4}      # Antisymmetric rotation matrix
     rkCoefficients   ::SMatrix{2, 4, Float64, 8}      # Matrix containing coefficients of Runge-Kutta integration
 end

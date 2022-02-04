@@ -28,7 +28,7 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-04-10-41-29"
+initialSystem = "data/sims/2022-02-04-12-38-56"
 
 # Import system data
 conditionsDict    = load("$initialSystem/params.jld2")
@@ -55,7 +55,7 @@ hidespines!(ax1)
 
 
 # Plot for one set of 3 cells
-centralCell=36
+centralCell=1
 
 hidedecorations!(ax1)
 hidespines!(ax1)
@@ -65,7 +65,7 @@ cellNeighbourMatrix = matrices.B*matrices.Bᵀ
 dropzeros!(cellNeighbourMatrix)
 neighbouringCells = findnz(cellNeighbourMatrix[centralCell,:])[1]
 
-# Draw all cell and vertex positions with annotations
+# Draw all cell and vertex positions with #annotations
 cellVerticesDict = Dict()
 for c in neighbouringCells
     # Find vertices around cell
@@ -83,13 +83,13 @@ for c in neighbouringCells
     poly!(ax1,Point2f.(R[cellVertices]),color=(getRandomColor(c),0.25))
     # Plot all vertex positions
     scatter!(ax1,Point2f.(R[cellVertices]),color=:black)
-    annotations!(ax1,string.(cellVertices),Point2f.(R[cellVertices]),color=:blue)
+    #annotations!(ax1,string.(cellVertices),Point2f.(R[cellVertices]),color=:blue)
     # Plot resultant forces on vertices (excluding external pressure)
     arrows!(ax1,Point2f.(R[cellVertices]),Vec2f.(sum(F[cellVertices,:],dims=2)),color=:blue,alpha=0.3)
 end
-# Scatter plot cell positions with annotations
+# Scatter plot cell positions with #annotations
 scatter!(ax1,Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
-annotations!(ax1,string.(neighbouringCells),Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
+#annotations!(ax1,string.(neighbouringCells),Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
 
 
 # New axis for force space
@@ -106,19 +106,12 @@ neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
 
 startPosition = @SVector [0.0,0.0]
 
-for (i,v) in enumerate(cellVerticesDict[centralCell])
-
-    arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-    annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    startPosition = startPosition - ϵ*F[v,centralCell]
-end
-
 
 for (i,v) in enumerate(cellVerticesDict[centralCell])
 
-    arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-    annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    startPosition = startPosition - ϵ*F[v,centralCell]
+    arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+    #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+    startPosition = startPosition + ϵ*F[v,centralCell]
 
     H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
     cellForces = SVector{2, Float64}[]
@@ -131,11 +124,11 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
     H[1] = startPosition
 
     for (j,cv) in enumerate(cellVertices)
-        push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
+        push!(cellForces,ϵ*F[cv,neighbouringCells[i]])
         H[j+1] = H[j]+cellForces[end]
     end
 
-    annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+    #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
     arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
 
 end

@@ -64,10 +64,10 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         grid = fig[1,1] = GridLayout()
         ax = Axis(grid[1,1],aspect=DataAspect())
         ax2 = Axis(grid[1,2],aspect=DataAspect())
-        hidedecorations!(ax)
-        # hidespines!(ax)
-        hidedecorations!(ax2)
-        # hidespines!(ax2)
+        # hidedecorations!(ax)
+        hidespines!(ax)
+        # hidedecorations!(ax2)
+        hidespines!(ax2)
         # Create animation object for visualisation
         mov = VideoStream(fig, framerate=10)
         # Visualise initial system
@@ -79,29 +79,34 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
 
     while t<tMax
 
-        # 4 step Runge-Kutta integration
-        # 1st step of Runge-Kutta
-        iterate!(1,params,matrices)
-        # 2nd step of Runge-Kutta
-        iterate!(2,params,matrices)
-        # 3rd step of Runge-Kutta
-        iterate!(3,params,matrices)
-        # 4th step of Runge-Kutta
-        iterate!(4,params,matrices)
+        try
+            # 4 step Runge-Kutta integration
+            # 1st step of Runge-Kutta
+            iterate!(1,params,matrices)
+            # 2nd step of Runge-Kutta
+            iterate!(2,params,matrices)
+            # 3rd step of Runge-Kutta
+            iterate!(3,params,matrices)
+            # 4th step of Runge-Kutta
+            iterate!(4,params,matrices)
 
-        # Result of Runge-Kutta steps
-        R .+= ΔR
-        t += dt
-        cellAges .+= dt
+            # Result of Runge-Kutta steps
+            R .+= ΔR
+            t += dt
+            cellAges .+= dt
 
-        # Visualise system at every output interval
-        if t%outputInterval<dt && outputToggle==1
-            println("$(t*viscousTimeScale)/$realTimetMax")
-            push!(energies,energy(params,matrices))
+            # Visualise system at every output interval
+            if t%outputInterval<dt && outputToggle==1
+                println("$(t*viscousTimeScale)/$realTimetMax")
+                push!(energies,energy(params,matrices))
+                visualise(t,fig,ax,ax2,mov,params,matrices)
+                #display(maximum(norm.(matrices.F)))
+            end
+        catch p
             visualise(t,fig,ax,ax2,mov,params,matrices)
-            #display(maximum(norm.(matrices.F)))
+            save("data/sims/$folderName/animated.gif",mov)
+            throw(p)
         end
-
     end
 
     # If outputToggle==1, save animation object as an animated gif and save final system matrices

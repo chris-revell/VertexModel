@@ -26,16 +26,14 @@ function iterate!(iteration,params,matrices)
     @unpack R, tempR, ΔR, rkCoefficients = matrices
     @unpack dt = params
 
-    tempR .= R .+ sum(matrices.F,dims=2).*dt*rkCoefficients[1,iteration]
+    tempR .= R .+ (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
 
-        if params.nCells < 50
-            if division!(params,matrices)>0
-                topologyChange!(matrices)
-                spatialData!(tempR,params,matrices)
-            end
+        if division!(params,matrices)>0
+            topologyChange!(matrices)
+            spatialData!(tempR,params,matrices)
         end
         if (t1Transitions!(tempR,params,matrices))>1
             topologyChange!(matrices)
@@ -47,7 +45,7 @@ function iterate!(iteration,params,matrices)
 
     calculateForce!(tempR,params,matrices)
 
-    ΔR .+= sum(matrices.F,dims=2).*dt*rkCoefficients[2,iteration]/6.0
+    ΔR .+= (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[2,iteration]/6.0
 
     return nothing
 end

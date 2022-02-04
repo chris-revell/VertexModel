@@ -195,13 +195,14 @@ function division!(params,matrices)
         # Add 2 components to vectors for new vertices
         append!(R,newRs)
         append!(tempR,newRs)
-        append!(ΔR,Array{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         append!(boundaryVertices,zeros(Int64,2*divisionCount))
         # append!(F,Matrix{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         # Add 3 components to vectors for new edges
         append!(edgeLengths,zeros(Float64,3*divisionCount))
-        append!(edgeTangents,Array{SVector{2,Float64}}(undef,3*divisionCount))
-        append!(edgeMidpoints,Array{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
 
         matrices.A = Atmp
         matrices.B = Btmp
@@ -211,7 +212,7 @@ function division!(params,matrices)
         matrices.Bᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
         matrices.B̄  = spzeros(Int64,nCellsLocal,nEdgesLocal)
         matrices.B̄ᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
-        matrices.C  = spzeros(Int64,nCellsLocal,nVertsLocal)        
+        matrices.C  = spzeros(Int64,nCellsLocal,nVertsLocal)
         matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsLocal,nCellsLocal)
         #fill!(F,@SVector zeros(2))
 

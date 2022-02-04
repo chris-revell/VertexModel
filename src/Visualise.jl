@@ -30,9 +30,10 @@ end
 
    plotCells         = 1
    plotEdges         = 0
-   scatterEdges      = 1
+   scatterEdges      = 0
    scatterVertices   = 0
    scatterCells      = 1
+   plotForces        = 0
 
    @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
    @unpack nEdges,nVerts,nCells = params
@@ -104,23 +105,25 @@ end
       arrows!(ax,xs,us,color=colours,arrowsize=25,linewidth=5)
    end
 
-   # Plot resultant forces on vertices (excluding external pressure)
-   arrows!(ax,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:black)
+   if plotForces == 1
+      # Plot resultant forces on vertices (excluding external pressure)
+      arrows!(ax,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:green)
+      # Plot resultant forces on cells
+      arrows!(ax,Point2f.(matrices.cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
+   end
 
-   # Plot resultant forces on cells
-   arrows!(ax,Point2f.(matrices.cellPositions),Vec2f.(sum(F,dims=1)),color=:black)
 
    empty!(ax2)
-   #ax2.title = "Cell 1 vicinity"
 
-   centralCell = 1
+   ax2.title = "Cell 36 force space"
 
-   # Find all cells neighbouring original cell
+   centralCell = 36
+
    cellNeighbourMatrix = matrices.B*matrices.Bᵀ
    dropzeros!(cellNeighbourMatrix)
    neighbouringCells = findall(!iszero,cellNeighbourMatrix[centralCell,:])
 
-   # Draw all cell and vertex positions with annotations
+   # Find and sort all vertices around cells neighbouring centralCell
    cellVerticesDict = Dict()
    for c in neighbouringCells
        # Find vertices around cell
@@ -128,65 +131,41 @@ end
        # Find angles of vertices around cell
        vertexAngles = zeros(size(cellVertices))
        for (k,v) in enumerate(cellVertices)
-           vertexAngles[k] = atan((matrices.R[v].-matrices.cellPositions[c])...)
+           vertexAngles[k] = atan((R[v].-matrices.cellPositions[c])...)
        end
        # Sort vertices around cell by polar angle
        cellVertices .= cellVertices[sortperm(vertexAngles)]
        # Store sorted cell vertices for this cell
        cellVerticesDict[c] = cellVertices
-       # Draw cell as polygon using vertices
-       # poly!(ax1,Point2f.(matrices.R[cellVertices]),color=(getRandomColor(c),0.25))
-       # Plot all vertex positions
-       # scatter!(ax1,Point2f.(matrices.R[cellVertices]),color=:black)
-       # annotations!(ax1,string.(cellVertices),Point2f.(matrices.R[cellVertices]),color=:blue)
-       # Plot resultant forces on vertices (excluding external pressure)
-       # arrows!(ax1,Point2f.(R[cellVertices]),Vec2f.(sum(F[cellVertices,:],dims=2)),color=:blue,alpha=0.3)
    end
-   # Scatter plot cell positions with annotations
-   # scatter!(ax1,Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
-   # annotations!(ax1,string.(neighbouringCells),Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
 
-   setdiff!(neighbouringCells,[centralCell])
+   # Sort cells neighbouring centralCell by angle
+   setdiff!(neighbouringCells,[centralCell]) # Remove centralCell from neighbours list
    neighbourAngles = zeros(length(neighbouringCells))
    for (i,c) in enumerate(neighbouringCells)
        neighbourAngles[i] = atan((cellPositions[c].-cellPositions[centralCell])...)
    end
    neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
 
+   # Draw force network
    startPosition = @SVector [0.0,0.0]
-
-   # for (i,v) in enumerate(cellVerticesDict[centralCell])
-   #
-   #     arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-   #     #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-   #     startPosition = startPosition + ϵ*F[v,centralCell]
-   # end
-
-
    for (i,v) in enumerate(cellVerticesDict[centralCell])
-
        arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-       #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+       annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
        startPosition = startPosition + ϵ*F[v,centralCell]
-
        H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
        cellForces = SVector{2, Float64}[]
-
        # Circular permutation of vertices to ensure vertex v is the first index
        # in the ordered cellVertices list around cell neighbouringCells[i]
        index = findall(x->x==v, cellVerticesDict[neighbouringCells[i]])
        cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
-
        H[1] = startPosition
-
        for (j,cv) in enumerate(cellVertices)
            push!(cellForces,ϵ*F[cv,neighbouringCells[i]])
            H[j+1] = H[j]+cellForces[end]
        end
-
-       #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+       annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
        arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
-
    end
 
    recordframe!(mov)

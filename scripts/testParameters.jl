@@ -6,7 +6,7 @@ realCycleTime    = 86400.0 # = 24 hours
 viscousTimeScale = 100.0 #20.0
 dt               = 0.5
 preferredArea    = 1.0
-pressureExternal = 0.0
+pressureExternal = 0.1
 outputTotal      = 50
 t1Threshold      = 0.01
 outputToggle     = 1
