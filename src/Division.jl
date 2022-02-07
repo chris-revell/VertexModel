@@ -22,7 +22,7 @@ indexLoop(a,N) = (N+a-1)%(N)+1
 function division!(params,matrices)
 
     @unpack nCells, nEdges, nVerts, nonDimCycleTime = params
-    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, externalF, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 

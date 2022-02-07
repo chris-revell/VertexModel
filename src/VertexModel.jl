@@ -64,9 +64,9 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         grid = fig[1,1] = GridLayout()
         ax = Axis(grid[1,1],aspect=DataAspect())
         ax2 = Axis(grid[1,2],aspect=DataAspect())
-        # hidedecorations!(ax)
+        hidedecorations!(ax)
         hidespines!(ax)
-        # hidedecorations!(ax2)
+        hidedecorations!(ax2)
         hidespines!(ax2)
         # Create animation object for visualisation
         mov = VideoStream(fig, framerate=10)
@@ -94,25 +94,25 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
             R .+= ΔR
             t += dt
             cellAges .+= dt
-
-            # Visualise system at every output interval
-            if t%outputInterval<dt && outputToggle==1
-                println("$(t*viscousTimeScale)/$realTimetMax")
-                push!(energies,energy(params,matrices))
-                visualise(t,fig,ax,ax2,mov,params,matrices)
-                #display(maximum(norm.(matrices.F)))
-            end
         catch p
             visualise(t,fig,ax,ax2,mov,params,matrices)
             save("data/sims/$folderName/animated.gif",mov)
             throw(p)
+        end
+
+        # Visualise system at every output interval
+        if t%outputInterval<dt && outputToggle==1
+            println("$(t*viscousTimeScale)/$realTimetMax")
+            push!(energies,energy(params,matrices))
+            visualise(t,fig,ax,ax2,mov,params,matrices)
+            #display(maximum(norm.(matrices.F)))
         end
     end
 
     # If outputToggle==1, save animation object as an animated gif and save final system matrices
     if outputToggle==1
         # Store final system characteristic matrices
-        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices.A,matrices.B,matrices.R,matrices.F)
+        jldsave("data/sims/$folderName/matricesFinal.jld2";matrices)
         jldsave("data/sims/$folderName/dataFinal.jld2";params)
         writedlm("data/sims/$folderName/energies.txt",energies,",")
         # Save animated gif

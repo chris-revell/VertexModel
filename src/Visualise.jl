@@ -115,9 +115,9 @@ end
 
    empty!(ax2)
 
-   ax2.title = "Cell 36 force space"
+   centralCell = 25
 
-   centralCell = 36
+   ax2.title = "Cell $centralCell force space"
 
    cellNeighbourMatrix = matrices.B*matrices.Bᵀ
    dropzeros!(cellNeighbourMatrix)

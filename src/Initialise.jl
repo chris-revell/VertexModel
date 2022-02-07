@@ -35,7 +35,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/matricesFinal.jld2")
-        @unpack A,B,R = importedArrays
+        @unpack A,B,R = importedArrays["matrices"]
     end
 
     # Infer system information from matrices
