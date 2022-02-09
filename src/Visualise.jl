@@ -26,21 +26,21 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-@views function visualise(t,fig,ax,ax2,mov,params,matrices)
+@views function visualise(t,fig,ax1,ax2,mov,params,matrices)
 
    plotCells         = 1
    plotEdges         = 0
    scatterEdges      = 0
-   scatterVertices   = 0
+   scatterVertices   = 1
    scatterCells      = 1
    plotForces        = 0
 
    @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
    @unpack nEdges,nVerts,nCells = params
 
-   empty!(ax)
+   empty!(ax1)
 
-   ax.title="t = $t"
+   ax1.title="t = $(@sprintf("%.2f", t))"
 
    # Plot cells
    if plotCells == 1
@@ -51,26 +51,26 @@ end
             vertexAngles[k] = atan((R[v].-cellPositions[i])...)
          end
          cellVertices .= cellVertices[sortperm(vertexAngles)]
-         poly!(ax,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.5))
+         poly!(ax1,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.5))
       end
    end
 
    # Scatter vertices
-   if scatterEdges == 1
-      scatter!(ax,Point2f.(R),color=:green)
-      annotations!(ax,string.(collect(1:length(R))), Point2f.(R),color=:green)
+   if scatterVertices == 1
+      scatter!(ax1,Point2f.(R),color=:green)
+      annotations!(ax1,string.(collect(1:length(R))), Point2f.(R),color=:green)
    end
 
    # Scatter edge midpoints
    if scatterEdges == 1
-      scatter!(ax,Point2f.(edgeMidpoints),color=:blue)
-      annotations!(ax,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints),color=:blue)
+      scatter!(ax1,Point2f.(edgeMidpoints),color=:blue)
+      annotations!(ax1,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints),color=:blue)
    end
 
    # Scatter cell positions
    if scatterCells == 1
-      scatter!(ax,Point2f.(cellPositions),color=:red)
-      annotations!(ax,string.(collect(1:length(cellPositions))), Point2f.(cellPositions),color=:red)
+      scatter!(ax1,Point2f.(cellPositions),color=:red)
+      annotations!(ax1,string.(collect(1:length(cellPositions))), Point2f.(cellPositions),color=:red)
    end
 
    # Plot edges
@@ -102,20 +102,20 @@ end
             end
          end
       end
-      arrows!(ax,xs,us,color=colours,arrowsize=25,linewidth=5)
+      arrows!(ax1,xs,us,color=colours,arrowsize=25,linewidth=5)
    end
 
    if plotForces == 1
       # Plot resultant forces on vertices (excluding external pressure)
-      arrows!(ax,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:green)
+      arrows!(ax1,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:green)
       # Plot resultant forces on cells
-      arrows!(ax,Point2f.(matrices.cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
+      arrows!(ax1,Point2f.(matrices.cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
    end
 
 
    empty!(ax2)
 
-   centralCell = 25
+   centralCell = 1
 
    ax2.title = "Cell $centralCell force space"
 
@@ -139,20 +139,31 @@ end
        cellVerticesDict[c] = cellVertices
    end
 
+   centralCellVertices = findall(x->x!=0,C[centralCell,:])
+   centralVertexAngles = zeros(size(centralCellVertices))
+   for (k,v) in enumerate(centralCellVertices)
+      centralVertexAngles[k] = atan((R[v].-cellPositions[centralCell])...)
+   end
+   m = minimum(centralVertexAngles)
+   centralVertexAngles .-= m
+   centralCellVertices .= centralCellVertices[sortperm(centralVertexAngles)]
+
    # Sort cells neighbouring centralCell by angle
    setdiff!(neighbouringCells,[centralCell]) # Remove centralCell from neighbours list
    neighbourAngles = zeros(length(neighbouringCells))
    for (i,c) in enumerate(neighbouringCells)
        neighbourAngles[i] = atan((cellPositions[c].-cellPositions[centralCell])...)
    end
+   neighbourAngles .+= (2π-m)
+   neighbourAngles = neighbourAngles.%(2π)
    neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
 
    # Draw force network
    startPosition = @SVector [0.0,0.0]
    for (i,v) in enumerate(cellVerticesDict[centralCell])
-       arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-       annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-       startPosition = startPosition + ϵ*F[v,centralCell]
+       arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+       annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+       startPosition = startPosition - ϵ*F[v,centralCell]
        H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
        cellForces = SVector{2, Float64}[]
        # Circular permutation of vertices to ensure vertex v is the first index
@@ -161,7 +172,7 @@ end
        cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
        H[1] = startPosition
        for (j,cv) in enumerate(cellVertices)
-           push!(cellForces,ϵ*F[cv,neighbouringCells[i]])
+           push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
            H[j+1] = H[j]+cellForces[end]
        end
        annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
@@ -169,6 +180,8 @@ end
    end
 
    recordframe!(mov)
+
+   println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
 
    return nothing
 

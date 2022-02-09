@@ -18,6 +18,9 @@ using UnPack
 # Local modules
 include("InitialHexagons.jl"); using .InitialHexagons
 include("VertexModelContainers.jl"); using .VertexModelContainers
+include("TopologyChange.jl"); using .TopologyChange
+include("SpatialData.jl"); using .SpatialData
+include("CalculateForce.jl"); using .CalculateForce
 
 
 function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -89,6 +92,13 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         0.0 -1.0
         1.0 0.0
     ]
+
+
+    # Initial evaluation of matrices based on system topology
+    topologyChange!(matrices)
+    spatialData!(R,params,matrices)
+    calculateForce!(R,params,matrices)
+
 
     # Pack matrces into a struct for convenience
     matrices = MatricesContainer(

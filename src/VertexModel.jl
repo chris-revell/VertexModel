@@ -17,15 +17,17 @@ using UnPack
 using DrWatson
 using CairoMakie
 using DelimitedFiles
+using Printf
 
 # Local modules
-include("TopologyChange.jl"); using .TopologyChange
-include("SpatialData.jl"); using .SpatialData
+# include("TopologyChange.jl"); using .TopologyChange
+# include("SpatialData.jl"); using .SpatialData
 include("CreateRunDirectory.jl"); using .CreateRunDirectory
 include("Visualise.jl"); using .Visualise
 include("Initialise.jl"); using .Initialise
 include("Iterate.jl"); using .Iterate
 include("Energy.jl"); using .Energy
+# include("CalculateForce.jl"); using .CalculateForce
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
@@ -51,10 +53,6 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
     @unpack tMax, outputInterval = params
     @unpack R, tempR, ΔR, cellAges = matrices
 
-    # Initial setup of matrices based on system topology
-    topologyChange!(matrices)
-    spatialData!(R,params,matrices)
-
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
@@ -62,61 +60,54 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         # Create plot canvas
         fig = Figure(resolution=(1000,1000))
         grid = fig[1,1] = GridLayout()
-        ax = Axis(grid[1,1],aspect=DataAspect())
+        ax1 = Axis(grid[1,1],aspect=DataAspect())
         ax2 = Axis(grid[1,2],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
+        hidedecorations!(ax1)
+        hidespines!(ax1)
         hidedecorations!(ax2)
         hidespines!(ax2)
         # Create animation object for visualisation
-        mov = VideoStream(fig, framerate=10)
+        mov = VideoStream(fig, framerate=5)
         # Visualise initial system
-        visualise(0.0,fig,ax,ax2,mov,params,matrices)
+        visualise(0.0,fig,ax1,ax2,mov,params,matrices)
+        save("data/sims/$folderName/frame$(@sprintf("%03d", 0)).png",fig)
     end
 
-    t = 0.01   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
-    energies = Float64[]
+    t = 0.0001   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
+    outCount = 0
 
     while t<tMax
 
-        try
-            # 4 step Runge-Kutta integration
-            # 1st step of Runge-Kutta
-            iterate!(1,params,matrices)
-            # 2nd step of Runge-Kutta
-            iterate!(2,params,matrices)
-            # 3rd step of Runge-Kutta
-            iterate!(3,params,matrices)
-            # 4th step of Runge-Kutta
-            iterate!(4,params,matrices)
+        # 4 step Runge-Kutta integration
+        # 1st step of Runge-Kutta
+        iterate!(1,params,matrices)
+        # 2nd step of Runge-Kutta
+        iterate!(2,params,matrices)
+        # 3rd step of Runge-Kutta
+        iterate!(3,params,matrices)
+        # 4th step of Runge-Kutta
+        iterate!(4,params,matrices)
 
-            # Result of Runge-Kutta steps
-            R .+= ΔR
-            t += dt
-            cellAges .+= dt
-        catch p
-            visualise(t,fig,ax,ax2,mov,params,matrices)
-            save("data/sims/$folderName/animated.gif",mov)
-            throw(p)
-        end
+        # Result of Runge-Kutta steps
+        R .+= ΔR
+        t += dt
+        cellAges .+= dt
 
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
-            println("$(t*viscousTimeScale)/$realTimetMax")
-            push!(energies,energy(params,matrices))
-            visualise(t,fig,ax,ax2,mov,params,matrices)
-            #display(maximum(norm.(matrices.F)))
+            visualise(t,fig,ax1,ax2,mov,params,matrices)
+            outCount += 1
+            save("data/sims/$folderName/frame$(@sprintf("%03d", outCount)).png",fig)
         end
     end
 
-    # If outputToggle==1, save animation object as an animated gif and save final system matrices
+    # If outputToggle==1, save animation object and save final system matrices
     if outputToggle==1
         # Store final system characteristic matrices
         jldsave("data/sims/$folderName/matricesFinal.jld2";matrices)
         jldsave("data/sims/$folderName/dataFinal.jld2";params)
-        writedlm("data/sims/$folderName/energies.txt",energies,",")
         # Save animated gif
-        save("data/sims/$folderName/animated.gif",mov)
+        save("data/sims/$folderName/animated.mp4",mov)
     end
 
 end
