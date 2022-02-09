@@ -93,13 +93,6 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         1.0 0.0
     ]
 
-
-    # Initial evaluation of matrices based on system topology
-    topologyChange!(matrices)
-    spatialData!(R,params,matrices)
-    calculateForce!(R,params,matrices)
-
-
     # Pack matrces into a struct for convenience
     matrices = MatricesContainer(
         R,
@@ -155,6 +148,14 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         nonDimCycleTime,
         t1Threshold
     )
+
+
+
+    # Initial evaluation of matrices based on system topology
+    topologyChange!(matrices)
+    spatialData!(R,params,matrices)
+    calculateForce!(R,params,matrices)
+
 
     return params,matrices
 
