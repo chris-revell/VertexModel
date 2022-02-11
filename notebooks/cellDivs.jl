@@ -69,9 +69,11 @@ end
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect(),)
+ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
+
+ax1.title = "Cell divs"
 
 clims = (-maximum(abs.(cellDivs)),maximum(abs.(cellDivs)))
 

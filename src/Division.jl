@@ -15,8 +15,6 @@ using StaticArrays
 using SparseArrays
 using UnPack
 
-#include("TopologyChange.jl"); using .TopologyChange
-
 indexLoop(a,N) = (N+a-1)%(N)+1
 
 function division!(params,matrices)
@@ -214,7 +212,6 @@ function division!(params,matrices)
         matrices.B̄ᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
         matrices.C  = spzeros(Int64,nCellsLocal,nVertsLocal)
         matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsLocal,nCellsLocal)
-        #fill!(F,@SVector zeros(2))
 
     end
 

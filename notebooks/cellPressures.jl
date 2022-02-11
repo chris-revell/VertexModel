@@ -40,6 +40,8 @@ ax1 = Axis(grid[1,1],aspect=DataAspect(),)
 hidedecorations!(ax1)
 hidespines!(ax1)
 
+ax1.title = "Effective pressures"
+
 clims = (-maximum(abs.(-2.0.*pressuresEffective)),maximum(abs.(-2.0.*pressuresEffective)))
 
 # Plot cell polygons

@@ -24,14 +24,14 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-05-11-46-04"
+initialSystem = "data/sims/2022-02-07-13-30-05"
 
 # Import system data
 conditionsDict    = load("$initialSystem/params.jld2")
 @unpack γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 
 importedArrays = load("$initialSystem/matricesFinal.jld2")
-@unpack A,B,R,F = importedArrays
+@unpack A,B,R,F = importedArrays["matrices"]
 
 # Initialise system matrices
 params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -51,10 +51,12 @@ hidespines!(ax1)
 
 
 # Plot for one set of 3 cells
-centralCell=1
+centralCell=4
 
 hidedecorations!(ax1)
 hidespines!(ax1)
+
+ax1.title = "Cell $centralCell Neighbourhood"
 
 # Find all cells neighbouring original cell
 cellNeighbourMatrix = matrices.B*matrices.Bᵀ
@@ -92,6 +94,8 @@ annotations!(ax1,string.(neighbouringCells),Point2f.(matrices.cellPositions[neig
 ax2 = Axis(grid1[2,1],aspect=DataAspect())
 hidedecorations!(ax2)
 hidespines!(ax2)
+
+ax2.title = "Cell $centralCell Force Network"
 
 setdiff!(neighbouringCells,[centralCell])
 neighbourAngles = zeros(length(neighbouringCells))

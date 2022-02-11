@@ -21,9 +21,7 @@ function energy(params,matrices)
     energyTotal = 0.0
     for i=1:nCells
         energyTotal += 0.5*(cellAreas[i]-preferredArea)^2 + 0.5*γ*(cellPerimeters[i]-preferredPerimeter)^2
-    end
-    # cellEnergies .= 0.5.*(cellAreas.-preferredArea).^2 .+ 0.5*γ.*(cellPerimeters.-preferredPerimeter).^2
-    # energyTotal = sum(cellEnergies)
+    end    
 
     return energyTotal
 

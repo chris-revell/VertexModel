@@ -20,14 +20,11 @@ using DelimitedFiles
 using Printf
 
 # Local modules
-# include("TopologyChange.jl"); using .TopologyChange
-# include("SpatialData.jl"); using .SpatialData
 include("CreateRunDirectory.jl"); using .CreateRunDirectory
 include("Visualise.jl"); using .Visualise
 include("Initialise.jl"); using .Initialise
 include("Iterate.jl"); using .Iterate
 include("Energy.jl"); using .Energy
-# include("CalculateForce.jl"); using .CalculateForce
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state

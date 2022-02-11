@@ -73,6 +73,8 @@ ax1 = Axis(grid[1,1],aspect=DataAspect(),)
 hidedecorations!(ax1)
 hidespines!(ax1)
 
+ax1.title = "Cell curls"
+
 # Plot cell polygons
 for i=1:nCells
     cellVertices = findall(x->x!=0,C[i,:])
