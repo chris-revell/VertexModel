@@ -30,86 +30,32 @@ matricesDict = load("$initialSystem/matricesFinal.jld2")
 @unpack A,B,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas = matricesDict["matrices"]
 
 
-cᵖ = SVector{2,Float64}[]
 onesVec = ones(1,nCells)
 
-preMultipliedB̄ = onesVec*B̄
+boundaryEdges = abs.(onesVec*B)
 
-preMultipliedB̄*edgeMidpoints
-
-for j=1:nEdges
-    cᵖⱼ = @SVector zeros(2)
-    for i=1:nCells
-
+cᵖ = boundaryEdges'.*edgeMidpoints
 
 
 T = SVector{2,Float64}[]
 for j=1:nEdges
     Tⱼ = @SVector zeros(2)
     for i=1:nCells
-        Tⱼ = Tⱼ + B[i,j]*(cellPositions[i]- )
-
-
-
-
-
-
-
-
-
-cellCurls = Float64[]
-
-# Plot for one set of 3 cells
-for c=1:nCells
-
-    cellVertices = findall(x->x!=0,C[c,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[c])...)
+        Tⱼ = Tⱼ + B[i,j]*(cellPositions[i].-cᵖ[j])
     end
-    m = minimum(vertexAngles)
-    vertexAngles .-= m
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-
-    cellEdges = findall(x->x!=0,B[c,:])
-    edgeAngles = zeros(size(cellEdges))
-    for (k,e) in enumerate(cellEdges)
-        edgeAngles[k] = atan((edgeMidpoints[e].-cellPositions[c])...)
-    end
-    edgeAngles .+= (2π-m)
-    edgeAngles .= edgeAngles.%(2π)
-    cellEdges .= cellEdges[sortperm(edgeAngles)]
-
-
-    h = @SVector [0.0,0.0]
-    curlSum = 0
-    for (i,e) in enumerate(cellEdges)
-        h = h + ϵ*F[cellVertices[i],c]
-        curlSum += B[c,e]*(h⋅edgeTangents[e])/cellAreas[c]
-    end
-
-    push!(cellCurls,curlSum)
+    push!(T,Tⱼ)
 end
 
-
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect(),)
-hidedecorations!(ax1)
-hidespines!(ax1)
-
-# Plot cell polygons
-for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    # poly!(ax1,Point2f.(R[cellVertices]),color=(:black,1.0),strokecolor=(:black,1.0),strokewidth=5)
-    poly!(ax1,Point2f.(R[cellVertices]),color=(:green,cellCurls[i]),strokecolor=(:black,1.0),strokewidth=5)
+F = Float64[]
+for i=1:nEdges
+    push!(F,T[i]⋅(ϵ*edgeTangents[i]))
 end
+F .= abs.(F)
 
-display(fig)
+trapeziumAreas = 0.5.*F
+
+display(sum(cellAreas))
+display(sum(trapeziumAreas))
+
+
+linkTriangleAreas = Float64[]
