@@ -21,10 +21,10 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-07-13-30-05"
+initialSystem = "data/sims/2022-02-18-11-40-49"
 
 # Import system data
-conditionsDict    = load("$initialSystem/params.jld2")
+conditionsDict    = load("$initialSystem/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$initialSystem/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas = matricesDict["matrices"]

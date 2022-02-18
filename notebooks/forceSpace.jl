@@ -24,10 +24,10 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-07-13-30-05"
+initialSystem = "data/sims/2022-02-18-11-40-49"
 
 # Import system data
-conditionsDict    = load("$initialSystem/params.jld2")
+conditionsDict    = load("$initialSystem/dataFinal.jld2")
 @unpack γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 
 importedArrays = load("$initialSystem/matricesFinal.jld2")
@@ -51,7 +51,7 @@ hidespines!(ax1)
 
 
 # Plot for one set of 3 cells
-centralCell=4
+centralCell=1
 
 hidedecorations!(ax1)
 hidespines!(ax1)
@@ -109,9 +109,9 @@ startPosition = @SVector [0.0,0.0]
 
 for (i,v) in enumerate(cellVerticesDict[centralCell])
 
-    arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-    annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    startPosition = startPosition + ϵ*F[v,centralCell]
+    arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+    annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+    startPosition = startPosition - ϵ*F[v,centralCell]
 
     H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
     cellForces = SVector{2, Float64}[]
@@ -124,7 +124,7 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
     H[1] = startPosition
 
     for (j,cv) in enumerate(cellVertices)
-        push!(cellForces,ϵ*F[cv,neighbouringCells[i]])
+        push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
         H[j+1] = H[j]+cellForces[end]
     end
 
@@ -134,3 +134,5 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
 end
 
 display(fig1)
+
+save("$(datadir())/plots/cell$(centralCell)ForceSpace.png",fig1)

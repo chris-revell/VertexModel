@@ -28,7 +28,7 @@ initialSystem = "data/sims/2022-02-18-11-40-49"
 conditionsDict    = load("$initialSystem/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$initialSystem/matricesFinal.jld2")
-@unpack A,B,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices = matricesDict["matrices"]
+@unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeLengths,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
 onesVec = ones(1,nCells)
 boundaryEdges = abs.(onesVec*B)
@@ -41,6 +41,31 @@ for j=1:nEdges
     end
     push!(T,Tⱼ)
 end
+
+# F = Float64[]
+# for i=1:nEdges
+#     push!(F,T[i]⋅(ϵ*edgeTangents[i]))
+# end
+# F .= abs.(F)
+# trapeziumAreas = 0.5.*F
+
+edgeTrapezia = Vector{Point2f}[]
+for j=1:nEdges
+    edgeCells = findall(x->x!=0,B[:,j])
+    edgeVertices = findall(x->x!=0,A[j,:])
+    trapeziumVertices = [R[edgeVertices]; cellPositions[edgeCells]]
+    com = sum(trapeziumVertices)./length(trapeziumVertices)
+    angles = Float64[]
+    for p=1:length(trapeziumVertices)
+        angle = atan((trapeziumVertices[p].-com)...)
+        push!(angles,angle)
+    end
+    trapeziumVertices .= trapeziumVertices[sortperm(angles)]
+    push!(edgeTrapezia,Point2f.(trapeziumVertices))
+end
+trapeziumAreas = abs.(area.(edgeTrapezia))
+F = 2.0.*trapeziumAreas
+
 
 linkTriangles = Vector{Point2f}[]
 for k=1:nVerts
@@ -65,40 +90,6 @@ for k=1:nVerts
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
 
-E = linkTriangleAreas
-
-vertexCurls = Float64[]
-
-for k=1:nVerts
-    vertexCells = findall(x->x!=0,C[:,k])
-    cellAngles = zeros(length(vertexCells))
-    for i=1:length(cellAngles)
-        cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-    end
-    m = minimum(cellAngles)
-    cellAngles .-= m
-    vertexCells .= vertexCells[sortperm(cellAngles)]
-
-    vertexEdges = findall(x->x!=0,A[:,k])
-    edgeAngles = zeros(length(vertexEdges))
-    for (i,e) in enumerate(vertexEdges)
-        edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-    end
-    edgeAngles .+= 2π-m
-    edgeAngles .= edgeAngles.%2π
-    vertexEdges .= vertexEdges[sortperm(edgeAngles)]
-
-    h = @SVector [0.0,0.0]
-    curlSum = 0
-
-    if boundaryVertices[k] == 0
-        for (i,j) in enumerate(vertexEdges)
-            h = h + ϵ*F[k,vertexCells[i]]
-            curlSum += A[j,k]*(T[j]⋅h)/E[k]
-        end
-    end
-    push!(vertexCurls,curlSum)
-end
 
 
 
@@ -109,18 +100,10 @@ ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
 
-ax1.title = "Vertex curls"
+ax1.title = "Link Triangle Areas"
 
 for k=1:nVerts
-    if boundaryVertices[k] == 0
-        vertexCells = findall(x->x!=0,C[:,k])
-        cellAngles = zeros(length(vertexCells))
-        for i=1:length(cellAngles)
-            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-        end
-        vertexCells .= vertexCells[sortperm(cellAngles)]
-        poly!(ax1,Point2f.(cellPositions[vertexCells]),color=[vertexCurls[k]],colorrange=(minimum(vertexCurls),maximum(vertexCurls)),colormap=:cork,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
-    end
+    poly!(ax1,linkTriangles[k],color=[linkTriangleAreas[k]],colorrange=(0.0,maximum(linkTriangleAreas)),colormap=:blues,strokewidth=2,strokecolor=(:black,1.0)) #:bwr
 end
 
 # Plot cell polygons
@@ -131,10 +114,34 @@ for i=1:nCells
         vertexAngles[k] = atan((R[v].-cellPositions[i])...)
     end
     cellVertices .= cellVertices[sortperm(vertexAngles)]
-    poly!(ax1,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax1,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
 end
 
-Colorbar(fig[1, 2],limits=(minimum(vertexCurls),maximum(vertexCurls)),colormap=:cork,flipaxis=false) #:bwr
+Colorbar(grid[1, 2],limits=(0.0,maximum(linkTriangleAreas)),colormap=:blues,flipaxis=false) #:bwr
 
+
+ax2 = Axis(grid[2,1],aspect=DataAspect())
+hidedecorations!(ax2)
+hidespines!(ax2)
+
+ax2.title = "Edge Trapezium Areas"
+
+for j=1:nEdges
+    poly!(ax2,edgeTrapezia[j],color=[trapeziumAreas[j]],colorrange=(0.0,maximum(trapeziumAreas)),colormap=:greens,strokewidth=2,strokecolor=(:black,1.0)) #:bwr
+end
+
+# Plot cell polygons
+for i=1:nCells
+    cellVertices = findall(x->x!=0,C[i,:])
+    vertexAngles = zeros(size(cellVertices))
+    for (k,v) in enumerate(cellVertices)
+        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+    end
+    cellVertices .= cellVertices[sortperm(vertexAngles)]
+    poly!(ax2,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
+end
+
+Colorbar(grid[2, 2],limits=(0.0,maximum(trapeziumAreas)),colormap=:greens,flipaxis=false) #:bwr
+
+save("$(datadir())/plots/trapeziaTriangleAreas.png",fig)
 display(fig)
-save("$(datadir())/plots/vertexCurls.png",fig)

@@ -21,10 +21,10 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-07-13-30-05"
+initialSystem = "data/sims/2022-02-18-11-40-49"
 
 # Import system data
-conditionsDict    = load("$initialSystem/params.jld2")
+conditionsDict    = load("$initialSystem/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$initialSystem/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,cellPressures,cellTensions,cellPerimeters = matricesDict["matrices"]
@@ -36,7 +36,7 @@ pressuresEffective = cellPressures .- cellTensions.*cellPerimeters./(2.0*cellAre
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect(),)
+ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
 

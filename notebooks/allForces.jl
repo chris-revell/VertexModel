@@ -21,10 +21,10 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-07-13-30-05"
+initialSystem = "data/sims/2022-02-18-11-40-49"
 
 # Import system data
-conditionsDict    = load("$initialSystem/params.jld2")
+conditionsDict    = load("$initialSystem/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$initialSystem/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ = matricesDict["matrices"]
@@ -33,7 +33,7 @@ matricesDict = load("$initialSystem/matricesFinal.jld2")
 # Set up figure canvas
 allForceFig = Figure(resolution=(1000,1000))
 allForceGrid = allForceFig[1,1] = GridLayout()
-allForceAx = Axis(allForceGrid[1,1],aspect=DataAspect(),)
+allForceAx = Axis(allForceGrid[1,1],aspect=DataAspect())
 hidedecorations!(allForceAx)
 hidespines!(allForceAx)
 
@@ -48,12 +48,12 @@ for i=1:nCells
   poly!(allForceAx,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.25))
 end
 
-# Scatter vertex locations
-scatter!(allForceAx,Point2f.(R),alpha=0.5,color=:blue)
-annotations!(allForceAx,string.(collect(1:nVerts)),Point2f.(R),color=:blue)
-
-# Edge labels
-annotations!(allForceAx,string.(collect(1:nEdges)),Point2f.(edgeMidpoints),color=:green)
+# # Scatter vertex locations
+# scatter!(allForceAx,Point2f.(R),alpha=0.5,color=:blue)
+# annotations!(allForceAx,string.(collect(1:nVerts)),Point2f.(R),color=:blue)
+#
+# # Edge labels
+# annotations!(allForceAx,string.(collect(1:nEdges)),Point2f.(edgeMidpoints),color=:green)
 
 # Scatter cell centroid locations
 scatter!(allForceAx,Point2f.(cellPositions),color=:red)
@@ -66,3 +66,4 @@ arrows!(allForceAx,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:blue)
 arrows!(allForceAx,Point2f.(cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
 
 display(allForceFig)
+save("$(datadir())/plots/allForces.png",allForceFig)
