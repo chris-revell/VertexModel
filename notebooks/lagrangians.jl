@@ -12,12 +12,11 @@ using GeometryBasics
 using Random
 using Colors
 using JLD2
-
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-initialSystem = "data/sims/2022-02-18-11-40-49"
-# initialSystem = "data/sims/2022-02-09-13-34-35"
+# Specify data folder
+initialSystem = "data/sims/2022-02-18-11-59-24"
 
 # Import system data
 conditionsDict    = load("$initialSystem/dataFinal.jld2")
@@ -25,6 +24,9 @@ conditionsDict    = load("$initialSystem/dataFinal.jld2")
 matricesDict = load("$initialSystem/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
+#%%
+
+# Find vector of cell-cell links
 onesVec = ones(1,nCells)
 boundaryEdges = abs.(onesVec*B)
 cᵖ = boundaryEdges'.*edgeMidpoints
@@ -37,6 +39,7 @@ for j=1:nEdges
     push!(T,Tⱼ)
 end
 
+# Create vector of edge trapezium polygons
 edgeTrapezia = Vector{Point2f}[]
 for j=1:nEdges
     edgeCells = findall(x->x!=0,B[:,j])
@@ -51,10 +54,11 @@ for j=1:nEdges
     trapeziumVertices .= trapeziumVertices[sortperm(angles)]
     push!(edgeTrapezia,Point2f.(trapeziumVertices))
 end
+# Calculate trapezium areas and F values
 trapeziumAreas = abs.(area.(edgeTrapezia))
 F = 2.0.*trapeziumAreas
 
-
+# Create vector of polygons for triangles defined by cell-cell links around each vertex (note special consideration for boundary vertices)
 linkTriangles = Vector{Point2f}[]
 for k=1:nVerts
     if boundaryVertices[k] == 0
@@ -78,7 +82,7 @@ for k=1:nVerts
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
 
-
+# Create vector of polygons for each cell
 cellPolygons = Vector{Point2f}[]
 for i=1:nCells
     cellVertices = findall(x->x!=0,C[i,:])
@@ -92,9 +96,7 @@ end
 
 
 
-
-
-
+# Define lagrangian matrices
 H = Diagonal(cellAreas)
 E = Diagonal(linkTriangleAreas)
 Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
@@ -115,76 +117,52 @@ column = 10
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
+
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = ""
+ax1.title = "Lᵥ Eigenvector $column"
 decomposition = (eigen(Matrix(Lᵥ))).vectors
+lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
 for k=1:nVerts
-    poly!(ax1,linkTriangles[k],color=[decomposition[k,column]],colorrange=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+    poly!(ax1,linkTriangles[k],color=[decomposition[k,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
 end
-# Plot cell polygons
 for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
+    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
-Colorbar(grid[1, 2],limits=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,flipaxis=false) #:bwr
-display(fig)
-save("$(datadir())/plots/LvEigenvector$column.png",fig)
 
-
-
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
-ax1.title = ""
+ax2 = Axis(grid[1,2],aspect=DataAspect())
+hidedecorations!(ax2)
+hidespines!(ax2)
+ax2.title = "Lₜ Eigenvector $column"
 decomposition = (eigen(Matrix(Lₜ))).vectors
+lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
 for k=1:nVerts
-    poly!(ax1,linkTriangles[k],color=[decomposition[k,column]],colorrange=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+    poly!(ax2,linkTriangles[k],color=[decomposition[k,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
 end
-# Plot cell polygons
 for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
+    poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
-Colorbar(grid[1, 2],limits=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,flipaxis=false) #:bwr
-display(fig)
-save("$(datadir())/plots/LtEigenvector$column.png",fig)
 
-
-
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
+ax3 = Axis(grid[2,1],aspect=DataAspect())
+hidedecorations!(ax3)
+hidespines!(ax3)
 decomposition = (eigen(Matrix(Lc))).vectors
-ax1.title = ""
+lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
+ax3.title = "Lc Eigenvector $column"
 for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=[decomposition[i,column]],colorrange=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+    poly!(ax3,cellPolygons[i],color=[decomposition[i,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
 end
-Colorbar(grid[1, 2],limits=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,flipaxis=false) #:bwr
-display(fig)
-save("$(datadir())/plots/LcEigenvector$column.png",fig)
 
-
-
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
+ax4 = Axis(grid[2,2],aspect=DataAspect())
+hidedecorations!(ax4)
+hidespines!(ax4)
 decomposition = (eigen(Matrix(Lf))).vectors
-ax1.title = ""
+lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
+ax4.title = "Lf Eigenvector $column"
 for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=[decomposition[i,column]],colorrange=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+    poly!(ax4,cellPolygons[i],color=[decomposition[i,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
 end
-Colorbar(grid[1, 2],limits=(minimum(decomposition[:,column]),maximum(decomposition[:,column])),colormap=:bwr,flipaxis=false) #:bwr
+
 display(fig)
-save("$(datadir())/plots/LfEigenvector$column.png",fig)
+save("$(datadir())/plots/eigenvectors$column.png",fig)

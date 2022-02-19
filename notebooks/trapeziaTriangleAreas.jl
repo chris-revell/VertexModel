@@ -21,7 +21,7 @@ includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelCont
 #     rand(RGB{})
 # end
 
-initialSystem = "data/sims/2022-02-18-11-40-49"
+initialSystem = "data/sims/2022-02-18-11-59-24"
 # initialSystem = "data/sims/2022-02-09-13-34-35"
 
 # Import system data
@@ -42,12 +42,6 @@ for j=1:nEdges
     push!(T,Tⱼ)
 end
 
-# F = Float64[]
-# for i=1:nEdges
-#     push!(F,T[i]⋅(ϵ*edgeTangents[i]))
-# end
-# F .= abs.(F)
-# trapeziumAreas = 0.5.*F
 
 edgeTrapezia = Vector{Point2f}[]
 for j=1:nEdges
@@ -90,6 +84,16 @@ for k=1:nVerts
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
 
+cellPolygons = Vector{Point2f}[]
+for i=1:nCells
+    cellVertices = findall(x->x!=0,C[i,:])
+    vertexAngles = zeros(size(cellVertices))
+    for (k,v) in enumerate(cellVertices)
+        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+    end
+    cellVertices .= cellVertices[sortperm(vertexAngles)]
+    push!(cellPolygons,Point2f.(R[cellVertices]))
+end
 
 
 
@@ -108,13 +112,7 @@ end
 
 # Plot cell polygons
 for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    poly!(ax1,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
+    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
 
 Colorbar(grid[1, 2],limits=(0.0,maximum(linkTriangleAreas)),colormap=:blues,flipaxis=false) #:bwr
@@ -132,13 +130,7 @@ end
 
 # Plot cell polygons
 for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    poly!(ax2,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:white,0.25),strokewidth=2) #:bwr
+    poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
 
 Colorbar(grid[2, 2],limits=(0.0,maximum(trapeziumAreas)),colormap=:greens,flipaxis=false) #:bwr

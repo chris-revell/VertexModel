@@ -28,10 +28,9 @@ initialSystem = "data/sims/2022-02-18-11-40-49"
 
 # Import system data
 conditionsDict    = load("$initialSystem/dataFinal.jld2")
-@unpack γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-
-importedArrays = load("$initialSystem/matricesFinal.jld2")
-@unpack A,B,R,F = importedArrays["matrices"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+matricesDict = load("$initialSystem/matricesFinal.jld2")
+@unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeLengths,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
 # Initialise system matrices
 params,matrices = initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -90,6 +89,46 @@ scatter!(ax1,Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
 annotations!(ax1,string.(neighbouringCells),Point2f.(matrices.cellPositions[neighbouringCells]),color=:red)
 
 
+# cellNeighbourMatrix = matrices.B*matrices.Bᵀ
+# dropzeros!(cellNeighbourMatrix)
+# neighbouringCells = findall(!iszero,cellNeighbourMatrix[centralCell,:])
+#
+# # Find and sort all vertices around cells neighbouring centralCell
+# cellVerticesDict = Dict()
+# for c in neighbouringCells
+#     # Find vertices around cell
+#     cellVertices = findall(x->x!=0,matrices.C[c,:])
+#     # Find angles of vertices around cell
+#     vertexAngles = zeros(size(cellVertices))
+#     for (k,v) in enumerate(cellVertices)
+#         vertexAngles[k] = atan((R[v].-matrices.cellPositions[c])...)
+#     end
+#     # Sort vertices around cell by polar angle
+#     cellVertices .= cellVertices[sortperm(vertexAngles)]
+#     # Store sorted cell vertices for this cell
+#     cellVerticesDict[c] = cellVertices
+# end
+
+centralCellVertices = findall(x->x!=0,C[centralCell,:])
+centralVertexAngles = zeros(size(centralCellVertices))
+for (k,v) in enumerate(centralCellVertices)
+   centralVertexAngles[k] = atan((R[v].-cellPositions[centralCell])...)
+end
+m = minimum(centralVertexAngles)
+centralVertexAngles .-= m
+centralCellVertices .= centralCellVertices[sortperm(centralVertexAngles)]
+
+# Sort cells neighbouring centralCell by angle
+setdiff!(neighbouringCells,[centralCell]) # Remove centralCell from neighbours list
+neighbourAngles = zeros(length(neighbouringCells))
+for (i,c) in enumerate(neighbouringCells)
+    neighbourAngles[i] = atan((cellPositions[c].-cellPositions[centralCell])...)
+end
+neighbourAngles .+= (2π-m)
+neighbourAngles = neighbourAngles.%(2π)
+neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
+
+
 # New axis for force space
 ax2 = Axis(grid1[2,1],aspect=DataAspect())
 hidedecorations!(ax2)
@@ -106,31 +145,52 @@ neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
 
 startPosition = @SVector [0.0,0.0]
 
+#
+# for (i,v) in enumerate(cellVerticesDict[centralCell])
+#
+#     arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+#     annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+#     startPosition = startPosition - ϵ*F[v,centralCell]
+#
+#     H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
+#     cellForces = SVector{2, Float64}[]
+#
+#     # Circular permutation of vertices to ensure vertex v is the first index
+#     # in the ordered cellVertices list around cell neighbouringCells[i]
+#     index = findall(x->x==v, cellVerticesDict[neighbouringCells[i]])
+#     cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
+#
+#     H[1] = startPosition
+#
+#     for (j,cv) in enumerate(cellVertices)
+#         push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
+#         H[j+1] = H[j]+cellForces[end]
+#     end
+#
+#     annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+#     arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
+#
+# end
 
+# Draw force network
+startPosition = @SVector [0.0,0.0]
 for (i,v) in enumerate(cellVerticesDict[centralCell])
-
-    arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-    annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    startPosition = startPosition - ϵ*F[v,centralCell]
-
-    H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
-    cellForces = SVector{2, Float64}[]
-
-    # Circular permutation of vertices to ensure vertex v is the first index
-    # in the ordered cellVertices list around cell neighbouringCells[i]
-    index = findall(x->x==v, cellVerticesDict[neighbouringCells[i]])
-    cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
-
-    H[1] = startPosition
-
-    for (j,cv) in enumerate(cellVertices)
-        push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
-        H[j+1] = H[j]+cellForces[end]
-    end
-
-    annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
-    arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
-
+   arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+   annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+   startPosition = startPosition - ϵ*F[v,centralCell]
+   H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
+   cellForces = SVector{2, Float64}[]
+   # Circular permutation of vertices to ensure vertex v is the first index
+   # in the ordered cellVertices list around cell neighbouringCells[i]
+   index = findall(x->x==v, cellVerticesDict[neighbouringCells[i]])
+   cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
+   H[1] = startPosition
+   for (j,cv) in enumerate(cellVertices)
+       push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
+       H[j+1] = H[j]+cellForces[end]
+   end
+   annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+   arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
 end
 
 display(fig1)

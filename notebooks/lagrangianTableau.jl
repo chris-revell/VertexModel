@@ -105,8 +105,6 @@ Lf = (H\B)*Tₑ*Bᵀ
 dropzeros!(Lf)
 
 
-
-column = 10
 decomposition = (eigen(Matrix(Lᵥ))).vectors
 
 # Set up figure canvas
@@ -116,21 +114,23 @@ grid = fig[1,1] = GridLayout()
 axes = Axis[]
 for x=1:4
     for y=1:4
-        eigenvectorIndex = (y-1)*4 + x
+        eigenvectorIndex = ((y-1)*4 + x)+1
+        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
         push!(axes,Axis(grid[y,x],aspect=DataAspect()))
         hidedecorations!(axes[end])
         hidespines!(axes[end])
         axes[end].title = "Eigenvector $eigenvectorIndex"
         for k=1:nVerts
-            poly!(axes[end],linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=(minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex])),colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+            poly!(axes[end],linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
         end
         # Plot cell polygons
         for i=1:nCells
-            poly!(axes[end],cellPolygons[i],color=(:white,0.0),strokecolor=(:white,0.5),strokewidth=2) #:bwr
+            poly!(axes[end],cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
     end
 end
 
+# Colorbar(grid[:, 5],limits=lims,colormap=:bwr)
 
 display(fig)
 save("$(datadir())/plots/eigenvectorTableau.png",fig)

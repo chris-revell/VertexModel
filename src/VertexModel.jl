@@ -94,7 +94,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         if t%outputInterval<dt && outputToggle==1
             visualise(t,fig,ax1,ax2,mov,params,matrices)
             outCount += 1
-            save("data/sims/$folderName/frame$(@sprintf("%03d", outCount)).png",fig)
+            save("data/sims/$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
         end
     end
 

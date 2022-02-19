@@ -21,7 +21,7 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-18-11-40-49"
+initialSystem = "data/sims/2022-02-18-11-59-24"
 
 # Import system data
 conditionsDict    = load("$initialSystem/dataFinal.jld2")

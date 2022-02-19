@@ -16,13 +16,7 @@ using JLD2
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-# function getRandomColor(seed)
-#     Random.seed!(seed)
-#     rand(RGB{})
-# end
-
-initialSystem = "data/sims/2022-02-18-11-40-49"
-# initialSystem = "data/sims/2022-02-09-13-34-35"
+initialSystem = "data/sims/2022-02-18-11-59-24"
 
 # Import system data
 conditionsDict    = load("$initialSystem/dataFinal.jld2")
@@ -64,6 +58,18 @@ for k=1:nVerts
     end
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
+
+cellPolygons = Vector{Point2f}[]
+for i=1:nCells
+    cellVertices = findall(x->x!=0,C[i,:])
+    vertexAngles = zeros(size(cellVertices))
+    for (k,v) in enumerate(cellVertices)
+        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+    end
+    cellVertices .= cellVertices[sortperm(vertexAngles)]
+    push!(cellPolygons,Point2f.(R[cellVertices]))
+end
+
 
 E = linkTriangleAreas
 
@@ -111,30 +117,18 @@ hidespines!(ax1)
 
 ax1.title = "Vertex curls"
 
+lims = (minimum(vertexCurls),maximum(vertexCurls))
+
 for k=1:nVerts
-    if boundaryVertices[k] == 0
-        vertexCells = findall(x->x!=0,C[:,k])
-        cellAngles = zeros(length(vertexCells))
-        for i=1:length(cellAngles)
-            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-        end
-        vertexCells .= vertexCells[sortperm(cellAngles)]
-        poly!(ax1,Point2f.(cellPositions[vertexCells]),color=[vertexCurls[k]],colorrange=(minimum(vertexCurls),maximum(vertexCurls)),colormap=:cork,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
-    end
+    poly!(ax1,linkTriangles[k],color=[vertexCurls[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
 end
 
 # Plot cell polygons
 for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    poly!(ax1,Point2f.(R[cellVertices]),color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax1,cellPolygons[i,color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
 
-Colorbar(fig[1, 2],limits=(minimum(vertexCurls),maximum(vertexCurls)),colormap=:cork,flipaxis=false) #:bwr
+Colorbar(fig[:,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
 save("$(datadir())/plots/vertexCurls.png",fig)

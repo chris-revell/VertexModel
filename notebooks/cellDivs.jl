@@ -21,7 +21,7 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-18-11-40-49"
+initialSystem = "data/sims/2022-02-18-11-59-24"
 
 # Import system data
 conditionsDict    = load("$initialSystem/dataFinal.jld2")
@@ -86,10 +86,10 @@ for i=1:nCells
     end
     cellVertices .= cellVertices[sortperm(vertexAngles)]
     # poly!(ax1,Point2f.(R[cellVertices]),color=(:black,1.0),strokecolor=(:black,1.0),strokewidth=5)
-    poly!(ax1,Point2f.(R[cellVertices]),color=[cellDivs[i]],colormap=:cork,colorrange=clims, strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax1,Point2f.(R[cellVertices]),color=[cellDivs[i]],colormap=:bwr,colorrange=clims, strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
 
-Colorbar(fig[1, 2],limits=clims,colormap=:cork,flipaxis=false) #:bwr
+Colorbar(fig[1, 2],limits=clims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
 save("$(datadir())/plots/cellDivs.png",fig)
