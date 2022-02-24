@@ -125,7 +125,7 @@ end
 
 # Plot cell polygons
 for i=1:nCells
-    poly!(ax1,cellPolygons[i,color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
 
 Colorbar(fig[:,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
