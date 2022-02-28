@@ -58,11 +58,11 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         fig = Figure(resolution=(1000,1000))
         grid = fig[1,1] = GridLayout()
         ax1 = Axis(grid[1,1],aspect=DataAspect())
-        ax2 = Axis(grid[1,2],aspect=DataAspect())
+        ax2 = Axis(grid[1,2],aspect=DataAspect(),xreversed=true,yreversed=true)
         hidedecorations!(ax1)
         hidespines!(ax1)
         hidedecorations!(ax2)
-        hidespines!(ax2)
+        hidespines!(ax2)        
         # Create animation object for visualisation
         mov = VideoStream(fig, framerate=5)
         # Visualise initial system

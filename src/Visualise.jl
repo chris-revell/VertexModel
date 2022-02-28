@@ -29,7 +29,7 @@ end
 @views function visualise(t,fig,ax1,ax2,mov,params,matrices)
 
    plotCells         = 1
-   plotEdges         = 0
+   plotEdges         = 1
    scatterEdges      = 0
    scatterVertices   = 1
    scatterCells      = 1
@@ -161,9 +161,9 @@ end
    # Draw force network
    startPosition = @SVector [0.0,0.0]
    for (i,v) in enumerate(cellVerticesDict[centralCell])
-       arrows!(ax2,Point2f.([startPosition]),Vec2f.([-ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-       annotations!(ax2,string.([v]),Point2f.([startPosition.-ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-       startPosition = startPosition - ϵ*F[v,centralCell]
+       arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+       annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+       startPosition = startPosition + ϵ*F[v,centralCell]
        H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
        cellForces = SVector{2, Float64}[]
        # Circular permutation of vertices to ensure vertex v is the first index
@@ -172,7 +172,7 @@ end
        cellVertices = circshift(cellVerticesDict[neighbouringCells[i]],1-index[1])
        H[1] = startPosition
        for (j,cv) in enumerate(cellVertices)
-           push!(cellForces,-ϵ*F[cv,neighbouringCells[i]])
+           push!(cellForces,+ϵ*F[cv,neighbouringCells[i]])
            H[j+1] = H[j]+cellForces[end]
        end
        annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
