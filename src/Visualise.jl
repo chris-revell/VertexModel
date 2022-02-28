@@ -35,7 +35,7 @@ end
    scatterCells      = 1
    plotForces        = 0
 
-   @unpack R,A,B,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
+   @unpack R,A,B,Bᵀ,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
    @unpack nEdges,nVerts,nCells = params
 
    empty!(ax1)
@@ -85,7 +85,7 @@ end
             vs = findall(x->x!=0,A[i,:])
             colour=:black
             # Use B to set colour of edge depending on whether it runs with or against the orientation of the cell face
-            if matrices.B[c,i] < 0
+            if B[c,i] < 0
                colour = (:red,0.25)
             else
                colour = (:blue,0.25)
@@ -109,7 +109,7 @@ end
       # Plot resultant forces on vertices (excluding external pressure)
       arrows!(ax1,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:green)
       # Plot resultant forces on cells
-      arrows!(ax1,Point2f.(matrices.cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
+      arrows!(ax1,Point2f.(cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
    end
 
 
@@ -119,7 +119,7 @@ end
 
    ax2.title = "Cell $centralCell force space"
 
-   cellNeighbourMatrix = matrices.B*matrices.Bᵀ
+   cellNeighbourMatrix = B*Bᵀ
    dropzeros!(cellNeighbourMatrix)
    neighbouringCells = findall(!iszero,cellNeighbourMatrix[centralCell,:])
 
@@ -127,11 +127,11 @@ end
    cellVerticesDict = Dict()
    for c in neighbouringCells
        # Find vertices around cell
-       cellVertices = findall(x->x!=0,matrices.C[c,:])
+       cellVertices = findall(x->x!=0,C[c,:])
        # Find angles of vertices around cell
        vertexAngles = zeros(size(cellVertices))
        for (k,v) in enumerate(cellVertices)
-           vertexAngles[k] = atan((R[v].-matrices.cellPositions[c])...)
+           vertexAngles[k] = atan((R[v].-cellPositions[c])...)
        end
        # Sort vertices around cell by polar angle
        cellVertices .= cellVertices[sortperm(vertexAngles)]
