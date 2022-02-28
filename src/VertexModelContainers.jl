@@ -55,14 +55,15 @@ mutable struct MatricesContainer
     cellTensions     ::Vector{Float64}                # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                # Vector of internal pressures for each cell
     cellAges         ::Vector{Float64}                # Vector of cell ages
+    cellEnergies     ::Vector{Float64}                # Vector of cell energies
     edgeLengths      ::Vector{Float64}                # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors containing edge midpoints as (x,y) positions
     vertexEdges      ::Vector{SVector{3, Float64}}    # Vector of 3 component static vectors containing the labels of edges around each vertex.
     vertexCells      ::Vector{SVector{3, Float64}}    # Vector of 3 component static vectors containing the labels of cells around each vertex.
     F                ::Matrix{SVector{2, Float64}}    # Matrix of 2 component static vectors containing force vectors acting on each vertex and cell
-    externalF        ::Vector{SVector{2, Float64}}    # Vector of 2 component static vectors containing forces acting on boundary vertices due to external pressure
-    ϵ                ::SMatrix{2, 2, Float64, 4}      # Rotation matrix
+    externalF        ::Vector{SVector{2, Float64}}    # 
+    ϵ                ::SMatrix{2, 2, Float64, 4}      # Antisymmetric rotation matrix
     rkCoefficients   ::SMatrix{2, 4, Float64, 8}      # Matrix containing coefficients of Runge-Kutta integration
 end
 

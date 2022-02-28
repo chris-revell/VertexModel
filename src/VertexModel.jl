@@ -67,7 +67,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         mov = VideoStream(fig, framerate=5)
         # Visualise initial system
         visualise(0.0,fig,ax1,ax2,mov,params,matrices)
-        save("data/sims/$folderName/frames/frame$(@sprintf("%03d", 0)).png",fig)
+        save("data/sims/$folderName/frame$(@sprintf("%03d", 0)).png",fig)
     end
 
     t = 0.0001   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
@@ -96,7 +96,6 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
             outCount += 1
             save("data/sims/$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
         end
-        
     end
 
     # If outputToggle==1, save animation object and save final system matrices
