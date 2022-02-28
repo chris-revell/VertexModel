@@ -87,9 +87,9 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         0.0 0.5 0.5 0.5
         1.0 2.0 2.0 1.0
     ]
-    ϵ                 = @SMatrix [  # Rotation matrix setting orientation of cell faces
-        0.0 -1.0
-        1.0 0.0
+    ϵ                 = @SMatrix [  # Clockwise rotation matrix setting orientation of cell faces
+        0.0 1.0
+        -1.0 0.0
     ]
 
     # Pack matrces into a struct for convenience
@@ -114,7 +114,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellAreas,
         cellTensions,
         cellPressures,
-        cellAges,        
+        cellAges,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
