@@ -16,12 +16,12 @@ using JLD2
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-initialSystem = "data/sims/2022-02-18-11-59-24"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
-conditionsDict    = load("$initialSystem/dataFinal.jld2")
+conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$initialSystem/matricesFinal.jld2")
+matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices = matricesDict["matrices"]
 
 onesVec = ones(1,nCells)
@@ -74,29 +74,30 @@ end
 E = linkTriangleAreas
 
 vertexCurls = Float64[]
-
+# Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
 for k=1:nVerts
-    vertexCells = findall(x->x!=0,C[:,k])
-    cellAngles = zeros(length(vertexCells))
-    for i=1:length(cellAngles)
-        cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-    end
-    m = minimum(cellAngles)
-    cellAngles .-= m
-    vertexCells .= vertexCells[sortperm(cellAngles)]
 
     vertexEdges = findall(x->x!=0,A[:,k])
     edgeAngles = zeros(length(vertexEdges))
     for (i,e) in enumerate(vertexEdges)
         edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
     end
-    edgeAngles .+= 2π-m
-    edgeAngles .= edgeAngles.%2π
-    vertexEdges .= vertexEdges[sortperm(edgeAngles)]
+    m = minimum(edgeAngles)
+    edgeAngles .-= m
+    vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+    vertexCells = findall(x->x!=0,C[:,k])
+    cellAngles = zeros(length(vertexCells))
+    for i=1:length(cellAngles)
+        cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+    end
+    cellAngles .+= 2π-m
+    cellAngles .= cellAngles.%2π
+    vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
 
     h = @SVector [0.0,0.0]
     curlSum = 0
-
     if boundaryVertices[k] == 0
         for (i,j) in enumerate(vertexEdges)
             h = h + ϵ*F[k,vertexCells[i]]
@@ -120,7 +121,7 @@ ax1.title = "Vertex curls"
 lims = (minimum(vertexCurls),maximum(vertexCurls))
 
 for k=1:nVerts
-    poly!(ax1,linkTriangles[k],color=[vertexCurls[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+    poly!(ax1,linkTriangles[k],color=[vertexCurls[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
 end
 
 # Plot cell polygons
@@ -131,4 +132,4 @@ end
 Colorbar(fig[:,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
-save("$(datadir())/plots/vertexCurls.png",fig)
+save("$dataDirectory/vertexCurls.png",fig)

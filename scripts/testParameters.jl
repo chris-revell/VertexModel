@@ -1,5 +1,5 @@
 initialSystem    = "seven"
-realTimetMax     = 3.0*86400.0 # = 24 hours
+realTimetMax     = 86400.0 # = 24 hours
 realCycleTime    = 86400.0 # = 24 hours
 γ                = 0.2
 λ                = -0.3

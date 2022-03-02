@@ -16,15 +16,14 @@ using JLD2
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 # Specify data folder
-initialSystem = "data/sims/2022-02-18-11-59-24"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
-conditionsDict    = load("$initialSystem/dataFinal.jld2")
+conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$initialSystem/matricesFinal.jld2")
+matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
-#%%
 
 # Find vector of cell-cell links
 onesVec = ones(1,nCells)
@@ -38,6 +37,7 @@ for j=1:nEdges
     end
     push!(T,Tⱼ)
 end
+
 
 # Create vector of edge trapezium polygons
 edgeTrapezia = Vector{Point2f}[]
@@ -57,6 +57,7 @@ end
 # Calculate trapezium areas and F values
 trapeziumAreas = abs.(area.(edgeTrapezia))
 F = 2.0.*trapeziumAreas
+
 
 # Create vector of polygons for triangles defined by cell-cell links around each vertex (note special consideration for boundary vertices)
 linkTriangles = Vector{Point2f}[]
@@ -81,6 +82,7 @@ for k=1:nVerts
     end
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
+
 
 # Create vector of polygons for each cell
 cellPolygons = Vector{Point2f}[]
@@ -110,8 +112,9 @@ dropzeros!(Lc)
 Lf = (H\B)*Tₑ*Bᵀ
 dropzeros!(Lf)
 
+lagrangians = Dict("Lv"=>Lᵥ,"Lt"=>Lₜ,"Lc"=>Lc,"Lf"=>Lf)
 
-
+# Select which eigenvector to plot
 column = 10
 
 # Set up figure canvas
@@ -165,4 +168,4 @@ for i=1:nCells
 end
 
 display(fig)
-save("$(datadir())/plots/eigenvectors$column.png",fig)
+save("$dataDirectory/eigenvectors$column.png",fig)

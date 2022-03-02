@@ -16,18 +16,12 @@ using JLD2
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-# function getRandomColor(seed)
-#     Random.seed!(seed)
-#     rand(RGB{})
-# end
-
-initialSystem = "data/sims/2022-02-18-11-59-24"
-# initialSystem = "data/sims/2022-02-09-13-34-35"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
-conditionsDict    = load("$initialSystem/dataFinal.jld2")
+conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$initialSystem/matricesFinal.jld2")
+matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeLengths,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
 onesVec = ones(1,nCells)
@@ -41,7 +35,6 @@ for j=1:nEdges
     end
     push!(T,Tⱼ)
 end
-
 
 edgeTrapezia = Vector{Point2f}[]
 for j=1:nEdges
@@ -103,37 +96,27 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-
 ax1.title = "Link Triangle Areas"
-
 for k=1:nVerts
     poly!(ax1,linkTriangles[k],color=[linkTriangleAreas[k]],colorrange=(0.0,maximum(linkTriangleAreas)),colormap=:blues,strokewidth=2,strokecolor=(:black,1.0)) #:bwr
 end
-
 # Plot cell polygons
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
-
 Colorbar(grid[1, 2],limits=(0.0,maximum(linkTriangleAreas)),colormap=:blues,flipaxis=false) #:bwr
-
 
 ax2 = Axis(grid[2,1],aspect=DataAspect())
 hidedecorations!(ax2)
 hidespines!(ax2)
-
 ax2.title = "Edge Trapezium Areas"
-
 for j=1:nEdges
     poly!(ax2,edgeTrapezia[j],color=[trapeziumAreas[j]],colorrange=(0.0,maximum(trapeziumAreas)),colormap=:greens,strokewidth=2,strokecolor=(:black,1.0)) #:bwr
 end
-
 # Plot cell polygons
 for i=1:nCells
     poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
-
 Colorbar(grid[2, 2],limits=(0.0,maximum(trapeziumAreas)),colormap=:greens,flipaxis=false) #:bwr
-
-save("$(datadir())/plots/trapeziaTriangleAreas.png",fig)
+save("$dataDirectory/trapeziaTriangleAreas.png",fig)
 display(fig)

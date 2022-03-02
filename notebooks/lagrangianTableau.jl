@@ -16,12 +16,12 @@ using JLD2
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-initialSystem = "data/sims/2022-02-18-11-59-24"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
-conditionsDict    = load("$initialSystem/dataFinal.jld2")
+conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$initialSystem/matricesFinal.jld2")
+matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
 onesVec = ones(1,nCells)
@@ -111,21 +111,21 @@ decomposition = (eigen(Matrix(Lᵥ))).vectors
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
 
-axes = Axis[]
+# axes = Axis[]
 for x=1:4
     for y=1:4
         eigenvectorIndex = ((y-1)*4 + x)+1
         lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        push!(axes,Axis(grid[y,x],aspect=DataAspect()))
-        hidedecorations!(axes[end])
-        hidespines!(axes[end])
-        axes[end].title = "Eigenvector $eigenvectorIndex"
+        ax = Axis(grid[y,x],aspect=DataAspect())
+        hidedecorations!(ax)
+        hidespines!(ax)
+        ax.title = "Eigenvector $eigenvectorIndex"
         for k=1:nVerts
-            poly!(axes[end],linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
+            poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
         end
         # Plot cell polygons
         for i=1:nCells
-            poly!(axes[end],cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
+            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
     end
 end
@@ -133,4 +133,4 @@ end
 # Colorbar(grid[:, 5],limits=lims,colormap=:bwr)
 
 display(fig)
-save("$(datadir())/plots/eigenvectorTableau.png",fig)
+save("$dataDirectory/eigenvectorTableau.png",fig)

@@ -21,17 +21,29 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-initialSystem = "data/sims/2022-02-18-11-59-24"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
-conditionsDict    = load("$initialSystem/dataFinal.jld2")
+conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$initialSystem/matricesFinal.jld2")
+matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas = matricesDict["matrices"]
 
 
-cellDivs = Float64[]
+# Create vector of polygons for each cell
+cellPolygons = Vector{Point2f}[]
+for i=1:nCells
+    cellVertices = findall(x->x!=0,C[i,:])
+    vertexAngles = zeros(size(cellVertices))
+    for (k,v) in enumerate(cellVertices)
+        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
+    end
+    cellVertices .= cellVertices[sortperm(vertexAngles)]
+    push!(cellPolygons,Point2f.(R[cellVertices]))
+end
 
+
+cellDivs = Float64[]
 # Plot for one set of 3 cells
 for c=1:nCells
 
@@ -72,24 +84,14 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-
 ax1.title = "Cell divs"
-
 clims = (-maximum(abs.(cellDivs)),maximum(abs.(cellDivs)))
-
 # Plot cell polygons
 for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    # poly!(ax1,Point2f.(R[cellVertices]),color=(:black,1.0),strokecolor=(:black,1.0),strokewidth=5)
-    poly!(ax1,Point2f.(R[cellVertices]),color=[cellDivs[i]],colormap=:bwr,colorrange=clims, strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax1,cellPolygons[i],color=[cellDivs[i]],colormap=:bwr,colorrange=clims, strokecolor=(:black,1.0),strokewidth=5)
 end
 
-Colorbar(fig[1, 2],limits=clims,colormap=:bwr,flipaxis=false) #:bwr
+Colorbar(fig[1, 2],limits=clims,colormap=:bwr)
 
 display(fig)
-save("$(datadir())/plots/cellDivs.png",fig)
+save("$dataDirectory/cellDivs.png",fig)
