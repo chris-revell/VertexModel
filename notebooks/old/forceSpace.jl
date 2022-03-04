@@ -32,7 +32,7 @@ conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeLengths,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
-centralCell=9
+centralCell=14
 
 # Set up figure canvas
 fig1 = Figure(resolution=(1000,1000))
@@ -40,12 +40,12 @@ grid1 = fig1[1,1] = GridLayout()
 ax1 = Axis(grid1[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = "Cell $centralCell Neighbourhood"
+# ax1.title = "Cell $centralCell Neighbourhood"
 # New axis for force space
-ax2 = Axis(grid1[2,1],aspect=DataAspect())
+ax2 = Axis(grid1[1,2],aspect=DataAspect())
 hidedecorations!(ax2)
 hidespines!(ax2)
-ax2.title = "Cell $centralCell Force Network"
+# ax2.title = "Cell $centralCell Force Network"
 
 # Find all cells neighbouring original cell
 cellNeighbourMatrix = B*Bᵀ
@@ -105,11 +105,11 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
         H[j+1] = H[j]+cellForces[end]
     end
     annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
-    arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
+    arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),1.0),linewidth=4,arrowsize=16)
 end
 
 
-# Draw all cell and vertex positions with annotations
+# Draw all cell and vertex positions with #annotations
 cellPolygons = Vector{Point2f}[]
 for i=1:nCells
     cellVertices = findall(x->x!=0,C[i,:])
@@ -120,8 +120,9 @@ for i=1:nCells
     cellVertices .= cellVertices[sortperm(vertexAngles)]
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
+poly!(ax1,cellPolygons[centralCell],color=(getRandomColor(centralCell),1.0))
 for c in neighbouringCells
-    poly!(ax1,cellPolygons[c],color=(getRandomColor(c),0.75))
+    poly!(ax1,cellPolygons[c],color=(getRandomColor(c),1.00))
     cellVerticesDict
     # Plot all vertex positions
     scatter!(ax1,Point2f.(R[cellVerticesDict[c]]),color=:blue)
@@ -129,21 +130,20 @@ for c in neighbouringCells
     # Plot resultant forces on vertices (excluding external pressure)
     arrows!(ax1,Point2f.(R[cellVerticesDict[c]]),Vec2f.(sum(F[cellVerticesDict[c],:],dims=2)),color=:blue)
 end
-poly!(ax1,cellPolygons[centralCell],color=(getRandomColor(centralCell),0.75))
-# Scatter plot cell positions with #annotations
+# Scatter plot cell positions with ##annotations
 scatter!(ax1,Point2f.(cellPositions[push!(neighbouringCells,centralCell)]),color=:red)
 annotations!(ax1,string.(neighbouringCells),Point2f.(cellPositions[push!(neighbouringCells,centralCell)]),color=:red)
 
 
-arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[-0.001,-1])],color=:red)
-annotations!(ax2,["-π"],[Point2f(0.1.*[-1,1].+0.02.*[-0.001,-1])])
-arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[-1,0])],color=:green)
-annotations!(ax2,["-π/2"],[Point2f(0.1.*[-1,1].+0.03.*[-1,0])])
-arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[0,1])],color=:blue)
-annotations!(ax2,["0"],[Point2f(0.1.*[-1,1].+0.01.*[0,1])])
-arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[1,0])],color=:black)
-annotations!(ax2,["π/2"],[Point2f(0.1.*[-1,1].+0.01.*[1,0])])
+# arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[-0.001,-1])],color=:red)
+# #annotations!(ax2,["-π"],[Point2f(0.1.*[-1,1].+0.02.*[-0.001,-1])])
+# arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[-1,0])],color=:green)
+# #annotations!(ax2,["-π/2"],[Point2f(0.1.*[-1,1].+0.03.*[-1,0])])
+# arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[0,1])],color=:blue)
+# #annotations!(ax2,["0"],[Point2f(0.1.*[-1,1].+0.01.*[0,1])])
+# arrows!(ax2,[Point2f(0.1.*[-1,1])],[Vec2f(0.01.*[1,0])],color=:black)
+# #annotations!(ax2,["π/2"],[Point2f(0.1.*[-1,1].+0.01.*[1,0])])
 
 display(fig1)
 
-save("$dataDirectory/cell$(centralCell)ForceSpace.png",fig1)
+save("$dataDirectory/cell$(centralCell)ForceSpace2.png",fig1)

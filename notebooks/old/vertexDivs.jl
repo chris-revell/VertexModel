@@ -71,41 +71,69 @@ for i=1:nCells
 end
 
 
-ϵₖ = -1*ϵ
-
 E = linkTriangleAreas
+
+ϵₖ = (-1).*ϵ
 
 vertexDivs = Float64[]
 # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
 for k=1:nVerts
-
-    vertexEdges = findall(x->x!=0,A[:,k])
-    edgeAngles = zeros(length(vertexEdges))
-    for (i,e) in enumerate(vertexEdges)
-        edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-    end
-    m = minimum(edgeAngles)
-    edgeAngles .-= m
-    vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
-    vertexCells = findall(x->x!=0,C[:,k])
-    cellAngles = zeros(length(vertexCells))
-    for i=1:length(cellAngles)
-        cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-    end
-    cellAngles .+= 2π-m
-    cellAngles .= cellAngles.%2π
-    vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-
-
-    h = @SVector [0.0,0.0]
-    divSum = 0
     if boundaryVertices[k] == 0
+        vertexEdges = findall(x->x!=0,A[:,k])
+        edgeAngles = zeros(length(vertexEdges))
+        for (i,e) in enumerate(vertexEdges)
+            edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+        end
+        m = minimum(edgeAngles)
+        edgeAngles .-= m
+        vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+        vertexCells = findall(x->x!=0,C[:,k])
+        cellAngles = zeros(length(vertexCells))
+        for i=1:length(cellAngles)
+            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+        end
+        cellAngles .+= 2π-m
+        cellAngles .= cellAngles.%2π
+        vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+        h = @SVector [0.0,0.0]
+        divSum = 0
         for (i,j) in enumerate(vertexEdges)
             h = h + ϵ*F[k,vertexCells[i]]
             divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/E[k]
         end
+    else
+        # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
+        pressureAngle = atan((-1.0.*externalF[k])...)
+        vertexEdges = findall(x->x!=0,A[:,k])
+        edgeAngles = zeros(length(vertexEdges))
+        for (i,e) in enumerate(vertexEdges)
+            edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+        end
+
+        edgeAngles .+= 2π-pressureAngle
+        edgeAngles .= edgeAngles.%2π
+        vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+        vertexCells = findall(x->x!=0,C[:,k])
+        cellAngles = zeros(length(vertexCells))
+        for i=1:length(cellAngles)
+            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+        end
+        cellAngles .+= 2π-pressureAngle
+        cellAngles .= cellAngles.%2π
+        vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
+        h = @SVector [0.0,0.0]
+        divSum = 0
+        h = h + ϵ*externalF[k]
+        divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/E[k]
+        for (i,j) in enumerate(vertexEdges[2:end])
+            h = h + ϵ*F[k,vertexCells[i]]
+            divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/E[k]
+        end
     end
+    divSum *= (-0.5)
     push!(vertexDivs,divSum)
 end
 
@@ -117,9 +145,6 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-
-ax1.title = "Vertex divs"
-
 lims = (minimum(vertexDivs),maximum(vertexDivs))
 
 for k=1:nVerts

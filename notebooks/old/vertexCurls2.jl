@@ -22,7 +22,7 @@ dataDirectory = "data/sims/2022-02-28-19-30-22"
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
-@unpack A,B,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices = matricesDict["matrices"]
+@unpack A,B,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,cellPressures,edgeLengths = matricesDict["matrices"]
 
 onesVec = ones(1,nCells)
 boundaryEdges = abs.(onesVec*B)
@@ -76,7 +76,6 @@ E = linkTriangleAreas
 vertexCurls = Float64[]
 # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
 for k=1:nVerts
-
     vertexEdges = findall(x->x!=0,A[:,k])
     edgeAngles = zeros(length(vertexEdges))
     for (i,e) in enumerate(vertexEdges)
@@ -94,8 +93,6 @@ for k=1:nVerts
     cellAngles .+= 2π-m
     cellAngles .= cellAngles.%2π
     vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-
-
     h = @SVector [0.0,0.0]
     curlSum = 0
     if boundaryVertices[k] == 0
@@ -107,29 +104,54 @@ for k=1:nVerts
     push!(vertexCurls,curlSum)
 end
 
+#Using equation 32
+vertexCurls2 = Float64[]
+for k=1:nVerts
+    curl = 0
+    if boundaryVertices[k] == 0
+        for i=1:nCells
+            for j=1:nEdges
+                curl += cellPressures[i]*B[i,j]*edgeLengths[j]^2*A[j,k]/(8.0*E[k])
+            end
+        end
+    end
+    push!(vertexCurls2,curl)
+end
+
+# lims = (min(minimum(vertexCurls),minimum(vertexCurls2)),max(maximum(vertexCurls),maximum(vertexCurls2)))
 
 
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
+
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-
-ax1.title = "Vertex curls"
-
+ax1.title = "Vertex curls from vectors"
 lims = (minimum(vertexCurls),maximum(vertexCurls))
-
 for k=1:nVerts
     poly!(ax1,linkTriangles[k],color=[vertexCurls[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
 end
-
-# Plot cell polygons
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
+# Colorbar(fig[1,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
-Colorbar(fig[:,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
+
+
+ax2 = Axis(grid[2,1],aspect=DataAspect())
+hidedecorations!(ax2)
+hidespines!(ax2)
+ax2.title = "Vertex curls from equation"
+lims = (minimum(vertexCurls2),maximum(vertexCurls2))
+for k=1:nVerts
+    poly!(ax2,linkTriangles[k],color=[vertexCurls2[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
+end
+for i=1:nCells
+    poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
+end
+# Colorbar(fig[2,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
-save("$dataDirectory/vertexCurls.png",fig)
+save("$dataDirectory/vertexCurls2.png",fig)

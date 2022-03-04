@@ -105,7 +105,7 @@ Lf = (H\B)*Tₑ*Bᵀ
 dropzeros!(Lf)
 
 
-decomposition = (eigen(Matrix(Lᵥ))).vectors
+decomposition = (eigen(Matrix(Lf))).vectors
 
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
@@ -120,17 +120,60 @@ for x=1:4
         hidedecorations!(ax)
         hidespines!(ax)
         ax.title = "Eigenvector $eigenvectorIndex"
-        for k=1:nVerts
-            poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
-        end
         # Plot cell polygons
         for i=1:nCells
-            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
+            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
     end
 end
 
+eigenvectorIndex = 17+23*1
+lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+ax = Axis(grid[5,1],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
+ax.title = "Eigenvector $eigenvectorIndex"
+# Plot cell polygons
+for i=1:nCells
+    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+end
+
+eigenvectorIndex = 17+23*2
+lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+ax = Axis(grid[5,2],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
+ax.title = "Eigenvector $eigenvectorIndex"
+# Plot cell polygons
+for i=1:nCells
+    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+end
+
+eigenvectorIndex = 17+23*3
+lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+ax = Axis(grid[5,3],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
+ax.title = "Eigenvector $eigenvectorIndex"
+# Plot cell polygons
+for i=1:nCells
+    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+end
+
+eigenvectorIndex = 17+23*4
+lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+ax = Axis(grid[5,4],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
+ax.title = "Eigenvector $eigenvectorIndex"
+# Plot cell polygons
+for i=1:nCells
+    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+end
+
+
+
 # Colorbar(grid[:, 5],limits=lims,colormap=:bwr)
 
 display(fig)
-save("$dataDirectory/eigenvectorTableau.png",fig)
+save("$dataDirectory/eigenvectorTableauLf.png",fig)

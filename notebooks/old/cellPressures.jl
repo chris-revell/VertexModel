@@ -52,13 +52,13 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = "Effective pressures"
+# ax1.title = "Effective pressures"
 clims = (-maximum(abs.(-2.0.*pressuresEffective)),maximum(abs.(-2.0.*pressuresEffective)))
 # Plot cell polygons
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=[-2.0*pressuresEffective[i]],colormap=:bwr,colorrange=clims,strokecolor=(:black,1.0),strokewidth=5)
 end
-Colorbar(fig[1, 2],limits=clims,colormap=:bwr)
+# Colorbar(fig[1, 2],limits=clims,colormap=:bwr)
 
 display(fig)
 

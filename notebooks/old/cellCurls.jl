@@ -82,11 +82,11 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = "Cell curls"
+# ax1.title = "Cell curls"
 # Plot cell polygons
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=[cellCurls[i]],colormap=:bwr,colorrange=(-1.0,1.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
-Colorbar(fig[1, 2],limits=(-1.0,1.0),colormap=:bwr,flipaxis=false) #:bwr
+# Colorbar(fig[1, 2],limits=(-1.0,1.0),colormap=:bwr,flipaxis=false) #:bwr
 display(fig)
 save("$dataDirectory/cellCurls.png",fig)

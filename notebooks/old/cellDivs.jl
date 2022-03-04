@@ -72,7 +72,7 @@ for c=1:nCells
         h = h + ϵ*F[cellVertices[i],c]
         divSum -= B[c,e]*(h⋅(ϵ*edgeTangents[e]))/cellAreas[c]
     end
-
+    divSum *= (-0.5)
     push!(cellDivs,divSum)
 end
 
@@ -84,7 +84,7 @@ grid = fig[1,1] = GridLayout()
 ax1 = Axis(grid[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = "Cell divs"
+# ax1.title = "Cell divs"
 clims = (-maximum(abs.(cellDivs)),maximum(abs.(cellDivs)))
 # Plot cell polygons
 for i=1:nCells
