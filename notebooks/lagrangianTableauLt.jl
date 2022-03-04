@@ -141,7 +141,7 @@ for k=1:nVerts
 end
 # Plot cell polygons
 for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+    poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
 
 eigenvectorIndex = 17+23*2
@@ -155,7 +155,7 @@ for k=1:nVerts
 end
 # Plot cell polygons
 for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+    poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
 
 eigenvectorIndex = 17+23*3
@@ -169,7 +169,7 @@ for k=1:nVerts
 end
 # Plot cell polygons
 for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+    poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
 
 eigenvectorIndex = 17+23*4
@@ -183,7 +183,7 @@ for k=1:nVerts
 end
 # Plot cell polygons
 for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+    poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
 
 display(fig)
