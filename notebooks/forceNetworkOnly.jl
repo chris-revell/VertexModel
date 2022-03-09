@@ -14,9 +14,6 @@ using Colors
 using JLD2
 
 # Local modules
-includet("$(projectdir())/src/TopologyChange.jl"); using .TopologyChange
-includet("$(projectdir())/src/Initialise.jl"); using .Initialise
-includet("$(projectdir())/src/SpatialData.jl"); using .SpatialData
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
@@ -35,12 +32,10 @@ matricesDict = load("$dataDirectory/matricesFinal.jld2")
 centralCell=14
 
 # Set up figure canvas
-fig1 = Figure(resolution=(1000,1000))
-grid1 = fig1[1,1] = GridLayout()
-ax2 = Axis(grid1[1,1],aspect=DataAspect())
+fig = Figure(resolution=(1000,1000))
+ax2 = Axis(fig[1,1],aspect=DataAspect())
 hidedecorations!(ax2)
 hidespines!(ax2)
-# ax2.title = "Cell $centralCell Force Network"
 
 # Find all cells neighbouring original cell
 cellNeighbourMatrix = B*Bᵀ
@@ -103,6 +98,11 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
     arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.9),linewidth=6,arrowsize=30)
 end
 
-display(fig1)
+display(fig)
 
-save("$dataDirectory/cell$(centralCell)ForceNetwork.png",fig1)
+save("$dataDirectory/cell$(centralCell)ForceNetwork.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
+save("$dataDirectory/cell$(centralCell)ForceNetwork.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/cell$(centralCell)ForceNetwork.svg",fig)
+save("$dataDirectory/cell$(centralCell)ForceNetwork.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/cell$(centralCell)ForceNetwork.png",fig)

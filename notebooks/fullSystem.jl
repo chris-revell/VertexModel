@@ -48,12 +48,11 @@ end
 centralCell=14
 
 # Set up figure canvas
-allForceFig = Figure(resolution=(1000,1000))
-allForceGrid = allForceFig[1,1] = GridLayout()
-allForceAx = Axis(allForceGrid[1,1],aspect=DataAspect())
-# allForceAx.title="All resultant forces in system"
-hidedecorations!(allForceAx)
-hidespines!(allForceAx)
+fig = Figure(resolution=(1000,1000))
+ax = Axis(fig[1,1],aspect=DataAspect())
+# ax.title="All resultant forces in system"
+hidedecorations!(ax)
+hidespines!(ax)
 
 # Plot cell polygons
 for i=1:nCells
@@ -64,33 +63,38 @@ for i=1:nCells
     end
     cellVertices .= cellVertices[sortperm(vertexAngles)]
     if cellNeighbourMatrix[centralCell,i] == 0
-        poly!(allForceAx,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.25),strokecolor=(:black,0.25),strokewidth=1)
+        poly!(ax,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.25),strokecolor=(:black,0.5),strokewidth=1)
     else
-        poly!(allForceAx,Point2f.(R[cellVertices]),color=(getRandomColor(i),1.0),strokecolor=(:black,1.0),strokewidth=1)
+        poly!(ax,Point2f.(R[cellVertices]),color=(getRandomColor(i),1.0),strokecolor=(:black,1.0),strokewidth=2)
     end
 end
 
 for j=1:nEdges
     edgeCells = findall(!iszero,B[:,j])
     if boundaryEdges[j] == 0
-        lines!(allForceAx,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
+        lines!(ax,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
     else
-        lines!(allForceAx,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+        lines!(ax,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
     end
 end
 
 
 
 # # Scatter vertex locations
-scatter!(allForceAx,Point2f.(R),alpha=0.5,color=:blue)
-# annotations!(allForceAx,string.(collect(1:nVerts)),Point2f.(R),color=:blue)
+scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
+# annotations!(ax,string.(collect(1:nVerts)),Point2f.(R),color=:blue)
 
 # Edge labels
-# annotations!(allForceAx,string.(collect(1:nEdges)),Point2f.(edgeMidpoints),color=:green)
+# annotations!(ax,string.(collect(1:nEdges)),Point2f.(edgeMidpoints),color=:green)
 
 # Scatter cell centroid locations
-scatter!(allForceAx,Point2f.(cellPositions),color=:red)
-# annotations!(allForceAx,string.(collect(1:nCells)),Point2f.(cellPositions),color=:red)
+scatter!(ax,Point2f.(cellPositions),color=:red)
+# annotations!(ax,string.(collect(1:nCells)),Point2f.(cellPositions),color=:red)
 
-display(allForceFig)
-save("$dataDirectory/fullSystem.png",allForceFig)
+display(fig)
+save("$dataDirectory/fullSystem.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/fullSystem.pdf",fig)
+save("$dataDirectory/fullSystem.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/fullSystem.svg",fig)
+save("$dataDirectory/fullSystem.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/fullSystem.png",fig)

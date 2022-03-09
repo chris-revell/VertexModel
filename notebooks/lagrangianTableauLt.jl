@@ -51,7 +51,7 @@ for j=1:nEdges
     push!(edgeTrapezia,Point2f.(trapeziumVertices))
 end
 trapeziumAreas = abs.(area.(edgeTrapezia))
-F = 2.0.*trapeziumAreas
+#F = 2.0.*trapeziumAreas
 
 
 linkTriangles = Vector{Point2f}[]
@@ -89,37 +89,25 @@ for i=1:nCells
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
 
-
-
-H = Diagonal(cellAreas)
 E = Diagonal(linkTriangleAreas)
-Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
 Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-Lᵥ = (E\Aᵀ)*(Tₑ\A)
-dropzeros!(Lᵥ)
 Lₜ = (E\Aᵀ)*Tₗ*A
 dropzeros!(Lₜ)
-Lc = (H\B)*(Tₗ\Bᵀ)
-dropzeros!(Lc)
-Lf = (H\B)*Tₑ*Bᵀ
-dropzeros!(Lf)
-
 
 decomposition = (eigen(Matrix(Lₜ))).vectors
 
 # Set up figure canvas
-fig = Figure(resolution=(1000,1000))
+fig = Figure(resolution=(550,1000))
 grid = fig[1,1] = GridLayout()
 
 # axes = Axis[]
 for x=1:4
-    for y=1:4
+    for y=1:5
         eigenvectorIndex = ((y-1)*4 + x)+1
         lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
         ax = Axis(grid[y,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
-        ax.title = "Eigenvector $eigenvectorIndex"
         for k=1:nVerts
             poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
         end
@@ -127,15 +115,18 @@ for x=1:4
         for i=1:nCells
             poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
+        Label(grid[y,x,Bottom()],
+                L"k=%$eigenvectorIndex",
+                textsize = 16,
+        )
     end
 end
 
-eigenvectorIndex = 17+23*1
+eigenvectorIndex = 21+20*1
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[5,1],aspect=DataAspect())
+ax = Axis(grid[6,1],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-ax.title = "Eigenvector $eigenvectorIndex"
 for k=1:nVerts
     poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end
@@ -143,13 +134,16 @@ end
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
+Label(grid[6,1,Bottom()],
+        L"k=%$eigenvectorIndex",
+        textsize = 16,
+)
 
-eigenvectorIndex = 17+23*2
+eigenvectorIndex = 21+20*2
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[5,2],aspect=DataAspect())
+ax = Axis(grid[6,2],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-ax.title = "Eigenvector $eigenvectorIndex"
 for k=1:nVerts
     poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end
@@ -157,13 +151,16 @@ end
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
+Label(grid[6,2,Bottom()],
+        L"k=%$eigenvectorIndex",
+        textsize = 16,
+)
 
-eigenvectorIndex = 17+23*3
+eigenvectorIndex = 21+20*3
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[5,3],aspect=DataAspect())
+ax = Axis(grid[6,3],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-ax.title = "Eigenvector $eigenvectorIndex"
 for k=1:nVerts
     poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end
@@ -171,13 +168,16 @@ end
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
+Label(grid[6,3,Bottom()],
+        L"k=%$eigenvectorIndex",
+        textsize = 16,
+)
 
-eigenvectorIndex = 17+23*4
+eigenvectorIndex = 21+20*4
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[5,4],aspect=DataAspect())
+ax = Axis(grid[6,4],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-ax.title = "Eigenvector $eigenvectorIndex"
 for k=1:nVerts
     poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end
@@ -185,6 +185,15 @@ end
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
+Label(grid[6,4,Bottom()],
+        L"k=%$eigenvectorIndex",
+        textsize = 16,
+)
 
 display(fig)
+save("$dataDirectory/eigenvectorTableauLt.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLt.svg",fig)
+save("$dataDirectory/eigenvectorTableauLt.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLt.pdf",fig)
 save("$dataDirectory/eigenvectorTableauLt.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLt.png",fig)

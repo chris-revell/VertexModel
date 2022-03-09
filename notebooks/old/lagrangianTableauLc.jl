@@ -89,102 +89,79 @@ for i=1:nCells
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
 
+
+
 H = Diagonal(cellAreas)
+E = Diagonal(linkTriangleAreas)
+Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
 Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-boundaryEdgesFactor = abs.(boundaryEdges.-1)    # =1 for internal vertices, =0 for boundary vertices
-invTₗ = inv(Tₗ)
-boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1,:])
-Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
+Lc = (H\B)*(Tₗ\Bᵀ)
 dropzeros!(Lc)
+
 
 decomposition = (eigen(Matrix(Lc))).vectors
 
 # Set up figure canvas
-fig = Figure(resolution=(550,1000))
-grid = fig[1,1] = GridLayout()
+fig = Figure(resolution=(1000,1000))
+
 for x=1:4
-    for y=1:5
-        eigenvectorIndex = ((y-1)*4 + x)+1
+    for y=1:4
+        eigenvectorIndex = ((y-1)*4 + x)#+1
         lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y,x],aspect=DataAspect(),padding=0)
+        ax = Axis(fig[y,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
+        ax.title = "Eigenmode $eigenvectorIndex"
         # Plot cell polygons
         for i=1:nCells
             poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
-        Label(grid[y,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
     end
 end
 
-eigenvectorIndex = 21+20*1
+eigenvectorIndex = 16+24*1
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,1],aspect=DataAspect())
+ax = Axis(fig[5,1],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
+ax.title = "Eigenmode $eigenvectorIndex"
 # Plot cell polygons
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(grid[6,1,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-        #halign = :right
-)
 
-eigenvectorIndex = 21+20*2
+eigenvectorIndex = 16+24*2
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,2],aspect=DataAspect())
+ax = Axis(fig[5,2],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-#ax.title = "Eigenmode $eigenvectorIndex"
+ax.title = "Eigenmode $eigenvectorIndex"
 # Plot cell polygons
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(grid[6,2,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-        #halign = :right
-)
 
-eigenvectorIndex = 21+20*3
+eigenvectorIndex = 16+24*3
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,3],aspect=DataAspect())
+ax = Axis(fig[5,3],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-#ax.title = "Eigenmode $eigenvectorIndex"
+ax.title = "Eigenmode $eigenvectorIndex"
 # Plot cell polygons
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(grid[6,3,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-        #halign = :right
-)
 
-eigenvectorIndex = 21+20*4
+eigenvectorIndex = 16+24*4
 lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,4],aspect=DataAspect())
+ax = Axis(fig[5,4],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-#ax.title = "Eigenmode $eigenvectorIndex"
+ax.title = "Eigenmode $eigenvectorIndex"
 # Plot cell polygons
 for i=1:nCells
     poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(grid[6,4,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-        #halign = :right
-)
-
-colgap!(grid, -5)
-# rowgap!(grid, -2)
 
 display(fig)
 save("$dataDirectory/eigenvectorTableauLc.pdf",fig)

@@ -51,7 +51,6 @@ for j=1:nEdges
     push!(edgeTrapezia,Point2f.(trapeziumVertices))
 end
 trapeziumAreas = abs.(area.(edgeTrapezia))
-#F = 2.0.*trapeziumAreas
 
 
 linkTriangles = Vector{Point2f}[]
@@ -89,99 +88,65 @@ for i=1:nCells
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
 
+
+
+
 H = Diagonal(cellAreas)
+E = Diagonal(linkTriangleAreas)
+Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
+Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
+Lᵥ = (E\Aᵀ)*(Tₑ\A)
+dropzeros!(Lᵥ)
+Lₜ = (E\Aᵀ)*Tₗ*A
+dropzeros!(Lₜ)
+
 boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
 diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
-Tₑ = Diagonal(diagonalComponent)
-Lf = (H\B)*Tₑ*Bᵀ
+Tₑ2 = Diagonal(diagonalComponent)
+Lf = (H\B)*Tₑ2*Bᵀ
 dropzeros!(Lf)
 
+invTₗ = inv(Tₗ)
+boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1,:])
+Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
+dropzeros!(Lc)
+
+cellAreasMat = Diagonal(cellAreas)
+
 decomposition = (eigen(Matrix(Lf))).vectors
-
-# Set up figure canvas
-fig = Figure(resolution=(550,1000))
-grid = fig[1,1] = GridLayout()
-
-# axes = Axis[]
-for x=1:4
-    for y=1:5
-        eigenvectorIndex = ((y-1)*4 + x)+1
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y,x],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
-        # Plot cell polygons
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-        end
-        Label(grid[y,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
+dotProducts = Float64[]
+for i=1:nCells-1
+    for j=i+1:nCells
+        push!(dotProducts,decomposition[:,i]'*cellAreasMat*decomposition[:,j])
     end
 end
+println("Lf max dot product = $(maximum(dotProducts))")
 
-eigenvectorIndex = 21+20*1
-lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+decomposition = (eigen(Matrix(Lc))).vectors
+dotProducts = Float64[]
+for i=1:nCells-1
+    for j=i+1:nCells
+        push!(dotProducts,decomposition[:,i]'*cellAreasMat*decomposition[:,j])
+    end
 end
-Label(grid[6,1,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-)
+println("Lc max dot product = $(maximum(dotProducts))")
 
-eigenvectorIndex = 21+20*2
-lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,2],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+triangleAreasMat = Diagonal(linkTriangleAreas)
+
+decomposition = (eigen(Matrix(Lₜ))).vectors
+dotProducts = Float64[]
+for i=1:nVerts-1
+    for j=i+1:nVerts
+        push!(dotProducts,decomposition[:,i]'*triangleAreasMat*decomposition[:,j])
+    end
 end
-Label(grid[6,2,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-)
+println("Lₜ max dot product = $(maximum(dotProducts))")
 
-eigenvectorIndex = 21+20*3
-lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,3],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+decomposition = (eigen(Matrix(Lᵥ))).vectors
+dotProducts = Float64[]
+for i=1:nVerts-1
+    for j=i+1:nVerts
+        push!(dotProducts,decomposition[:,i]'*triangleAreasMat*decomposition[:,j])
+    end
 end
-Label(grid[6,3,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-)
-
-eigenvectorIndex = 21+20*4
-lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-ax = Axis(grid[6,4],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-end
-Label(grid[6,4,Bottom()],
-        L"i=%$eigenvectorIndex",
-        textsize = 16,
-)
-
-
-display(fig)
-save("$dataDirectory/eigenvectorTableauLf.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLf.pdf",fig)
-save("$dataDirectory/eigenvectorTableauLf.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLf.svg",fig)
-save("$dataDirectory/eigenvectorTableauLf.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLf.png",fig)
+println("Lᵥ max dot product = $(maximum(dotProducts))")

@@ -12,6 +12,7 @@ using GeometryBasics
 using Random
 using Colors
 using JLD2
+using LaTeXStrings
 
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
@@ -27,7 +28,7 @@ dataDirectory = "data/sims/2022-02-28-19-30-22"
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
-@unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas = matricesDict["matrices"]
+@unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,externalF = matricesDict["matrices"]
 
 # Create vector of polygons for each cell
 cellPolygons = Vector{Point2f}[]
@@ -169,34 +170,34 @@ for k=1:nVerts
         end
     else
         # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
-        pressureAngle = atan((-1.0.*externalF[k])...)
-        vertexEdges = findall(x->x!=0,A[:,k])
-        edgeAngles = zeros(length(vertexEdges))
-        for (i,e) in enumerate(vertexEdges)
-            edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-        end
-
-        edgeAngles .+= 2π-pressureAngle
-        edgeAngles .= edgeAngles.%2π
-        vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
-        vertexCells = findall(x->x!=0,C[:,k])
-        cellAngles = zeros(length(vertexCells))
-        for i=1:length(cellAngles)
-            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-        end
-        cellAngles .+= 2π-pressureAngle
-        cellAngles .= cellAngles.%2π
-        vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-
-        h = @SVector [0.0,0.0]
+        # pressureAngle = atan((-1.0.*externalF[k])...)
+        # vertexEdges = findall(x->x!=0,A[:,k])
+        # edgeAngles = zeros(length(vertexEdges))
+        # for (i,e) in enumerate(vertexEdges)
+        #     edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+        # end
+        #
+        # edgeAngles .+= 2π-pressureAngle
+        # edgeAngles .= edgeAngles.%2π
+        # vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+        #
+        # vertexCells = findall(x->x!=0,C[:,k])
+        # cellAngles = zeros(length(vertexCells))
+        # for i=1:length(cellAngles)
+        #     cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+        # end
+        # cellAngles .+= 2π-pressureAngle
+        # cellAngles .= cellAngles.%2π
+        # vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+        #
+        # h = @SVector [0.0,0.0]
         divSum = 0
-        h = h + ϵ*externalF[k]
-        divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/E[k]
-        for (i,j) in enumerate(vertexEdges[2:end])
-            h = h + ϵ*F[k,vertexCells[i]]
-            divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/E[k]
-        end
+        # h = h + ϵ*externalF[k]
+        # divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/E[k]
+        # for (i,j) in enumerate(vertexEdges[2:end])
+        #     h = h + ϵ*F[k,vertexCells[i]]
+        #     divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/E[k]
+        # end
     end
     divSum *= (-0.5)
     push!(vertexDivs,divSum)
@@ -232,90 +233,131 @@ for k=1:nVerts
             curlSum += A[j,k]*(T[j]⋅h)/E[k]
         end
     else
-        # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
-        pressureAngle = atan((-1.0.*externalF[k])...)
-        vertexEdges = findall(x->x!=0,A[:,k])
-        edgeAngles = zeros(length(vertexEdges))
-        for (i,e) in enumerate(vertexEdges)
-            edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-        end
-
-        edgeAngles .+= 2π-pressureAngle
-        edgeAngles .= edgeAngles.%2π
-        vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
-        vertexCells = findall(x->x!=0,C[:,k])
-        cellAngles = zeros(length(vertexCells))
-        for i=1:length(cellAngles)
-            cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-        end
-        cellAngles .+= 2π-pressureAngle
-        cellAngles .= cellAngles.%2π
-        vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-
-        h = @SVector [0.0,0.0]
-        curlSum = 0
-        h = h + ϵ*externalF[k]
-        curlSum += A[vertexEdges[1],k]*(T[vertexEdges[1]]⋅h)/E[k]
-        for (i,j) in enumerate(vertexEdges[2:end])
-            h = h + ϵ*F[k,vertexCells[i]]
-            curlSum += A[j,k]*(T[j]⋅h)/E[k]
-        end
+        # # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
+        # pressureAngle = atan((-1.0.*externalF[k])...)
+        # vertexEdges = findall(x->x!=0,A[:,k])
+        # edgeAngles = zeros(length(vertexEdges))
+        # for (i,e) in enumerate(vertexEdges)
+        #     edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+        # end
+        #
+        # edgeAngles .+= 2π-pressureAngle
+        # edgeAngles .= edgeAngles.%2π
+        # vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+        #
+        # vertexCells = findall(x->x!=0,C[:,k])
+        # cellAngles = zeros(length(vertexCells))
+        # for i=1:length(cellAngles)
+        #     cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+        # end
+        # cellAngles .+= 2π-pressureAngle
+        # cellAngles .= cellAngles.%2π
+        # vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+        #
+        # h = @SVector [0.0,0.0]
+        # curlSum = 0
+        # h = h + ϵ*externalF[k]
+        # curlSum += A[vertexEdges[1],k]*(T[vertexEdges[1]]⋅h)/E[k]
+        # for (i,j) in enumerate(vertexEdges[2:end])
+        #     h = h + ϵ*F[k,vertexCells[i]]
+        #     curlSum += A[j,k]*(T[j]⋅h)/E[k]
+        # end
+        curlSum = 0.0
     end
     push!(vertexCurls,curlSum)
 end
 
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-
 divLims = (-maximum(abs.([vertexDivs; cellDivs])),maximum(abs.([vertexDivs; cellDivs])))
+curlLims = (-maximum(abs.(vertexCurls)),maximum(abs.(vertexCurls)))
+
+# Set up figure canvas
+fig = Figure(resolution=(900,1000))
+grid = fig[1,1] = GridLayout()
 # Cell div axis
-ax1 = Axis(grid[1,1],aspect=DataAspect())
+ax1 = Axis(grid[1,1][1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-ax1.title = "-0.5 x Cell divs"
-# Plot cell polygons
+# ax1.title = "-0.5 x Cell divs"
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=[cellDivs[i]],colormap=:bwr,colorrange=divLims, strokecolor=(:black,1.0),strokewidth=5)
 end
+Label(grid[1, 1, Bottom()],
+        LaTeXString("(a)"),
+        textsize = 34,
+        #halign = :right
+)
+Label(grid[1, 1, Left()],
+        LaTeXString("div"),
+        textsize = 34,
+        #halign = :right
+)
+Label(grid[1, 1, Top()],
+        LaTeXString("Cells"),
+        textsize = 34,
+        #halign = :right
+)
+
 # Vertex div axis
 ax2 = Axis(grid[1,2],aspect=DataAspect())
 hidedecorations!(ax2)
 hidespines!(ax2)
-ax2.title = "-0.5 x Vertex divs"
 for k=1:nVerts
     poly!(ax2,linkTriangles[k],color=[vertexDivs[k]],colorrange=divLims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
 end
 for i=1:nCells
     poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
+Label(grid[1, 2, Bottom()],
+        LaTeXString("(b)"),
+        textsize = 34,
+        #halign = :right
+)
+Label(grid[1, 2, Top()],
+        LaTeXString("Vertices"),
+        textsize = 34,
+        #halign = :right
+)
 Colorbar(grid[1,3],limits=divLims,colormap=:bwr,flipaxis=false)
 
-
-curlLims = (-maximum(abs.(vertexCurls)),maximum(abs.(vertexCurls)))
 # Cell curl axis
 ax3 = Axis(grid[2,1],aspect=DataAspect())
 hidedecorations!(ax3)
 hidespines!(ax3)
-ax3.title = "Cell curls"
-# Plot cell polygons
 for i=1:nCells
     poly!(ax3,cellPolygons[i],color=[cellCurls[i]],colormap=:bwr,colorrange=curlLims,strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
+Label(grid[2, 1, Bottom()],
+        LaTeXString("(c)"),
+        textsize = 34,
+)
+Label(grid[2, 1, Left()],
+        LaTeXString("curl"),
+        textsize = 34,
+)
 
 # Vertex curl axis
-ax4 = Axis(grid[2,2],aspect=DataAspect())
+ax4 = Axis(grid[2,2][1,1],aspect=DataAspect())
 hidedecorations!(ax4)
 hidespines!(ax4)
-ax4.title = "Vertex curls"
 for k=1:nVerts
     poly!(ax4,linkTriangles[k],color=[vertexCurls[k]],colorrange=curlLims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
 end
 for i=1:nCells
     poly!(ax4,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
+Label(grid[2, 2, Bottom()],
+        LaTeXString("(d)"),
+        textsize = 34,
+)
 Colorbar(grid[2,3],limits=curlLims,colormap=:bwr,flipaxis=false)
 
+
+# colgap!(grid,-10)
+
 display(fig)
+save("$dataDirectory/allCurlsDivs.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/allCurlsDivs.pdf",fig)
+save("$dataDirectory/allCurlsDivs.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/allCurlsDivs.svg",fig)
 save("$dataDirectory/allCurlsDivs.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/allCurlsDivs.png",fig)

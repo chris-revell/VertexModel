@@ -14,9 +14,6 @@ using Colors
 using JLD2
 
 # Local modules
-includet("$(projectdir())/src/TopologyChange.jl"); using .TopologyChange
-includet("$(projectdir())/src/Initialise.jl"); using .Initialise
-includet("$(projectdir())/src/SpatialData.jl"); using .SpatialData
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
@@ -35,9 +32,8 @@ matricesDict = load("$dataDirectory/matricesFinal.jld2")
 centralCell=14
 
 # Set up figure canvas
-fig1 = Figure(resolution=(1000,1000))
-grid1 = fig1[1,1] = GridLayout()
-ax1 = Axis(grid1[1,1],aspect=DataAspect())
+fig = Figure(resolution=(1000,1000))
+ax1 = Axis(fig[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
 
@@ -87,8 +83,8 @@ end
 
 # poly!(ax1,cellPolygons[centralCell],color=(getRandomColor(centralCell),1.0))
 for c in neighbouringCells
-    poly!(ax1,cellPolygons[c],color=(getRandomColor(c),1.00),strokecolor=:black,strokewidth=8)
-    poly!(ax1,edgeMidpointPolygons[c],color=(:white,0.0),strokecolor=:white,strokewidth=8)
+    poly!(ax1,cellPolygons[c],color=(getRandomColor(c),0.50),strokecolor=:black,strokewidth=8)
+    poly!(ax1,edgeMidpointPolygons[c],color=(:white,0.0),strokecolor=(getRandomColor(c),1.0),strokewidth=8)
 
     # linked = findall(!iszero,cellNeighbourMatrix[c,:])
     # for l in linked
@@ -103,6 +99,11 @@ for c in neighbouringCells
 end
 scatter!(ax1,Point2f.(cellPositions[push!(neighbouringCells,centralCell)]),color=:red,markersize=16)
 
-display(fig1)
+display(fig)
 
-save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.png",fig1)
+save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
+save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
+save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/cell$(centralCell)ForceNeighbourhood.png",fig)

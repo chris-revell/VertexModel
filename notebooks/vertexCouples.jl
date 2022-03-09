@@ -58,6 +58,7 @@ for k=1:nVerts
     end
 end
 linkTriangleAreas = abs.(area.(linkTriangles))
+E = linkTriangleAreas
 
 cellPolygons = Vector{Point2f}[]
 for i=1:nCells
@@ -70,42 +71,7 @@ for i=1:nCells
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
 
-
-E = linkTriangleAreas
-
-vertexCurls = Float64[]
-# Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
-for k=1:nVerts
-    vertexEdges = findall(x->x!=0,A[:,k])
-    edgeAngles = zeros(length(vertexEdges))
-    for (i,e) in enumerate(vertexEdges)
-        edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-    end
-    m = minimum(edgeAngles)
-    edgeAngles .-= m
-    vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
-    vertexCells = findall(x->x!=0,C[:,k])
-    cellAngles = zeros(length(vertexCells))
-    for i=1:length(cellAngles)
-        cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-    end
-    cellAngles .+= 2π-m
-    cellAngles .= cellAngles.%2π
-    vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-    h = @SVector [0.0,0.0]
-    curlSum = 0
-    if boundaryVertices[k] == 0
-        for (i,j) in enumerate(vertexEdges)
-            h = h + ϵ*F[k,vertexCells[i]]
-            curlSum += A[j,k]*(T[j]⋅h)/E[k]
-        end
-    end
-    push!(vertexCurls,curlSum)
-end
-
-#Using equation 32
-vertexCurls2 = Float64[]
+vertexCouples = Float64[]
 for k=1:nVerts
     curl = 0
     if boundaryVertices[k] == 0
@@ -115,43 +81,28 @@ for k=1:nVerts
             end
         end
     end
-    push!(vertexCurls2,curl)
+    push!(vertexCouples,curl)
 end
 
-# lims = (min(minimum(vertexCurls),minimum(vertexCurls2)),max(maximum(vertexCurls),maximum(vertexCurls2)))
-
+lims = (-maximum(abs.(vertexCouples)),maximum(abs.(vertexCouples)))
 
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
-ax1.title = "Vertex curls from vectors"
-lims = (minimum(vertexCurls),maximum(vertexCurls))
+ax = Axis(fig[1,1],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
 for k=1:nVerts
-    poly!(ax1,linkTriangles[k],color=[vertexCurls[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
+    poly!(ax,linkTriangles[k],color=[vertexCouples[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
 end
 for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
+    poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
-# Colorbar(fig[1,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
-
-
-
-ax2 = Axis(grid[2,1],aspect=DataAspect())
-hidedecorations!(ax2)
-hidespines!(ax2)
-ax2.title = "Vertex curls from equation"
-lims = (minimum(vertexCurls2),maximum(vertexCurls2))
-for k=1:nVerts
-    poly!(ax2,linkTriangles[k],color=[vertexCurls2[k]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.0)) #:bwr
-end
-for i=1:nCells
-    poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
-end
-# Colorbar(fig[2,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
+Colorbar(fig[1,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
-save("$dataDirectory/vertexCurls2.png",fig)
+save("$dataDirectory/vertexCouples.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/vertexCouples.pdf",fig)
+save("$dataDirectory/vertexCouples.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/vertexCouples.svg",fig)
+save("$dataDirectory/vertexCouples.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/vertexCouples.png",fig)
