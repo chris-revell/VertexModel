@@ -178,7 +178,6 @@ lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigen
 ax = Axis(grid[6,4],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
-ax.title = "Eigenmode $eigenvectorIndex"
 for k=1:nVerts
     poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end

@@ -12,10 +12,11 @@ using GeometryBasics
 using Random
 using Colors
 using JLD2
+using Printf
+
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
-# Specify data folder
 dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
@@ -24,8 +25,6 @@ conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
-
-# Find vector of cell-cell links
 onesVec = ones(1,nCells)
 boundaryEdges = abs.(onesVec*B)
 cᵖ = boundaryEdges'.*edgeMidpoints
@@ -38,8 +37,6 @@ for j=1:nEdges
     push!(T,Tⱼ)
 end
 
-
-# Create vector of edge trapezium polygons
 edgeTrapezia = Vector{Point2f}[]
 for j=1:nEdges
     edgeCells = findall(x->x!=0,B[:,j])
@@ -54,12 +51,10 @@ for j=1:nEdges
     trapeziumVertices .= trapeziumVertices[sortperm(angles)]
     push!(edgeTrapezia,Point2f.(trapeziumVertices))
 end
-# Calculate trapezium areas and F values
 trapeziumAreas = abs.(area.(edgeTrapezia))
-F = 2.0.*trapeziumAreas
+#F = 2.0.*trapeziumAreas
 
 
-# Create vector of polygons for triangles defined by cell-cell links around each vertex (note special consideration for boundary vertices)
 linkTriangles = Vector{Point2f}[]
 for k=1:nVerts
     if boundaryVertices[k] == 0
@@ -84,7 +79,6 @@ end
 linkTriangleAreas = abs.(area.(linkTriangles))
 
 
-# Create vector of polygons for each cell
 cellPolygons = Vector{Point2f}[]
 for i=1:nCells
     cellVertices = findall(x->x!=0,C[i,:])
@@ -96,76 +90,39 @@ for i=1:nCells
     push!(cellPolygons,Point2f.(R[cellVertices]))
 end
 
-
-
-# Define lagrangian matrices
 H = Diagonal(cellAreas)
-E = Diagonal(linkTriangleAreas)
-Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
-Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-Lᵥ = (E\Aᵀ)*(Tₑ\A)
-dropzeros!(Lᵥ)
-Lₜ = (E\Aᵀ)*Tₗ*A
-dropzeros!(Lₜ)
-Lc = (H\B)*(Tₗ\Bᵀ)
-dropzeros!(Lc)
+boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
+diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
+Tₑ = Diagonal(diagonalComponent)
 Lf = (H\B)*Tₑ*Bᵀ
 dropzeros!(Lf)
 
-lagrangians = Dict("Lv"=>Lᵥ,"Lt"=>Lₜ,"Lc"=>Lc,"Lf"=>Lf)
+decomposition = (eigen(Matrix(Lf))).vectors
 
-# Select which eigenvector to plot
-column = 10
+
+isdir("$dataDirectory/eigenmodesLf") ? nothing : mkpath("$dataDirectory/eigenmodesLf")
+isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf")
 
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
 grid = fig[1,1] = GridLayout()
-
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
-ax1.title = "Lᵥ Eigenvector $column"
-decomposition = (eigen(Matrix(Lᵥ))).vectors
-lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
-for k=1:nVerts
-    poly!(ax1,linkTriangles[k],color=[decomposition[k,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
+ax = Axis(grid[1,1],aspect=DataAspect())
+hidedecorations!(ax)
+hidespines!(ax)
+for eigenvectorIndex=2:nCells
+    empty!(ax)
+    lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+    for i=1:nCells
+        poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+    end
+    # Label(grid[1,1,Bottom()],
+    #         L"k=%$eigenvectorIndex",
+    #         textsize = 16,
+    # )
+    # save("$dataDirectory/eigenvectorTableauLv.svg",fig)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLv.svg",fig)
+    # save("$dataDirectory/eigenvectorTableauLv.pdf",fig)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLv.pdf",fig)
+    save("$dataDirectory/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
 end
-for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
-end
-
-ax2 = Axis(grid[1,2],aspect=DataAspect())
-hidedecorations!(ax2)
-hidespines!(ax2)
-ax2.title = "Lₜ Eigenvector $column"
-decomposition = (eigen(Matrix(Lₜ))).vectors
-lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
-for k=1:nVerts
-    poly!(ax2,linkTriangles[k],color=[decomposition[k,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
-end
-for i=1:nCells
-    poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
-end
-
-ax3 = Axis(grid[2,1],aspect=DataAspect())
-hidedecorations!(ax3)
-hidespines!(ax3)
-decomposition = (eigen(Matrix(Lc))).vectors
-lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
-ax3.title = "Lc Eigenvector $column"
-for i=1:nCells
-    poly!(ax3,cellPolygons[i],color=[decomposition[i,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
-end
-
-ax4 = Axis(grid[2,2],aspect=DataAspect())
-hidedecorations!(ax4)
-hidespines!(ax4)
-decomposition = (eigen(Matrix(Lf))).vectors
-lims = (minimum(decomposition[:,column]),maximum(decomposition[:,column]))
-ax4.title = "Lf Eigenvector $column"
-for i=1:nCells
-    poly!(ax4,cellPolygons[i],color=[decomposition[i,column]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.5)) #:bwr
-end
-
-display(fig)
-save("$dataDirectory/eigenvectors$column.png",fig)

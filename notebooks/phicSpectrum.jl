@@ -147,22 +147,17 @@ end
 
 ϕLims = (-maximum(abs.(ϕ̆)),maximum(abs.(ϕ̆)))
 
-fig = Figure(resolution=(1000,1000),fontsize = 24)
-ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
-hidedecorations!(ax1)
-hidespines!(ax1)
-for i=1:nCells
-    poly!(ax1,cellPolygons[i],color=[ϕ̆[i]],colormap=:bwr,colorrange=ϕLims, strokecolor=(:black,1.0),strokewidth=5)
-end
-Colorbar(fig[1,1][1,2],limits=ϕLims,colormap=:bwr,flipaxis=false,align=:left)
+fig = Figure(resolution=(1000,700),fontsize = 24)
 
-# ax2 = Axis(fig[2,:],title = LaTeXString("Eigenmode amplitudes"), xlabel=L"Eigenmode number, $i$", ylabel=LaTeXString("Amplitude"),fontsize=32)
-# lines!(ax2,collect(2:nCells),abs.(eigenmodeAmplitudes),linewidth=3)
+ax2 = Axis(fig[1,1], xlabel="Eigenmode number, i", ylabel="Amplitude",fontsize=32)
+lines!(ax2,collect(2:nCells),abs.(eigenmodeAmplitudes),linewidth=5)
+xlims!(ax2,1,nCells)
+# barplot!(ax2,collect(2:nCells),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
 display(fig)
-save("$dataDirectory/phicPotential.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/phicPotential.pdf",fig)
-save("$dataDirectory/phicPotential.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/phicPotential.svg",fig)
-save("$dataDirectory/phicPotential.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/phicPotential.png",fig)
+save("$dataDirectory/phicSpectrum.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/phicSpectrum.pdf",fig)
+save("$dataDirectory/phicSpectrum.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/phicSpectrum.svg",fig)
+save("$dataDirectory/phicSpectrum.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/phicSpectrum.png",fig)
