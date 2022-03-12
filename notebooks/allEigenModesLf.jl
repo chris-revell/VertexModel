@@ -41,7 +41,7 @@ Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
 decomposition = (eigen(Matrix(Lf))).vectors
 
 isdir("$dataDirectory/eigenmodesLf") ? nothing : mkpath("$dataDirectory/eigenmodesLf")
-isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLf")
+isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf")
 
 # Set up figure canvas
 fig = Figure(resolution=(1000,1000))
@@ -56,5 +56,5 @@ for eigenvectorIndex=2:nCells
         poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
     save("$dataDirectory/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
 end
