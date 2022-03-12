@@ -380,11 +380,11 @@ Label(grid[2, 2, Bottom()],
 )
 Colorbar(grid[2,3],limits=curlLims,colormap=:bwr,flipaxis=false)
 save("$dataDirectory/allCurlsDivs.pdf",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/allCurlsDivs.pdf",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/allCurlsDivs.pdf",fig)
 save("$dataDirectory/allCurlsDivs.svg",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/allCurlsDivs.svg",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/allCurlsDivs.svg",fig)
 save("$dataDirectory/allCurlsDivs.png",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/allCurlsDivs.png",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/allCurlsDivs.png",fig)
 
 # All eigenmodes Lf
 decomposition = (eigen(Matrix(Lf))).vectors
@@ -403,7 +403,7 @@ for eigenvectorIndex=2:nCells
         poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
     save("$dataDirectory/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
-    #save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
 end
 
 # All eigenmodes Lv
@@ -425,7 +425,7 @@ for eigenvectorIndex=2:nVerts
         poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
     save("$dataDirectory/eigenmodesLv/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
-    #save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/eigenmodesLv/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLv/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
 end
 
 # Force neighbourhood
@@ -471,11 +471,11 @@ for c in neighbouringCells
 end
 scatter!(ax1,Point2f.(cellPositions[push!(neighbouringCells,centralCell)]),color=:red,markersize=16)
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.pdf",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.svg",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.png",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/cell$(centralCell)ForceNeighbourhood.png",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNeighbourhood.png",fig)
 
 # Force network
 fig = Figure(resolution=(1000,1000))
@@ -519,11 +519,11 @@ for (i,v) in enumerate(cellVerticesDict[centralCell])
     arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.9),linewidth=6,arrowsize=30)
 end
 save("$dataDirectory/cell$(centralCell)ForceNetwork.pdf",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
 save("$dataDirectory/cell$(centralCell)ForceNetwork.svg",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/cell$(centralCell)ForceNetwork.svg",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNetwork.svg",fig)
 save("$dataDirectory/cell$(centralCell)ForceNetwork.png",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/cell$(centralCell)ForceNetwork.png",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNetwork.png",fig)
 
 # Full system
 fig = Figure(resolution=(1000,1000))
@@ -548,8 +548,8 @@ end
 scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
 scatter!(ax,Point2f.(cellPositions),color=:red)
 save("$dataDirectory/fullSystem.pdf",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/fullSystem.pdf",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/fullSystem.pdf",fig)
 save("$dataDirectory/fullSystem.svg",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/fullSystem.svg",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/fullSystem.svg",fig)
 save("$dataDirectory/fullSystem.png",fig)
-#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/fullSystem.png",fig)
+#save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/fullSystem.png",fig)

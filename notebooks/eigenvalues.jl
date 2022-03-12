@@ -12,9 +12,11 @@ using GeometryBasics
 using Random
 using Colors
 using JLD2
+using Printf
 
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+includet("$(projectdir())/notebooks/functions.jl")
 
 dataDirectory = "data/sims/2022-02-28-19-30-22"
 
@@ -24,89 +26,36 @@ conditionsDict    = load("$dataDirectory/dataFinal.jld2")
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
-onesVec = ones(1,nCells)
-boundaryEdges = abs.(onesVec*B)
-cᵖ = boundaryEdges'.*edgeMidpoints
-T = SVector{2,Float64}[]
-for j=1:nEdges
-    Tⱼ = @SVector zeros(2)
-    for i=1:nCells
-        Tⱼ = Tⱼ + B[i,j]*(cellPositions[i].-cᵖ[j])
-    end
-    push!(T,Tⱼ)
-end
+T = makeCellLinks(conditionsDict["params"],matricesDict["matrices"])
 
-edgeTrapezia = Vector{Point2f}[]
-for j=1:nEdges
-    edgeCells = findall(x->x!=0,B[:,j])
-    edgeVertices = findall(x->x!=0,A[j,:])
-    trapeziumVertices = [R[edgeVertices]; cellPositions[edgeCells]]
-    com = sum(trapeziumVertices)./length(trapeziumVertices)
-    angles = Float64[]
-    for p=1:length(trapeziumVertices)
-        angle = atan((trapeziumVertices[p].-com)...)
-        push!(angles,angle)
-    end
-    trapeziumVertices .= trapeziumVertices[sortperm(angles)]
-    push!(edgeTrapezia,Point2f.(trapeziumVertices))
-end
+edgeTrapezia = makeEdgeTrapezia(conditionsDict["params"],matricesDict["matrices"])
 trapeziumAreas = abs.(area.(edgeTrapezia))
-#F = 2.0.*trapeziumAreas
 
-
-linkTriangles = Vector{Point2f}[]
-for k=1:nVerts
-    if boundaryVertices[k] == 0
-        vertexCells = findall(x->x!=0,C[:,k])
-        push!(linkTriangles, Point2f.(cellPositions[vertexCells]))
-    else
-        vertexCells = findall(x->x!=0,C[:,k])
-        vertexEdges = findall(x->x!=0,A[:,k])
-        boundaryVertexEdges = intersect(vertexEdges,findall(x->x!=0,boundaryEdges[1,:]))
-        kiteVertices = [edgeMidpoints[boundaryVertexEdges]; cellPositions[vertexCells]]
-        push!(kiteVertices,R[k])
-        com = sum(kiteVertices)./length(kiteVertices)
-        angles = Float64[]
-        for p=1:length(kiteVertices)
-            angle = atan((kiteVertices[p].-com)...)
-            push!(angles,angle)
-        end
-        kiteVertices .= kiteVertices[sortperm(angles)]
-        push!(linkTriangles,Point2f.(kiteVertices))
-    end
-end
+linkTriangles = makeLinkTriangles(conditionsDict["params"],matricesDict["matrices"])
 linkTriangleAreas = abs.(area.(linkTriangles))
 
-E = Diagonal(linkTriangleAreas)
-Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
-Lᵥ = (E\Aᵀ)*(Tₑ\A)
-dropzeros!(Lᵥ)
+Lᵥ = makeLv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
+eigenvaluesLᵥ = (eigen(Matrix(Lᵥ))).values
+Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
+eigenvaluesLf = (eigen(Matrix(Lf))).values
+Lc = makeLc(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
+eigenvaluesLc = (eigen(Matrix(Lc))).values
+Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
+eigenvaluesLₜ = (eigen(Matrix(Lₜ))).values
 
-H = Diagonal(cellAreas)
-boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
-diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
-Tₑ = Diagonal(diagonalComponent)
-Lf = (H\B)*Tₑ*Bᵀ
-dropzeros!(Lf)
-
-H = Diagonal(cellAreas)
-Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-boundaryEdgesFactor = abs.(boundaryEdges.-1)    # =1 for internal vertices, =0 for boundary vertices
-invTₗ = inv(Tₗ)
-boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1,:])
-Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
-dropzeros!(Lc)
-
-
-decomposition = (eigen(Matrix(Lᵥ))).vectors
-
-
+fig = Figure(resolution=(1000,700),fontsize = 24)
+ax1 = Axis(fig[1,1], xlabel="Eigenvalue number", ylabel="Eigenvalue",fontsize=32)
+lineLf = lines!(ax1,collect(1:nCells),eigenvaluesLf,linewidth=5)
+lineLc = lines!(ax1,collect(1:nCells),eigenvaluesLc,linewidth=5)
+lineLₜ = lines!(ax1,collect(1:nVerts),eigenvaluesLₜ,linewidth=5)
+lineLᵥ = lines!(ax1,collect(1:nVerts),eigenvaluesLᵥ,linewidth=5)
+Legend(fig[1, 2],[lineLf,lineLc,lineLₜ,lineLᵥ],["Lf","Lc","Lₜ","Lᵥ"])
 
 
 display(fig)
-save("$dataDirectory/eigenvectorTableauLv.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLv.svg",fig)
-save("$dataDirectory/eigenvectorTableauLv.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLv.pdf",fig)
-save("$dataDirectory/eigenvectorTableauLv.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLv.png",fig)
+save("$dataDirectory/eigenvalueSpectrum.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvalueSpectrum.svg",fig)
+save("$dataDirectory/eigenvalueSpectrum.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvalueSpectrum.pdf",fig)
+save("$dataDirectory/eigenvalueSpectrum.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvalueSpectrum.png",fig)

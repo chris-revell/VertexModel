@@ -15,13 +15,13 @@ using JLD2
 
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
-
-function getRandomColor(seed)
-    Random.seed!(seed)
-    rand(RGB{})
-end
+includet("$(projectdir())/notebooks/functions.jl")
 
 dataDirectory = "data/sims/2022-02-28-19-30-22"
+
+isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
+isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
+isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -43,56 +43,16 @@ dropzeros!(cellNeighbourMatrix)
 neighbouringCells = findall(!iszero,cellNeighbourMatrix[centralCell,:])
 
 # Find and sort all vertices around cells neighbouring centralCell
-cellVerticesDict = Dict()
-for c in neighbouringCells
-    # Find vertices around cell
-    cellVertices = findall(x->x!=0,C[c,:])
-    # Find angles of vertices around cell
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[c])...)
-    end
-    # Sort vertices around cell by polar angle
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    # Store sorted cell vertices for this cell
-    cellVerticesDict[c] = cellVertices
-end
+cellVerticesDict = makeCellVerticesDict(conditionsDict["params"],matricesDict["matrices"])
 
 # Draw all cell and vertex positions with #annotations
-cellPolygons = Vector{Point2f}[]
-for i=1:nCells
-    cellVertices = findall(x->x!=0,C[i,:])
-    vertexAngles = zeros(size(cellVertices))
-    for (k,v) in enumerate(cellVertices)
-        vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-    end
-    cellVertices .= cellVertices[sortperm(vertexAngles)]
-    push!(cellPolygons,Point2f.(R[cellVertices]))
-end
+cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-edgeMidpointPolygons = Vector{Point2f}[]
-for i=1:nCells
-    cellEdges = findall(!iszero,B[i,:])
-    edgeAngles = zeros(size(cellEdges))
-    for (k,v) in enumerate(cellEdges)
-        edgeAngles[k] = atan((edgeMidpoints[v].-cellPositions[i])...)
-    end
-    cellEdges .= cellEdges[sortperm(edgeAngles)]
-    push!(edgeMidpointPolygons,Point2f.(edgeMidpoints[cellEdges]))
-end
+edgeMidpointPolygons = makeEdgeMidpointPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-# poly!(ax1,cellPolygons[centralCell],color=(getRandomColor(centralCell),1.0))
 for c in neighbouringCells
     poly!(ax1,cellPolygons[c],color=(getRandomColor(c),0.50),strokecolor=:black,strokewidth=8)
     poly!(ax1,edgeMidpointPolygons[c],color=(:white,0.0),strokecolor=(getRandomColor(c),1.0),strokewidth=8)
-
-    # linked = findall(!iszero,cellNeighbourMatrix[c,:])
-    # for l in linked
-    #     if l!=c
-    #         lines!(ax1,Point2f.(cellPositions[[l,c]]),color=:white,linewidth=4)
-    #     end
-    # end
-
     # Plot all vertex positions
     scatter!(ax1,Point2f.(R[cellVerticesDict[c]]),color=:blue,markersize=16)
     scatter!(ax1,Point2f.(edgeMidpoints[findall(!iszero,B[c,:])]),color=:green,markersize=16)
@@ -102,8 +62,8 @@ scatter!(ax1,Point2f.(cellPositions[push!(neighbouringCells,centralCell)]),color
 display(fig)
 
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
 save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/cell$(centralCell)ForceNeighbourhood.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNeighbourhood.png",fig)

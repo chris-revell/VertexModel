@@ -192,8 +192,8 @@ Label(grid[6,4,Bottom()],
 
 display(fig)
 save("$dataDirectory/eigenvectorTableauLt.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLt.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvectorTableauLt.svg",fig)
 save("$dataDirectory/eigenvectorTableauLt.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLt.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvectorTableauLt.pdf",fig)
 save("$dataDirectory/eigenvectorTableauLt.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLt.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvectorTableauLt.png",fig)
