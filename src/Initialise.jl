@@ -18,6 +18,9 @@ using UnPack
 # Local modules
 include("InitialHexagons.jl"); using .InitialHexagons
 include("VertexModelContainers.jl"); using .VertexModelContainers
+include("TopologyChange.jl"); using .TopologyChange
+include("SpatialData.jl"); using .SpatialData
+include("CalculateForce.jl"); using .CalculateForce
 
 
 function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -35,7 +38,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/matricesFinal.jld2")
-        @unpack A,B,R = importedArrays
+        @unpack A,B,R = importedArrays["matrices"]
     end
 
     # Infer system information from matrices
@@ -68,23 +71,25 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellPressures     = zeros(nCells)
     cellAges          = rand(nCells).*nonDimCycleTime   # Random initial cell ages
     edgeLengths       = zeros(nEdges)
-    edgeTangents      = Array{SVector{2,Float64}}(undef,nEdges)
+    edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
-    edgeMidpoints     = Array{SVector{2,Float64}}(undef,nEdges)
+    edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeMidpoints,@SVector zeros(2))
     vertexEdges       = Array{SVector{3,Float64}}(undef,nVerts)
     fill!(vertexEdges,@SVector zeros(3))
     vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)
     fill!(vertexCells,@SVector zeros(3))
-    F                 = Array{SVector{2,Float64}}(undef,nVerts)
+    F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
     fill!(F,@SVector zeros(2))
+    externalF       = Array{SVector{2,Float64}}(undef,nVerts)
+    fill!(externalF,@SVector zeros(2))
     rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
         0.0 0.5 0.5 0.5
         1.0 2.0 2.0 1.0
     ]
-    ϵ                 = @SMatrix [  # Rotation matrix setting orientation of cell faces
-        0.0 -1.0
-        1.0 0.0
+    ϵ                 = @SMatrix [  # Clockwise rotation matrix setting orientation of cell faces
+        0.0 1.0
+        -1.0 0.0
     ]
 
     # Pack matrces into a struct for convenience
@@ -109,13 +114,14 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellAreas,
         cellTensions,
         cellPressures,
-        cellAges,        
+        cellAges,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
         vertexEdges,
         vertexCells,
         F,
+        externalF,
         ϵ,
         rkCoefficients
     )
@@ -140,6 +146,14 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         nonDimCycleTime,
         t1Threshold
     )
+
+
+
+    # Initial evaluation of matrices based on system topology
+    topologyChange!(matrices)
+    spatialData!(R,params,matrices)
+    calculateForce!(R,params,matrices)
+
 
     return params,matrices
 

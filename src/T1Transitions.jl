@@ -69,8 +69,8 @@ using UnPack
                 A[y,a] = 0
 
                 # Change positions of vertices a and b. Ensure new edgeLengths[i] value is 10% longer than t1Threshold
-                R[a] += originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
-                R[b] -= originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
+                R[a] -= originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
+                R[b] += originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
 
                 transitionCount += 1
 
@@ -79,7 +79,7 @@ using UnPack
                 # Eventually we can figure out a better way of
                 # handling multiple transitions per time step
                 break
-                
+
             end
         end
     end

@@ -18,18 +18,23 @@ using GeometryBasics
 
 function calculateForce!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,ϵ,boundaryVertices = matrices
+    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices = matrices
     @unpack nVerts,nCells,nEdges,pressureExternal = params
 
     fill!(F,@SVector zeros(2))
+    fill!(externalF,@SVector zeros(2))
 
     # Internal forces
-    # NB This iteration could be improved to better leverage sparse arrays
+    # NB This iteration could probably be improved to better leverage sparse arrays
     for k=1:nVerts
         for i=1:nCells
             for j=1:nEdges
-                F[k] -= 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j]) - cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
-                #externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+                # Pressure term
+                F[k,i] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])
+                # Tension term
+                F[k,i] += cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
+                # External force
+                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
             end
         end
     end

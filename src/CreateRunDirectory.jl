@@ -24,6 +24,7 @@ function createRunDirectory(params,matrices)
     # Create directory for run data labelled with current time.
     folderName = Dates.format(Dates.now(),"yyyy-mm-dd-HH-MM-SS")
     mkpath("data/sims/$(folderName)")
+    mkpath("data/sims/$(folderName)/frames")
 
     # Store system parameters.
     open("data/sims/$(folderName)/conditions.txt","w") do conditionsFile

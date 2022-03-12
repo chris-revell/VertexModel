@@ -15,14 +15,12 @@ using StaticArrays
 using SparseArrays
 using UnPack
 
-#include("TopologyChange.jl"); using .TopologyChange
-
 indexLoop(a,N) = (N+a-1)%(N)+1
 
 function division!(params,matrices)
 
     @unpack nCells, nEdges, nVerts, nonDimCycleTime = params
-    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, externalF, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -80,7 +78,7 @@ function division!(params,matrices)
             # Set vertex angles relative to minimum angle vertex
             vertexAngles .= (vertexAngles.-minVertexAngle).%2π
             shortAngle = (shortAngle-minVertexAngle+2π)%2π
-            
+
             # Use polar angles to sort cellVertices list
             cellVertices .= cellVertices[sortperm(vertexAngles)]
             sort!(vertexAngles)
@@ -195,13 +193,14 @@ function division!(params,matrices)
         # Add 2 components to vectors for new vertices
         append!(R,newRs)
         append!(tempR,newRs)
-        append!(ΔR,Array{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         append!(boundaryVertices,zeros(Int64,2*divisionCount))
-        append!(F,Array{SVector{2,Float64}}(undef,2*divisionCount))
+        # append!(F,Matrix{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         # Add 3 components to vectors for new edges
         append!(edgeLengths,zeros(Float64,3*divisionCount))
-        append!(edgeTangents,Array{SVector{2,Float64}}(undef,3*divisionCount))
-        append!(edgeMidpoints,Array{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
+        append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
 
         matrices.A = Atmp
         matrices.B = Btmp
@@ -212,6 +211,7 @@ function division!(params,matrices)
         matrices.B̄  = spzeros(Int64,nCellsLocal,nEdgesLocal)
         matrices.B̄ᵀ = spzeros(Int64,nEdgesLocal,nCellsLocal)
         matrices.C  = spzeros(Int64,nCellsLocal,nVertsLocal)
+        matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsLocal,nCellsLocal)
 
     end
 

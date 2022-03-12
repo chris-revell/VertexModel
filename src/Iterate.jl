@@ -23,10 +23,10 @@ include("Division.jl"); using .Division
 
 function iterate!(iteration,params,matrices)
 
-    @unpack R, tempR, ΔR, F, rkCoefficients = matrices
+    @unpack R, tempR, ΔR, rkCoefficients = matrices
     @unpack dt = params
 
-    tempR .= R .+ F.*dt*rkCoefficients[1,iteration]
+    tempR .= R .+ (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
@@ -38,13 +38,14 @@ function iterate!(iteration,params,matrices)
         if (t1Transitions!(tempR,params,matrices))>1
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
-        end        
+        end
 
         fill!(ΔR,@SVector zeros(2))
     end
 
     calculateForce!(tempR,params,matrices)
-    ΔR .+= F.*dt*rkCoefficients[2,iteration]/6.0
+
+    ΔR .+= (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[2,iteration]/6.0
 
     return nothing
 end
