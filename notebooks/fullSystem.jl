@@ -25,7 +25,7 @@ isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigu
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,Bᵀ,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ = matricesDict["matrices"]
 

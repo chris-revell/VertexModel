@@ -1,6 +1,6 @@
+authors = ["chris-revell <christopher.revell@manchester.ac.uk>"]
 name = "VertexModel"
 uuid = "514bac63-329a-430c-b146-740bf51d96fc"
-authors = ["chris-revell <christopher.revell@manchester.ac.uk>"]
 version = "0.1.0"
 
 [deps]
@@ -24,3 +24,6 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+
+[extras]
+CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"
