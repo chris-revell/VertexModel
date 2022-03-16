@@ -42,49 +42,36 @@ cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"
 
 Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
 
-decomposition = (eigen(Matrix(Lf))).vectors
+# Calculate div on each cell
+cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
-# Set up figure canvas
-fig = Figure(resolution=(750,1600))
-grid = fig[1,1] = GridLayout()
-for x=1:5
-    for y=1:4
-        eigenvectorIndex = ((y-1)*5 + x)+1
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y,x],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-        end
-        Label(grid[y,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
-    end
-end
-for x=1:5
-    for y=1:4
-        eigenvectorIndex = ((y-1)*5 + x)+(nCells-20)
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y+4,x],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-        end
-        Label(grid[y+4,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
-    end
+onesVec = ones(nCells)
+H = Diagonal(cellAreas)
+
+eigenvectors = (eigen(Matrix(Lf))).vectors
+eigenvalues = (eigen(Matrix(Lf))).values
+
+ḡ = ((onesVec'*H*cellDivs)/(onesVec'*H*ones(nCells))).*onesVec
+ğ = cellDivs.-ḡ
+ψ̆ = zeros(nCells)
+eigenmodeAmplitudes = Float64[]
+for k=2:nCells
+    numerator = eigenvectors[:,k]'*H*ğ
+    denominator = eigenvalues[k]*(eigenvectors[:,k]'*H*eigenvectors[:,k])
+    ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
+    push!(eigenmodeAmplitudes,(numerator/denominator))
 end
 
+fig = Figure(resolution=(1000,700),fontsize = 24)
+ax2 = Axis(fig[1,1], xlabel="Eigenmode number, i", ylabel="Amplitude",fontsize=32)
+xlims!(ax2,0,nCells)
+ylims!(ax2,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
+barplot!(ax2,collect(2:nCells),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
 display(fig)
-save("$dataDirectory/eigenvectorTableauLf.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLf.pdf",fig)
-save("$dataDirectory/eigenvectorTableauLf.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLf.svg",fig)
-save("$dataDirectory/eigenvectorTableauLf.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLf.png",fig)
+save("$dataDirectory/psicSpectrum.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/psicSpectrum.pdf",fig)
+save("$dataDirectory/psicSpectrum.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/psicSpectrum.svg",fig)
+save("$dataDirectory/psicSpectrum.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/psicSpectrum.png",fig)

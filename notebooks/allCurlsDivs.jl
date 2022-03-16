@@ -26,7 +26,7 @@ isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigu
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,externalF,boundaryVertices = matricesDict["matrices"]
 
@@ -42,9 +42,9 @@ linkTriangleAreas = abs.(area.(linkTriangles))
 
 cellCurls = calculateCellCurls(conditionsDict["params"],matricesDict["matrices"])
 
-cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
+cellDivs = (-0.5).*calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
-vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+vertexDivs = (-0.5).*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
 vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 

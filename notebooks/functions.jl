@@ -182,7 +182,7 @@ function calculateCellDivs(params,matrices)
             h = h + ϵ*F[cellVertices[i],c]
             divSum -= B[c,e]*(h⋅(ϵ*edgeTangents[e]))/cellAreas[c]
         end
-        divSum *= (-0.5)
+        # divSum *= (-0.5)
         push!(cellDivs,divSum)
     end
     return cellDivs
@@ -226,36 +226,36 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
             end
         else
             # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
-            # pressureAngle = atan((-1.0.*externalF[k])...)
-            # vertexEdges = findall(x->x!=0,A[:,k])
-            # edgeAngles = zeros(length(vertexEdges))
-            # for (i,e) in enumerate(vertexEdges)
-            #     edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-            # end
-            #
-            # edgeAngles .+= 2π-pressureAngle
-            # edgeAngles .= edgeAngles.%2π
-            # vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-            #
-            # vertexCells = findall(x->x!=0,C[:,k])
-            # cellAngles = zeros(length(vertexCells))
-            # for i=1:length(cellAngles)
-            #     cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-            # end
-            # cellAngles .+= 2π-pressureAngle
-            # cellAngles .= cellAngles.%2π
-            # vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-            #
-            # h = @SVector [0.0,0.0]
+            pressureAngle = atan((-1.0.*externalF[k])...)
+            vertexEdges = findall(x->x!=0,A[:,k])
+            edgeAngles = zeros(length(vertexEdges))
+            for (i,e) in enumerate(vertexEdges)
+                edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+            end
+
+            edgeAngles .+= 2π-pressureAngle
+            edgeAngles .= edgeAngles.%2π
+            vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+            vertexCells = findall(x->x!=0,C[:,k])
+            cellAngles = zeros(length(vertexCells))
+            for i=1:length(cellAngles)
+                cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+            end
+            cellAngles .+= 2π-pressureAngle
+            cellAngles .= cellAngles.%2π
+            vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
+            h = @SVector [0.0,0.0]
             divSum = 0
-            # h = h + ϵ*externalF[k]
-            # divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/linkTriangleAreas[k]
-            # for (i,j) in enumerate(vertexEdges[2:end])
-            #     h = h + ϵ*F[k,vertexCells[i]]
-            #     divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/linkTriangleAreas[k]
-            # end
+            h = h + ϵ*externalF[k]
+            divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/linkTriangleAreas[k]
+            for (i,j) in enumerate(vertexEdges[2:end])
+                h = h + ϵ*F[k,vertexCells[i]]
+                divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/linkTriangleAreas[k]
+            end
         end
-        divSum *= (-0.5)
+        # divSum *= (-0.5)
         push!(vertexDivs,divSum)
     end
     return vertexDivs
@@ -377,8 +377,6 @@ function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
     return Lₜ
 end
 
-
-
 function makeCellVerticesDict(params,matrices)
     @unpack C, R, cellPositions = matrices
     @unpack nCells = params
@@ -397,4 +395,70 @@ function makeCellVerticesDict(params,matrices)
         cellVerticesDict[i] = cellVertices
     end
     return cellVerticesDict
+end
+
+function wideTildeVertexDiv(params,matrices,linkTriangleAreas,trapeziumAreas)
+    @unpack A, C, R, cellPositions, boundaryVertices, edgeLengths, edgeTangents,externalF = matrices
+    @unpack nVerts = params
+    wideTildeVertexDivs = Float64[]
+    for k=1:nVerts
+        if boundaryVertices[k] == 0
+            vertexEdges = findall(x->x!=0,A[:,k])
+            edgeAngles = zeros(length(vertexEdges))
+            for (i,e) in enumerate(vertexEdges)
+                edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+            end
+            m = minimum(edgeAngles)
+            edgeAngles .-= m
+            vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+            vertexCells = findall(x->x!=0,C[:,k])
+            cellAngles = zeros(length(vertexCells))
+            for i=1:length(cellAngles)
+                cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+            end
+            cellAngles .+= 2π-m
+            cellAngles .= cellAngles.%2π
+            vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+            h = @SVector [0.0,0.0]
+            wideTildeDivSum = 0
+            for (i,j) in enumerate(vertexEdges)
+                h = h + ϵ*F[k,vertexCells[i]]
+                wideTildeDivSum -= (A[j,k]*trapeziumAreas[j]/edgeLengths[j]^2)*(edgeTangents[j]⋅h)/linkTriangleAreas[k]
+            end
+        else
+            wideTildeDivSum = 0
+            # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
+            pressureAngle = atan((-1.0.*externalF[k])...)
+            vertexEdges = findall(x->x!=0,A[:,k])
+            edgeAngles = zeros(length(vertexEdges))
+            for (i,e) in enumerate(vertexEdges)
+                edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+             end
+
+             edgeAngles .+= 2π-pressureAngle
+             edgeAngles .= edgeAngles.%2π
+             vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+             vertexCells = findall(x->x!=0,C[:,k])
+             cellAngles = zeros(length(vertexCells))
+             for i=1:length(cellAngles)
+                 cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+             end
+             cellAngles .+= 2π-pressureAngle
+             cellAngles .= cellAngles.%2π
+             vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
+             h = @SVector [0.0,0.0]
+             h = h + ϵ*externalF[k]
+             wideTildeDivSum -= (A[vertexEdges[1],k]*trapeziumAreas[vertexEdges[1]]/edgeLengths[vertexEdges[1]]^2)*(edgeTangents[vertexEdges[1]]⋅h)/linkTriangleAreas[k]
+
+             for (i,j) in enumerate(vertexEdges[2:end])
+                 h = h + ϵ*F[k,vertexCells[i]]
+
+                 wideTildeDivSum -= (A[j,k]*trapeziumAreas[j]/edgeLengths[j]^2)*(edgeTangents[j]⋅h)/linkTriangleAreas[k]
+             end
+        end
+        push!(wideTildeVertexDivs,wideTildeDivSum)
+    end
+    return wideTildeVertexDivs
 end

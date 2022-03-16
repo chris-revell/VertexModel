@@ -40,51 +40,46 @@ linkTriangleAreas = abs.(area.(linkTriangles))
 
 cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
+Lᵥ = makeLv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
+eigenvectors = (eigen(Matrix(Lᵥ))).vectors
+eigenvalues = (eigen(Matrix(Lᵥ))).values
 
-decomposition = (eigen(Matrix(Lf))).vectors
 
-# Set up figure canvas
-fig = Figure(resolution=(750,1600))
-grid = fig[1,1] = GridLayout()
-for x=1:5
-    for y=1:4
-        eigenvectorIndex = ((y-1)*5 + x)+1
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y,x],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-        end
-        Label(grid[y,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
-    end
+wideTildeVertexDivs = wideTildeVertexDiv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
+
+onesVec = ones(nVerts)
+E = Diagonal(linkTriangleAreas)
+
+ḡ = ((onesVec'*E*wideTildeVertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
+ğ = wideTildeVertexDivs.-ḡ
+ψ̆ = zeros(nVerts)
+eigenmodeAmplitudes = Float64[]
+for k=2:nVerts
+    numerator = -eigenvectors[:,k]'*E*ğ
+    denominator = eigenvalues[k]*(eigenvectors[:,k]'*E*eigenvectors[:,k])
+    ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
+    push!(eigenmodeAmplitudes,(numerator/denominator))
 end
-for x=1:5
-    for y=1:4
-        eigenvectorIndex = ((y-1)*5 + x)+(nCells-20)
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y+4,x],aspect=DataAspect())
-        hidedecorations!(ax)
-        hidespines!(ax)
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
-        end
-        Label(grid[y+4,x,Bottom()],
-                L"i=%$eigenvectorIndex",
-                textsize = 16,
-        )
-    end
+
+ψ̆Lims = (-maximum(abs.(Ψ̆)),maximum(abs.(Ψ̆)))
+
+fig = Figure(resolution=(1000,1000),fontsize = 24)
+ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
+hidedecorations!(ax1)
+hidespines!(ax1)
+for k=1:nVerts
+    poly!(ax1,linkTriangles[k],color=[ψ̆[k]],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
 end
+for i=1:nCells
+    poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
+end
+Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false,align=:left)
 
 
 display(fig)
-save("$dataDirectory/eigenvectorTableauLf.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvectorTableauLf.pdf",fig)
-save("$dataDirectory/eigenvectorTableauLf.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvectorTableauLf.svg",fig)
-save("$dataDirectory/eigenvectorTableauLf.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvectorTableauLf.png",fig)
+save("$dataDirectory/psivPotential.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/psivPotential.pdf",fig)
+save("$dataDirectory/psivPotential.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/psivPotential.svg",fig)
+save("$dataDirectory/psivPotential.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/psivPotential.png",fig)

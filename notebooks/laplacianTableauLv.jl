@@ -26,7 +26,7 @@ isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigu
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,pressureExternal,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
@@ -45,11 +45,11 @@ Lᵥ = makeLv(conditionsDict["params"],matricesDict["matrices"],linkTriangleArea
 decomposition = (eigen(Matrix(Lᵥ))).vectors
 
 # Set up figure canvas
-fig = Figure(resolution=(600,2000))
+fig = Figure(resolution=(750,1600))
 grid = fig[1,1] = GridLayout()
-for x=1:4
-    for y=1:5
-        eigenvectorIndex = ((y-1)*4 + x)+1
+for x=1:5
+    for y=1:4
+        eigenvectorIndex = ((y-1)*5 + x)+1
         lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
         ax = Axis(grid[y,x],aspect=DataAspect())
         hidedecorations!(ax)
@@ -66,11 +66,11 @@ for x=1:4
         )
     end
 end
-for x=1:4
-    for y=1:5
-        eigenvectorIndex = ((y-1)*4 + x)+(nVerts-20)
+for x=1:5
+    for y=1:4
+        eigenvectorIndex = ((y-1)*5 + x)+(nVerts-20)
         lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
-        ax = Axis(grid[y+5,x],aspect=DataAspect())
+        ax = Axis(grid[y+4,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
         for k=1:nVerts
@@ -79,8 +79,8 @@ for x=1:4
         for i=1:nCells
             poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
-        Label(grid[y+5,x,Bottom()],
-                L"i=%$eigenvectorIndex",
+        Label(grid[y+4,x,Bottom()],
+                L"k=%$eigenvectorIndex",
                 textsize = 16,
         )
     end
