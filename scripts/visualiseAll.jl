@@ -1,78 +1,52 @@
-#
-#  Visualise.jl
-#  VertexModel
-#
-#  Created by Christopher Revell on 16/02/2021.
-#
-#
-#
-
-module Visualise
-
-# Julia packages
-using Printf
+# Import Julia packages
+using DrWatson
+@quickactivate
+using Revise
 using LinearAlgebra
-using ColorSchemes
-using Colors
+using DelimitedFiles
+using SparseArrays
+using StaticArrays
+using CairoMakie
 using UnPack
 using GeometryBasics
 using Random
-using CairoMakie
-using StaticArrays
-using SparseArrays
+using Colors
+using JLD2
+using Printf
 
-function getRandomColor(seed)
-    Random.seed!(seed)
-    rand(RGB{})
-end
+# Local modules
+includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+includet("$(projectdir())/notebooks/functions.jl")
 
-@views function visualise(t,fig,ax1,ax2,mov,params,matrices)
 
-   plotCells         = 1
-   plotEdges         = 0
-   scatterEdges      = 0
-   scatterVertices   = 0
-   scatterCells      = 0
-   plotForces        = 0
-
-   @unpack R,A,B,Bᵀ,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
+function visualiseFrame!(params,matrices,i,t,fig,ax1,ax2,mov,centralCell)
+   t+=dt
    @unpack nEdges,nVerts,nCells = params
-
+   @unpack R,A,B,Bᵀ,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
    empty!(ax1)
-
    ax1.title="t = $(@sprintf("%.2f", t))"
-
    # Plot cells
+   cellPolygons = makeCellPolygons(params,matrices)
    if plotCells == 1
       for i=1:nCells
-         cellVertices = findall(x->x!=0,C[i,:])
-         vertexAngles = zeros(size(cellVertices))
-         for (k,v) in enumerate(cellVertices)
-            vertexAngles[k] = atan((R[v].-cellPositions[i])...)
-         end
-         cellVertices .= cellVertices[sortperm(vertexAngles)]
-         poly!(ax1,Point2f.(R[cellVertices]),color=(getRandomColor(i),0.5))
+         poly!(ax1,cellPolygons[i],color=(getRandomColor(i),0.5))
       end
    end
-
    # Scatter vertices
    if scatterVertices == 1
       scatter!(ax1,Point2f.(R),color=:green)
       annotations!(ax1,string.(collect(1:length(R))), Point2f.(R),color=:green)
    end
-
    # Scatter edge midpoints
    if scatterEdges == 1
       scatter!(ax1,Point2f.(edgeMidpoints),color=:blue)
       annotations!(ax1,string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints),color=:blue)
    end
-
    # Scatter cell positions
    if scatterCells == 1
       scatter!(ax1,Point2f.(cellPositions),color=:red)
       annotations!(ax1,string.(collect(1:length(cellPositions))), Point2f.(cellPositions),color=:red)
    end
-
    # Plot edges
    # For each edge, use A incidence matrix to find corresponding vertices x, and plot line between x[1] and x[2]
    if plotEdges == 1
@@ -104,25 +78,17 @@ end
       end
       arrows!(ax1,xs,us,color=colours,arrowsize=25,linewidth=5)
    end
-
    if plotForces == 1
       # Plot resultant forces on vertices (excluding external pressure)
       arrows!(ax1,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:green)
       # Plot resultant forces on cells
       arrows!(ax1,Point2f.(cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
    end
-
-
    empty!(ax2)
-
-   centralCell = 1
-
    ax2.title = "Cell $centralCell force space"
-
    cellNeighbourMatrix = B*Bᵀ
    dropzeros!(cellNeighbourMatrix)
    neighbouringCells = findall(!iszero,cellNeighbourMatrix[centralCell,:])
-
    # Find and sort all vertices around cells neighbouring centralCell
    cellVerticesDict = Dict()
    for c in neighbouringCells
@@ -138,7 +104,6 @@ end
        # Store sorted cell vertices for this cell
        cellVerticesDict[c] = cellVertices
    end
-
    centralCellVertices = findall(x->x!=0,C[centralCell,:])
    centralVertexAngles = zeros(size(centralCellVertices))
    for (k,v) in enumerate(centralCellVertices)
@@ -147,7 +112,6 @@ end
    m = minimum(centralVertexAngles)
    centralVertexAngles .-= m
    centralCellVertices .= centralCellVertices[sortperm(centralVertexAngles)]
-
    # Sort cells neighbouring centralCell by angle
    setdiff!(neighbouringCells,[centralCell]) # Remove centralCell from neighbours list
    neighbourAngles = zeros(length(neighbouringCells))
@@ -157,12 +121,11 @@ end
    neighbourAngles .+= (2π-m)
    neighbourAngles = neighbourAngles.%(2π)
    neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
-
    # Draw force network
    startPosition = @SVector [0.0,0.0]
    for (i,v) in enumerate(cellVerticesDict[centralCell])
        arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
-       #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+       annotateForceSpace == 1 ? annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75)) : nothing
        startPosition = startPosition + ϵ*F[v,centralCell]
        H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
        cellForces = SVector{2, Float64}[]
@@ -175,18 +138,46 @@ end
            push!(cellForces,+ϵ*F[cv,neighbouringCells[i]])
            H[j+1] = H[j]+cellForces[end]
        end
-       #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+       annotateForceSpace == 1 ? annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75)) : nothing
        arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
    end
-
    recordframe!(mov)
-
-   println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
-
-   return nothing
-
+   save("$dataDirectory/frames/frame$(@sprintf("%03d", i)).png",fig)
 end
 
-export visualise
 
+# dataDirectory = "data/sims/2022-02-28-19-30-22"
+dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/SimulationRuns/2022-03-15-18-59-50"
+
+plotCells         = 1
+plotEdges         = 1
+scatterEdges      = 1
+scatterVertices   = 1
+scatterCells      = 1
+plotForces        = 1
+annotateForceSpace= 1
+
+centralCell = 1
+
+fig = Figure(resolution=(1000,1000))
+grid = fig[1,1] = GridLayout()
+ax1 = Axis(grid[1,1],aspect=DataAspect())
+ax2 = Axis(grid[1,2],aspect=DataAspect())
+hidedecorations!(ax1)
+hidespines!(ax1)
+hidedecorations!(ax2)
+hidespines!(ax2)
+mov = VideoStream(fig, framerate=5)
+t=0.0
+
+conditionsDictInitial    = load("$dataDirectory/params.jld2")
+@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
+# matricesDictInitial = load("$dataDirectory/matricesInitial.jld2")
+
+# visualiseFrame!(conditionsDictInitial["params"],matricesDictInitial["matrices"],0,t,fig,ax1,ax2,mov)
+for i=1:outputTotal
+   conditionsDict    = load("$dataDirectory/frames/data$(@sprintf("%03d", i)).jld2")
+   matricesDict = load("$dataDirectory/frames/matrices$(@sprintf("%03d", i)).jld2")
+   visualiseFrame!(conditionsDict["params"],matricesDict["matrices"],i,t,fig,ax1,ax2,mov,centralCell)
 end
+save("$dataDirectory/animated.mp4",mov)

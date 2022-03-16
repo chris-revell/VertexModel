@@ -95,6 +95,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
             visualise(t,fig,ax1,ax2,mov,params,matrices)
             outCount += 1
             save("data/sims/$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+            jldsave("data/sims/$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
+            jldsave("data/sims/$folderName/frames/data$(@sprintf("%03d", outCount)).jld2";params)
         end
     end
 
