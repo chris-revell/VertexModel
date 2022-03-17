@@ -150,12 +150,12 @@ end
 dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/SimulationRuns/2022-03-15-18-59-50"
 
 plotCells         = 1
-plotEdges         = 1
-scatterEdges      = 1
-scatterVertices   = 1
-scatterCells      = 1
-plotForces        = 1
-annotateForceSpace= 1
+plotEdges         = 0
+scatterEdges      = 0
+scatterVertices   = 0
+scatterCells      = 0
+plotForces        = 0
+annotateForceSpace= 0
 
 centralCell = 1
 
