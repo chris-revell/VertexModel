@@ -38,3 +38,11 @@ for i=1:nCells
         end
     end
 end
+
+for k=1:nVerts
+    if boundaryVertices[k] !=0
+        vertexEdges = intersect(findall(!iszero,A[:,k]),findall(!iszero,boundaryEdges[1,:]))
+        sTest = edgeMidpoints[vertexEdges[1]].-edgeMidpoints[vertexEdges[2]]
+        display(sTest*ϵ*s[i,k])
+    end
+end
