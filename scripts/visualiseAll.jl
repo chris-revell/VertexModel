@@ -146,7 +146,7 @@ function visualiseFrame!(params,matrices,i,t,fig,ax1,ax2,mov,centralCell)
 end
 
 
-# dataDirectory = "data/sims/2022-02-28-19-30-22"
+# #dataDirectory = "data/sims/2022-02-28-19-30-22"
 dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/SimulationRuns/2022-03-15-18-59-50"
 
 plotCells         = 1

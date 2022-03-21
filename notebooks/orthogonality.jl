@@ -17,7 +17,7 @@ using JLD2
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-dataDirectory = "data/sims/2022-02-28-19-30-22"
+#dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")

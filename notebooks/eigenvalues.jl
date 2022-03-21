@@ -18,7 +18,7 @@ using Printf
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-dataDirectory = "data/sims/2022-02-28-19-30-22"
+#dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -54,8 +54,8 @@ Legend(fig[1, 2],[lineLf,lineLc,lineLₜ,lineLᵥ],["Lf","Lc","Lₜ","Lᵥ"])
 
 display(fig)
 save("$dataDirectory/eigenvalueSpectrum.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/svg/eigenvalueSpectrum.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvalueSpectrum.svg",fig)
 save("$dataDirectory/eigenvalueSpectrum.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/pdf/eigenvalueSpectrum.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvalueSpectrum.pdf",fig)
 save("$dataDirectory/eigenvalueSpectrum.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/png/eigenvalueSpectrum.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvalueSpectrum.png",fig)
