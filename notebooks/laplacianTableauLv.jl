@@ -50,7 +50,7 @@ grid = fig[1,1] = GridLayout()
 for x=1:5
     for y=1:4
         eigenvectorIndex = ((y-1)*5 + x)+1
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+        lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
         ax = Axis(grid[y,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
@@ -69,7 +69,7 @@ end
 for x=1:5
     for y=1:4
         eigenvectorIndex = ((y-1)*5 + x)+(nVerts-20)
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+        lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
         ax = Axis(grid[y+4,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)

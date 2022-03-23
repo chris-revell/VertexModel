@@ -51,7 +51,7 @@ hidedecorations!(ax)
 hidespines!(ax)
 for eigenvectorIndex=2:nVerts
     empty!(ax)
-    lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+    lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
     for k=1:nVerts
         poly!(ax,linkTriangles[k],color=[decomposition[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
     end

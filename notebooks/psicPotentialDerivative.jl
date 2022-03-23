@@ -58,7 +58,7 @@ eigenmodeAmplitudes = Float64[]
 for k=2:nCells
     numerator = eigenvectors[:,k]'*H*ğ
     denominator = eigenvalues[k]*(eigenvectors[:,k]'*H*eigenvectors[:,k])
-    ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
+    ψ̆ .-= (numerator/denominator).*eigenvectors[:,k]
     push!(eigenmodeAmplitudes,(numerator/denominator))
 end
 

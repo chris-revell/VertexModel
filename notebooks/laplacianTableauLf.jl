@@ -18,7 +18,7 @@ using Printf
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-#dataDirectory = "data/sims/2022-02-28-19-30-22"
+# dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
@@ -44,18 +44,26 @@ Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
 
 decomposition = (eigen(Matrix(Lf))).vectors
 
+signInversions = [3,4,5,9,11,12,16,17,18,19,21]
+
 # Set up figure canvas
 fig = Figure(resolution=(750,1600))
 grid = fig[1,1] = GridLayout()
 for x=1:5
     for y=1:4
         eigenvectorIndex = ((y-1)*5 + x)+1
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+        lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
         ax = Axis(grid[y,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)
-        for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+        if eigenvectorIndex in signInversions
+            for i=1:nCells
+                poly!(ax,cellPolygons[i],color=[-decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+            end
+        else
+            for i=1:nCells
+                poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+            end
         end
         Label(grid[y,x,Bottom()],
                 L"i=%$eigenvectorIndex",
@@ -66,7 +74,7 @@ end
 for x=1:5
     for y=1:4
         eigenvectorIndex = ((y-1)*5 + x)+(nCells-20)
-        lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+        lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
         ax = Axis(grid[y+4,x],aspect=DataAspect())
         hidedecorations!(ax)
         hidespines!(ax)

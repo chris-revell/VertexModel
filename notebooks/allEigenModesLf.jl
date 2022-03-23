@@ -51,7 +51,7 @@ hidedecorations!(ax)
 hidespines!(ax)
 for eigenvectorIndex=2:nCells
     empty!(ax)
-    lims = (minimum(decomposition[:,eigenvectorIndex]),maximum(decomposition[:,eigenvectorIndex]))
+    lims = (-maximum(abs.(decomposition[:,eigenvectorIndex])),maximum(abs.(decomposition[:,eigenvectorIndex])))
     for i=1:nCells
         poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
