@@ -194,6 +194,23 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
     @unpack A, C, R, edgeTangents, ϵ, boundaryVertices = matrices
     @unpack nVerts = params
 
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    cᵖ = boundaryEdges'.*edgeMidpoints
+
+    s = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    p = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    fill!(s,@SVector zeros(2))
+    fill!(p,@SVector zeros(2))
+    for i=1:nCells
+        for k=1:nVerts
+            for j=1:nEdges
+                s[i,k] += B[i,j].*cᵖ[j].*A[j,k]
+            end
+            p[i,k] = ϵ*s[i,k]
+        end
+    end
+
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1*ϵ
 
@@ -201,6 +218,8 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts
         if boundaryVertices[k] == 0
+            # Internal vertices
+
             vertexEdges = findall(x->x!=0,A[:,k])
             edgeAngles = zeros(length(vertexEdges))
             for (i,e) in enumerate(vertexEdges)
@@ -209,7 +228,6 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
             m = minimum(edgeAngles)
             edgeAngles .-= m
             vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
             vertexCells = findall(x->x!=0,C[:,k])
             cellAngles = zeros(length(vertexCells))
             for i=1:length(cellAngles)
@@ -225,37 +243,76 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
                 divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/linkTriangleAreas[k]
             end
         else
-            # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
-            pressureAngle = atan((-1.0.*externalF[k])...)
-            vertexEdges = findall(x->x!=0,A[:,k])
-            edgeAngles = zeros(length(vertexEdges))
-            for (i,e) in enumerate(vertexEdges)
-                edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-            end
-
-            edgeAngles .+= 2π-pressureAngle
-            edgeAngles .= edgeAngles.%2π
-            vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-
+            # Peripheral vertices
             vertexCells = findall(x->x!=0,C[:,k])
-            cellAngles = zeros(length(vertexCells))
-            for i=1:length(cellAngles)
-                cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-            end
-            cellAngles .+= 2π-pressureAngle
-            cellAngles .= cellAngles.%2π
-            vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
 
-            h = @SVector [0.0,0.0]
-            divSum = 0
-            h = h + ϵ*externalF[k]
-            divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅h)/linkTriangleAreas[k]
-            for (i,j) in enumerate(vertexEdges[2:end])
-                h = h + ϵ*F[k,vertexCells[i]]
-                divSum -= A[j,k]*((ϵₖ*T[j])⋅h)/linkTriangleAreas[k]
+            if length(vertexCells)==1
+                # Peripheral vertex with a single kite
+
+                cellAngle = atan((cellPositions[vertexCells[1]].-R[k])...)
+
+                vertexEdges = findall(x->x!=0,A[:,k])
+                edgeAngles = zeros(length(vertexEdges))
+                for (i,e) in enumerate(vertexEdges)
+                    edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+                end
+                edgeAngles .= edgeAngles .+ 2π .- cellAngle
+                edgeAngles .= edgeAngles.%2π
+                vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+                splitExternalF = SVector{2,Float64}[]
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[1]]*(ϵ*edgeTangents[vertexEdges[1]]))
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[2]]*(ϵ*edgeTangents[vertexEdges[2]]))
+
+                h = @SVector [0.0,0.0]
+                divSum = 0
+
+                hⱼ = h + ϵ*F[k,vertexCells[1]]
+                divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅hⱼ)/linkTriangleAreas[k]
+                hₖ = hⱼ .+ ϵ*splitExternalF[1]
+                divSum += p[vertexCells[1],k]⋅hₖ/linkTriangleAreas[k]
+
+            elseif length(vertexCells)==2
+                # Peripheral vertex with 2 kites
+
+                Sₖ = sum(s[:,k])
+                Pₖ = ϵ*Sₖ
+
+                cellAngles = zeros(length(vertexCells))
+                for i=1:length(cellAngles)
+                    cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+                end
+                m = maximum(cellAngles)
+                cellAngles .= cellAngles .+ 2π .- m
+                cellAngles .= cellAngles.%2π
+                vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
+                vertexEdges = findall(x->x!=0,A[:,k])
+                edgeAngles = zeros(length(vertexEdges))
+                for (i,e) in enumerate(vertexEdges)
+                    edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+                end
+                edgeAngles .= edgeAngles .+ 2π .- m
+                vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+                splitExternalF = SVector{2,Float64}[]
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[2]]*(ϵ*edgeTangents[vertexEdges[2]]))
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[2],vertexEdges[3]]*(ϵ*edgeTangents[vertexEdges[3]]))
+
+                h = @SVector [0.0,0.0]
+                divSum = 0
+
+                hⱼⱼ = h + ϵ*F[k,vertexCells[1]]
+                divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅hⱼⱼ)/linkTriangleAreas[k]
+
+                hⱼ = hⱼⱼ + ϵ*F[k,vertexCells[2]]
+                divSum -= A[vertexEdges[2],k]*((ϵₖ*T[vertexEdges[2]])⋅hⱼ)/linkTriangleAreas[k]
+
+                hₖ = hⱼ + ϵ*splitExternalF[2]
+                divSum += Pₖ⋅hₖ/linkTriangleAreas[k]
+
             end
         end
-        # divSum *= (-0.5)
         push!(vertexDivs,divSum)
     end
     return vertexDivs
@@ -266,6 +323,23 @@ end
 function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
     @unpack A, C, R, edgeTangents, ϵ, boundaryVertices = matrices
     @unpack nVerts = params
+
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    cᵖ = boundaryEdges'.*edgeMidpoints
+
+    s = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    p = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    fill!(s,@SVector zeros(2))
+    fill!(p,@SVector zeros(2))
+    for i=1:nCells
+        for k=1:nVerts
+            for j=1:nEdges
+                s[i,k] += B[i,j].*cᵖ[j].*A[j,k]
+            end
+            p[i,k] = ϵ*s[i,k]
+        end
+    end
 
     vertexCurls = Float64[]
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
@@ -294,36 +368,75 @@ function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
                 curlSum += A[j,k]*(T[j]⋅h)/linkTriangleAreas[k]
             end
         else
-            # # Set angles relative to pressure force angle, equivalent to the angle of a cell that doesn't actually exist
-            # pressureAngle = atan((-1.0.*externalF[k])...)
-            # vertexEdges = findall(x->x!=0,A[:,k])
-            # edgeAngles = zeros(length(vertexEdges))
-            # for (i,e) in enumerate(vertexEdges)
-            #     edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
-            # end
-            #
-            # edgeAngles .+= 2π-pressureAngle
-            # edgeAngles .= edgeAngles.%2π
-            # vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
-            #
-            # vertexCells = findall(x->x!=0,C[:,k])
-            # cellAngles = zeros(length(vertexCells))
-            # for i=1:length(cellAngles)
-            #     cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
-            # end
-            # cellAngles .+= 2π-pressureAngle
-            # cellAngles .= cellAngles.%2π
-            # vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
-            #
-            # h = @SVector [0.0,0.0]
-            # curlSum = 0
-            # h = h + ϵ*externalF[k]
-            # curlSum += A[vertexEdges[1],k]*(T[vertexEdges[1]]⋅h)/linkTriangleAreas[k]
-            # for (i,j) in enumerate(vertexEdges[2:end])
-            #     h = h + ϵ*F[k,vertexCells[i]]
-            #     curlSum += A[j,k]*(T[j]⋅h)/linkTriangleAreas[k]
-            # end
-            curlSum = 0.0
+            # Peripheral vertices
+            vertexCells = findall(x->x!=0,C[:,k])
+
+            if length(vertexCells)==1
+                # Peripheral vertex with a single kite
+
+                cellAngle = atan((cellPositions[vertexCells[1]].-R[k])...)
+
+                vertexEdges = findall(x->x!=0,A[:,k])
+                edgeAngles = zeros(length(vertexEdges))
+                for (i,e) in enumerate(vertexEdges)
+                    edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+                end
+                edgeAngles .= edgeAngles .+ 2π .- cellAngle
+                edgeAngles .= edgeAngles.%2π
+                vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+                splitExternalF = SVector{2,Float64}[]
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[1]]*(ϵ*edgeTangents[vertexEdges[1]]))
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[2]]*(ϵ*edgeTangents[vertexEdges[2]]))
+
+                h = @SVector [0.0,0.0]
+                curlSum = 0
+
+                hⱼ = h + ϵ*F[k,vertexCells[1]]
+                curlSum += A[vertexEdges[1],k]*(T[vertexEdges[1]]⋅hⱼ)/linkTriangleAreas[k]
+                hₖ = hⱼ .+ ϵ*splitExternalF[1]
+                curlSum += s[vertexCells[1],k]⋅hₖ/linkTriangleAreas[k]
+
+            elseif length(vertexCells)==2
+                # Peripheral vertex with 2 kites
+
+                Sₖ = sum(s[:,k])
+                Pₖ = ϵ*Sₖ
+
+                cellAngles = zeros(length(vertexCells))
+                for i=1:length(cellAngles)
+                    cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
+                end
+                m = maximum(cellAngles)
+                cellAngles .= cellAngles .+ 2π .- m
+                cellAngles .= cellAngles.%2π
+                vertexCells .= vertexCells[sortperm(cellAngles,rev=true)]
+
+                vertexEdges = findall(x->x!=0,A[:,k])
+                edgeAngles = zeros(length(vertexEdges))
+                for (i,e) in enumerate(vertexEdges)
+                    edgeAngles[i] = atan((-A[e,k].*edgeTangents[e])...)
+                end
+                edgeAngles .= edgeAngles .+ 2π .- m
+                vertexEdges .= vertexEdges[sortperm(edgeAngles,rev=true)]
+
+                splitExternalF = SVector{2,Float64}[]
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[1],vertexEdges[2]]*(ϵ*edgeTangents[vertexEdges[2]]))
+                push!(splitExternalF, 0.5*pressureExternal*B[vertexCells[2],vertexEdges[3]]*(ϵ*edgeTangents[vertexEdges[3]]))
+
+                h = @SVector [0.0,0.0]
+                curlSum = 0
+
+                hⱼⱼ = h + ϵ*F[k,vertexCells[1]]
+                curlSum += A[vertexEdges[1],k]*(T[vertexEdges[1]]⋅hⱼⱼ)/linkTriangleAreas[k]
+
+                hⱼ = hⱼⱼ + ϵ*F[k,vertexCells[2]]
+                curlSum += A[vertexEdges[2],k]*(T[vertexEdges[2]]⋅hⱼ)/linkTriangleAreas[k]
+
+                hₖ = hⱼ + ϵ*splitExternalF[2]
+                curlSum += Sₖ⋅hₖ/linkTriangleAreas[k]
+
+            end
         end
         push!(vertexCurls,curlSum)
     end
