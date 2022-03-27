@@ -18,7 +18,7 @@ using LaTeXStrings
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-#dataDirectory = "data/sims/2022-02-28-19-30-22"
+dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
@@ -104,9 +104,9 @@ Label(grid[2, 2, Bottom()],LaTeXString("(d)"),textsize = 34)
 Colorbar(grid[2,3],limits=curlLims,colormap=:bwr,flipaxis=false)
 
 display(fig)
-save("$dataDirectory/allCurlsDivs.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/allCurlsDivs.pdf",fig)
-save("$dataDirectory/allCurlsDivs.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/allCurlsDivs.svg",fig)
-save("$dataDirectory/allCurlsDivs.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/allCurlsDivs.png",fig)
+save("$dataDirectory/allCurlsDivsTEST.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/allCurlsDivsTEST.pdf",fig)
+save("$dataDirectory/allCurlsDivsTEST.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/allCurlsDivsTEST.svg",fig)
+save("$dataDirectory/allCurlsDivsTEST.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/allCurlsDivsTEST.png",fig)
