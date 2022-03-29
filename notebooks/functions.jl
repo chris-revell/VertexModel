@@ -12,17 +12,14 @@ using Colors
 using JLD2
 using Printf
 
-# Local modules
-#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
-
 function getRandomColor(seed)
     Random.seed!(seed)
     rand(RGB{})
 end
 
 function makeCellPolygons(params,matrices)
-    @unpack C,R,cellPositions = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     cellPolygons = Vector{Point2f}[]
     for i=1:nCells
         cellVertices = findall(x->x!=0,C[i,:])
@@ -37,8 +34,8 @@ function makeCellPolygons(params,matrices)
 end
 
 function makeCellLinks(params,matrices)
-    @unpack B, edgeMidpoints, cellPositions = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     onesVec = ones(1,nCells)
     boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
@@ -54,8 +51,8 @@ function makeCellLinks(params,matrices)
 end
 
 function makeLinkTriangles(params,matrices)
-    @unpack boundaryVertices, C, cellPositions, A, B = matrices
-    @unpack nVerts = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     onesVec = ones(1,nCells)
     linkTriangles = Vector{Point2f}[]
     boundaryEdges = abs.(onesVec*B)
@@ -83,8 +80,8 @@ function makeLinkTriangles(params,matrices)
 end
 
 function makeEdgeTrapezia(params,matrices)
-    @unpack A, B, cellPositions = matrices
-    @unpack nEdges = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     edgeTrapezia = Vector{Point2f}[]
     for j=1:nEdges
         edgeCells = findall(x->x!=0,B[:,j])
@@ -103,8 +100,8 @@ function makeEdgeTrapezia(params,matrices)
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
-    @unpack B, edgeMidpoints, cellPositions = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     edgeMidpointPolygons = Vector{Point2f}[]
     for i=1:nCells
         cellEdges = findall(!iszero,B[i,:])
@@ -122,8 +119,8 @@ end
 # {curlᶜb}ᵢ
 # Calculate curl on each cell
 function calculateCellCurls(params,matrices)
-    @unpack B, C, R, F, cellPositions, edgeMidpoints, edgeTangents, cellAreas = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     cellCurls = Float64[]
     for c=1:nCells
         cellVertices = findall(x->x!=0,C[c,:])
@@ -156,8 +153,8 @@ end
 # {divᶜb}ᵢ
 # Calculate div on each cell
 function calculateCellDivs(params,matrices)
-    @unpack B, C, R, ϵ, cellPositions, cellAreas = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     cellDivs = Float64[]
     for c=1:nCells
         cellVertices = findall(x->x!=0,C[c,:])
@@ -191,8 +188,8 @@ end
 # {divᵛb}ₖ
 # Calculate div at each vertex
 function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
-    @unpack A, C, R, edgeTangents, ϵ, boundaryVertices = matrices
-    @unpack nVerts = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
 
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1*ϵ
@@ -289,8 +286,8 @@ end
 # {CURLᵛb}ₖ
 # Calculate curl at each vertex
 function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
-    @unpack A, C, R, edgeTangents, ϵ, boundaryVertices = matrices
-    @unpack nVerts = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
 
     onesVec = ones(1,nCells)
     boundaryEdges = abs.(onesVec*B)
@@ -363,8 +360,8 @@ function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
 end
 
 function makeLf(params,matrices,trapeziumAreas)
-    @unpack B, Bᵀ, edgeLengths, cellAreas = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     onesVec = ones(1,nCells)
     boundaryEdges = abs.(onesVec*B)
     H = Diagonal(cellAreas)
@@ -376,9 +373,9 @@ function makeLf(params,matrices,trapeziumAreas)
     return Lf
 end
 
-function makeLc(params,matrices,trapeziumAreas)
-    @unpack B, Bᵀ, cellAreas = matrices
-    @unpack nCells = params
+function makeLc(params,matrices,T,trapeziumAreas)
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     onesVec = ones(1,nCells)
     boundaryEdges = abs.(onesVec*B)
     boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
@@ -392,7 +389,8 @@ function makeLc(params,matrices,trapeziumAreas)
 end
 
 function makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
-    @unpack A, Aᵀ, edgeLengths = matrices
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     E = Diagonal(linkTriangleAreas)
     Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
     Lᵥ = (E\Aᵀ)*(Tₑ\A)
@@ -401,7 +399,8 @@ function makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
 end
 
 function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
-    @unpack A, Aᵀ = matrices
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     E = Diagonal(linkTriangleAreas)
     Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
     Lₜ = (E\Aᵀ)*Tₗ*A
@@ -410,8 +409,8 @@ function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
 end
 
 function makeCellVerticesDict(params,matrices)
-    @unpack C, R, cellPositions = matrices
-    @unpack nCells = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     cellVerticesDict = Dict()
     for i=1:nCells
         # Find vertices around cell
@@ -430,8 +429,8 @@ function makeCellVerticesDict(params,matrices)
 end
 
 function wideTildeVertexDiv(params,matrices,linkTriangleAreas,trapeziumAreas)
-    @unpack A, C, R, cellPositions, boundaryVertices, edgeLengths, edgeTangents,externalF = matrices
-    @unpack nVerts = params
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     wideTildeVertexDivs = Float64[]
     for k=1:nVerts
         if boundaryVertices[k] == 0
