@@ -17,7 +17,7 @@ using JLD2
 includet("$(projectdir())/src/TopologyChange.jl"); using .TopologyChange
 includet("$(projectdir())/src/Initialise.jl"); using .Initialise
 includet("$(projectdir())/src/SpatialData.jl"); using .SpatialData
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
     Random.seed!(seed)

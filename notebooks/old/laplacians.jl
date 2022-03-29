@@ -13,7 +13,7 @@ using Random
 using Colors
 using JLD2
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 # Specify data folder
 dataDirectory = "data/sims/2022-02-28-19-30-22"

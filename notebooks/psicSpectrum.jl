@@ -15,10 +15,10 @@ using JLD2
 using Printf
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-#dataDirectory = "data/sims/2022-02-28-19-30-22"
+# dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")

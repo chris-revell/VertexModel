@@ -15,7 +15,7 @@ using JLD2
 using Printf
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
 #dataDirectory = "data/sims/2022-02-28-19-30-22"

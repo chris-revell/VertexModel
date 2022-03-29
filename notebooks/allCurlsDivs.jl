@@ -15,10 +15,10 @@ using JLD2
 using LaTeXStrings
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/notebooks/functions.jl")
 
-dataDirectory = "data/sims/2022-02-28-19-30-22"
+# dataDirectory = "data/sims/2022-02-28-19-30-22"
 
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
 isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
@@ -42,9 +42,9 @@ linkTriangleAreas = abs.(area.(linkTriangles))
 
 cellCurls = calculateCellCurls(conditionsDict["params"],matricesDict["matrices"])
 
-cellDivs = (-0.5).*calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
+cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
-vertexDivs = (-0.5).*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
 vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
@@ -62,9 +62,9 @@ hidespines!(ax1)
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=[cellDivs[i]],colormap=:bwr,colorrange=divLims, strokecolor=(:black,1.0),strokewidth=5)
 end
-Label(grid[1, 1, Bottom()],LaTeXString("(a)"),textsize = 34)
-Label(grid[1, 1, Left()],LaTeXString("div"),textsize = 34)
-Label(grid[1, 1, Top()],LaTeXString("Cells"),textsize = 34)
+Label(grid[1, 1, Bottom()],LaTeXString("(a)"),textsize = 28)
+# Label(grid[1, 1, Left()],LaTeXString("div"),textsize = 28)
+# Label(grid[1, 1, Top()],LaTeXString("Cells"),textsize = 28)
 
 # Vertex div axis
 ax2 = Axis(grid[1,2],aspect=DataAspect())
@@ -76,8 +76,8 @@ end
 for i=1:nCells
     poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
-Label(grid[1, 2, Bottom()],LaTeXString("(b)"),textsize = 34)
-Label(grid[1, 2, Top()],LaTeXString("Vertices"),textsize = 34)
+Label(grid[1, 2, Bottom()],LaTeXString("(b)"),textsize = 28)
+# Label(grid[1, 2, Top()],LaTeXString("Vertices"),textsize = 28)
 Colorbar(grid[1,3],limits=divLims,colormap=:bwr,flipaxis=false)
 
 # Cell curl axis
@@ -87,8 +87,8 @@ hidespines!(ax3)
 for i=1:nCells
     poly!(ax3,cellPolygons[i],color=[cellCurls[i]],colormap=:bwr,colorrange=curlLims,strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
-Label(grid[2, 1, Bottom()],LaTeXString("(c)"),textsize = 34)
-Label(grid[2, 1, Left()],LaTeXString("curl"),textsize = 34)
+Label(grid[2, 1, Bottom()],LaTeXString("(c)"),textsize = 28)
+# Label(grid[2, 1, Left()],LaTeXString("curl"),textsize = 28)
 
 # Vertex curl axis
 ax4 = Axis(grid[2,2][1,1],aspect=DataAspect())
@@ -100,13 +100,13 @@ end
 for i=1:nCells
     poly!(ax4,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
 end
-Label(grid[2, 2, Bottom()],LaTeXString("(d)"),textsize = 34)
+Label(grid[2, 2, Bottom()],LaTeXString("(d)"),textsize = 28)
 Colorbar(grid[2,3],limits=curlLims,colormap=:bwr,flipaxis=false)
 
 display(fig)
-save("$dataDirectory/allCurlsDivsTEST.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/allCurlsDivsTEST.pdf",fig)
-save("$dataDirectory/allCurlsDivsTEST.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/allCurlsDivsTEST.svg",fig)
-save("$dataDirectory/allCurlsDivsTEST.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/allCurlsDivsTEST.png",fig)
+save("$dataDirectory/allCurlsDivs.pdf",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/allCurlsDivs.pdf",fig)
+save("$dataDirectory/allCurlsDivs.svg",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/allCurlsDivs.svg",fig)
+save("$dataDirectory/allCurlsDivs.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/allCurlsDivs.png",fig)

@@ -13,7 +13,7 @@ using JLD2
 using Printf
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
     Random.seed!(seed)
@@ -197,6 +197,23 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1*ϵ
 
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    cᵖ = boundaryEdges'.*edgeMidpoints
+
+    s = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    p = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
+    fill!(s,@SVector zeros(2))
+    fill!(p,@SVector zeros(2))
+    for i=1:nCells
+        for k=1:nVerts
+            for j=1:nEdges
+                s[i,k] += B[i,j].*cᵖ[j].*A[j,k]
+            end
+            p[i,k] = ϵ*s[i,k]
+        end
+    end
+
     vertexDivs = Float64[]
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts
@@ -232,8 +249,7 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
             if length(vertexCells)==1
                 # Peripheral vertex with a single kite
                 qᵢₖ = R[k].-cellPositions[vertexCells[1]]
-                divSum = -(ϵ*qᵢₖ)⋅(ϵ*F[k,vertexCells[1]])
-
+                divSum = (ϵ*qᵢₖ)⋅(ϵ*F[k,vertexCells[1]])/linkTriangleAreas[k]
             elseif length(vertexCells)==2
                 # Peripheral vertex with 2 kites
 
@@ -257,13 +273,12 @@ function calculateVertexDivs(params,matrices,T,linkTriangleAreas)
                 divSum = 0
 
                 hⱼⱼ = ϵ*F[k,vertexCells[1]]
-                divSum -= A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅hⱼⱼ)/linkTriangleAreas[k]
+                divSum += A[vertexEdges[1],k]*((ϵₖ*T[vertexEdges[1]])⋅hⱼⱼ)/linkTriangleAreas[k]
 
                 qᵢₖ = R[k].-cellPositions[vertexCells[2]]
                 hⱼ = hⱼⱼ + ϵ*F[k,vertexCells[2]]
 
-                divSum -= (ϵ*qᵢₖ)⋅hⱼ/linkTriangleAreas[k]
-
+                divSum += (ϵ*qᵢₖ)⋅hⱼ/linkTriangleAreas[k]
             end
         end
         push!(vertexDivs,divSum)
@@ -313,7 +328,7 @@ function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
             if length(vertexCells)==1
                 # Peripheral vertex with a single kite
                 qᵢₖ = R[k].-cellPositions[vertexCells[1]]
-                curlSum = qᵢₖ⋅(ϵ*F[k,vertexCells[1]])
+                curlSum = qᵢₖ⋅(ϵ*F[k,vertexCells[1]])/linkTriangleAreas[k]
             elseif length(vertexCells)==2
                 # Peripheral vertex with 2 kites
                 cellAngles = zeros(length(vertexCells))
@@ -338,7 +353,7 @@ function calculateVertexCurls(params,matrices,T,linkTriangleAreas)
 
                 qᵢₖ = R[k].-cellPositions[vertexCells[2]]
                 hⱼ = hⱼⱼ + ϵ*F[k,vertexCells[2]]
-                curlSum -= qᵢₖ⋅hⱼ/linkTriangleAreas[k]
+                curlSum += qᵢₖ⋅hⱼ/linkTriangleAreas[k]
 
             end
         end

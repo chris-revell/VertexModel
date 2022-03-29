@@ -14,7 +14,7 @@ using Colors
 using JLD2
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+#includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 
 function getRandomColor(seed)
     Random.seed!(seed)
