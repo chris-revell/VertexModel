@@ -148,17 +148,6 @@ function division!(params,matrices)
             # Add new vertex position
             newPos1 = (R[cellVertices[indexLoop(intersectedIndex[1]+1,n)]].+R[cellVertices[intersectedIndex[1]]])./2
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
-            # Add new vertex positions at axis intersection with existing edges using line intersection https://en.wikipedia.org/wiki/Line–line_intersection
-            # a = edgeTangents[intersectedIndex[1]][2]/edgeTangents[intersectedIndex[1]][1]
-            # c = R[intersectedIndex[1]][2] - R[intersectedIndex[1]][1]*a
-            # b = shortAxis[2]/shortAxis[1]
-            # d = centrePoint[2] - centrePoint[1]*b
-            # newPos1 = SVector{2}([(d-c)/(a-b), a*(d-c)/(a-b)+c])
-            # a = edgeTangents[intersectedIndex[2]][2]/edgeTangents[intersectedIndex[2]][1]
-            # c = R[intersectedIndex[2]][2] - R[intersectedIndex[2]][1]*a
-            # b = shortAxis[2]/shortAxis[1]
-            # d = centrePoint[2] - centrePoint[1]*b
-            # newPos2 = SVector{2}([(d-c)/(a-b), a*(d-c)/(a-b)+c])
             append!(newRs,[newPos1,newPos2])
 
             cellAges[i] = 0
@@ -194,8 +183,7 @@ function division!(params,matrices)
         append!(R,newRs)
         append!(tempR,newRs)
         append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
-        append!(boundaryVertices,zeros(Int64,2*divisionCount))
-        # append!(F,Matrix{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(boundaryVertices,zeros(Int64,2*divisionCount))        
         append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         # Add 3 components to vectors for new edges
         append!(edgeLengths,zeros(Float64,3*divisionCount))

@@ -75,10 +75,6 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     fill!(edgeTangents,@SVector zeros(2))
     edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeMidpoints,@SVector zeros(2))
-    vertexEdges       = Array{SVector{3,Float64}}(undef,nVerts)
-    fill!(vertexEdges,@SVector zeros(3))
-    vertexCells       = Array{SVector{3,Float64}}(undef,nVerts)
-    fill!(vertexCells,@SVector zeros(3))
     F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
     fill!(F,@SVector zeros(2))
     externalF       = Array{SVector{2,Float64}}(undef,nVerts)
@@ -117,9 +113,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellAges,
         edgeLengths,
         edgeTangents,
-        edgeMidpoints,
-        vertexEdges,
-        vertexCells,
+        edgeMidpoints,        
         F,
         externalF,
         ϵ,
