@@ -38,18 +38,19 @@ function psivPotential(dataDirectory, show)
 
     cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-    Lᵥ = makeLv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
-    eigenvectors = (eigen(Matrix(Lᵥ))).vectors
-    eigenvalues = (eigen(Matrix(Lᵥ))).values
+    Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
+
+    eigenvectors = (eigen(Matrix(Lₜ))).vectors
+    eigenvalues = (eigen(Matrix(Lₜ))).values
 
 
-    wideTildeVertexDivs = wideTildeVertexDiv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
+    vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)
 
-    ḡ = ((onesVec'*E*wideTildeVertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
-    ğ = wideTildeVertexDivs.-ḡ
+    ḡ = ((onesVec'*E*vertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
+    ğ = vertexDivs.-ḡ
     ψ̆ = zeros(nVerts)
     eigenmodeAmplitudes = Float64[]
     for k=2:nVerts
