@@ -41,7 +41,7 @@ function psicPotentialDerivative(dataDirectory, show)
     Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
 
     # Calculate div on each cell
-    cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
+    cellDivs = -1.0.*calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
     onesVec = ones(nCells)
     H = Diagonal(cellAreas)

@@ -41,7 +41,7 @@ function psicSpectrum(dataDirectory, show)
     Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
 
     # Calculate div on each cell
-    cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
+    cellDivs = -1.0.*calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
     onesVec = ones(nCells)
     H = Diagonal(cellAreas)
@@ -66,7 +66,7 @@ function psicSpectrum(dataDirectory, show)
     ylims!(ax2,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
     barplot!(ax2,collect(2:nCells),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
-    show==1 ? display(fig) : nothing 
+    show==1 ? display(fig) : nothing
     save("$dataDirectory/psicSpectrum.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psicSpectrum.pdf",fig)
     save("$dataDirectory/psicSpectrum.svg",fig)

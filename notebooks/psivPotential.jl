@@ -44,7 +44,7 @@ function psivPotential(dataDirectory, show)
     eigenvalues = (eigen(Matrix(Lₜ))).values
 
 
-    vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+    vertexDivs = -1.0.*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)

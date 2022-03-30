@@ -38,18 +38,19 @@ function psivPotentialDerivative(dataDirectory, show)
 
     cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-    Lᵥ = makeLv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
-    eigenvectors = (eigen(Matrix(Lᵥ))).vectors
-    eigenvalues = (eigen(Matrix(Lᵥ))).values
+    Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
+
+    eigenvectors = (eigen(Matrix(Lₜ))).vectors
+    eigenvalues = (eigen(Matrix(Lₜ))).values
 
 
-    wideTildeVertexDivs = wideTildeVertexDiv(conditionsDict["params"],matricesDict["matrices"],linkTriangleAreas,trapeziumAreas)
+    vertexDivs = -1.0.*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
 
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)
 
-    ḡ = ((onesVec'*E*wideTildeVertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
-    ğ = wideTildeVertexDivs.-ḡ
+    ḡ = ((onesVec'*E*vertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
+    ğ = vertexDivs.-ḡ
     ψ̆ = zeros(nVerts)
     eigenmodeAmplitudes = Float64[]
     for k=2:nVerts
@@ -59,7 +60,7 @@ function psivPotentialDerivative(dataDirectory, show)
         push!(eigenmodeAmplitudes,(numerator/denominator))
     end
 
-    derivative = Lᵥ*ψ̆
+    derivative = Lₜ*ψ̆
 
     derivativeLims = (-maximum(abs.(derivative)),maximum(abs.(derivative)))
 
@@ -91,12 +92,12 @@ function psivPotentialDerivative(dataDirectory, show)
 
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/LvpsivDerivative.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LvpsivDerivative.pdf",fig)
-    save("$dataDirectory/LvpsivDerivative.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LvpsivDerivative.svg",fig)
-    save("$dataDirectory/LvpsivDerivative.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LvpsivDerivative.png",fig)
+    save("$dataDirectory/LtpsivDerivative.pdf",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LtpsivDerivative.pdf",fig)
+    save("$dataDirectory/LtpsivDerivative.svg",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LtpsivDerivative.svg",fig)
+    save("$dataDirectory/LtpsivDerivative.png",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LtpsivDerivative.png",fig)
 
 
     save("$dataDirectory/gbreve_psiv.pdf",fig2)
