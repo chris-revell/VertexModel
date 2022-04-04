@@ -89,4 +89,4 @@ for i=1:nCells
 end
 # Colorbar(fig[1, 2],limits=(-1.0,1.0),colormap=:bwr,flipaxis=false) #:bwr
 display(fig)
-save("$dataDirectory/cellCurls.png",fig)
+save("$dataDirectory/png/cellCurls.png",fig)

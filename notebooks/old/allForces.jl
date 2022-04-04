@@ -67,4 +67,4 @@ arrows!(allForceAx,Point2f.(R),Vec2f.(sum(F,dims=2)),color=:blue)
 arrows!(allForceAx,Point2f.(cellPositions),Vec2f.(sum(F,dims=1)),color=:red)
 
 display(allForceFig)
-save("$dataDirectory/allForces.png",allForceFig)
+save("$dataDirectory/png/allForces.png",allForceFig)

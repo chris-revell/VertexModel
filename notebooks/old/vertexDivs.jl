@@ -159,4 +159,4 @@ end
 Colorbar(fig[:,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
 display(fig)
-save("$dataDirectory/vertexDivs.png",fig)
+save("$dataDirectory/png/vertexDivs.png",fig)

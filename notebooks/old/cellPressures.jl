@@ -62,4 +62,4 @@ end
 
 display(fig)
 
-save("$dataDirectory/effectivePressures.png",fig)
+save("$dataDirectory/png/effectivePressures.png",fig)

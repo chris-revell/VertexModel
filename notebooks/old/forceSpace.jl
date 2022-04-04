@@ -146,4 +146,4 @@ annotations!(ax1,string.(neighbouringCells),Point2f.(cellPositions[push!(neighbo
 
 display(fig1)
 
-save("$dataDirectory/cell$(centralCell)ForceSpace2.png",fig1)
+save("$dataDirectory/png/cell$(centralCell)ForceSpace2.png",fig1)

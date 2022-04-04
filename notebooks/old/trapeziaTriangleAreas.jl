@@ -118,5 +118,5 @@ for i=1:nCells
     poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.25),strokewidth=2) #:bwr
 end
 Colorbar(grid[2, 2],limits=(0.0,maximum(trapeziumAreas)),colormap=:greens,flipaxis=false) #:bwr
-save("$dataDirectory/trapeziaTriangleAreas.png",fig)
+save("$dataDirectory/png/trapeziaTriangleAreas.png",fig)
 display(fig)
