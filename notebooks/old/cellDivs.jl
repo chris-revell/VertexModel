@@ -94,4 +94,4 @@ end
 Colorbar(fig[1, 2],limits=clims,colormap=:bwr)
 
 display(fig)
-save("$dataDirectory/cellDivs.png",fig)
+save("$dataDirectory/png/cellDivs.png",fig)

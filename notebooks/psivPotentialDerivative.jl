@@ -21,6 +21,9 @@ function psivPotentialDerivative(dataDirectory, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -92,18 +95,18 @@ function psivPotentialDerivative(dataDirectory, show)
 
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/LtpsivDerivative.pdf",fig)
+    save("$dataDirectory/pdf/LtpsivDerivative.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LtpsivDerivative.pdf",fig)
-    save("$dataDirectory/LtpsivDerivative.svg",fig)
+    save("$dataDirectory/svg/LtpsivDerivative.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LtpsivDerivative.svg",fig)
-    save("$dataDirectory/LtpsivDerivative.png",fig)
+    save("$dataDirectory/png/LtpsivDerivative.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LtpsivDerivative.png",fig)
 
 
-    save("$dataDirectory/gbreve_psiv.pdf",fig2)
+    save("$dataDirectory/pdf/gbreve_psiv.pdf",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve_psiv.pdf",fig2)
-    save("$dataDirectory/gbreve_psiv.svg",fig2)
+    save("$dataDirectory/svg/gbreve_psiv.svg",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve_psiv.svg",fig2)
-    save("$dataDirectory/gbreve_psiv.png",fig2)
+    save("$dataDirectory/png/gbreve_psiv.png",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve_psiv.png",fig2)
 end

@@ -21,6 +21,9 @@ function vertexCouples(dataDirectory, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -64,10 +67,10 @@ function vertexCouples(dataDirectory, show)
     Colorbar(fig[1,2],limits=lims,colormap=:bwr,flipaxis=false) #:bwr
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/vertexCouples.pdf",fig)
+    save("$dataDirectory/pdf/vertexCouples.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/vertexCouples.pdf",fig)
-    save("$dataDirectory/vertexCouples.svg",fig)
+    save("$dataDirectory/svg/vertexCouples.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/vertexCouples.svg",fig)
-    save("$dataDirectory/vertexCouples.png",fig)
+    save("$dataDirectory/png/vertexCouples.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/vertexCouples.png",fig)
 end

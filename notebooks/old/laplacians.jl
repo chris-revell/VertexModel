@@ -168,4 +168,4 @@ for i=1:nCells
 end
 
 display(fig)
-save("$dataDirectory/eigenvectors$column.png",fig)
+save("$dataDirectory/png/eigenvectors$column.png",fig)

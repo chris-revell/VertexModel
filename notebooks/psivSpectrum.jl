@@ -21,6 +21,9 @@ function psivSpectrum(dataDirectory, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -67,10 +70,10 @@ function psivSpectrum(dataDirectory, show)
     barplot!(ax2,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/psivSpectrum.pdf",fig)
+    save("$dataDirectory/pdf/psivSpectrum.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psivSpectrum.pdf",fig)
-    save("$dataDirectory/psivSpectrum.svg",fig)
+    save("$dataDirectory/svg/psivSpectrum.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psivSpectrum.svg",fig)
-    save("$dataDirectory/psivSpectrum.png",fig)
+    save("$dataDirectory/png/psivSpectrum.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psivSpectrum.png",fig)
 end

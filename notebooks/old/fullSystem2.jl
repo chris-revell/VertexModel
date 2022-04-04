@@ -71,4 +71,4 @@ scatter!(allForceAx,Point2f.(cellPositions),color=:red)
 # annotations!(allForceAx,string.(collect(1:nCells)),Point2f.(cellPositions),color=:red)
 
 display(allForceFig)
-save("$dataDirectory/fullSystem.png",allForceFig)
+save("$dataDirectory/png/fullSystem.png",allForceFig)

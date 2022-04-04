@@ -202,9 +202,9 @@ ax2.xlabel = "i"
 ax2.ylabel = "Amplitude"
 
 display(fig)
-save("$dataDirectory/phi^vPotential.pdf",fig)
+save("$dataDirectory/png/phi^vPotential.pdf",fig)
 save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/phi^vPotential.pdf",fig)
-save("$dataDirectory/phi^vPotential.svg",fig)
+save("$dataDirectory/png/phi^vPotential.svg",fig)
 save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/phi^vPotential.svg",fig)
-save("$dataDirectory/phi^vPotential.png",fig)
+save("$dataDirectory/png/phi^vPotential.png",fig)
 save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/phi^vPotential.png",fig)

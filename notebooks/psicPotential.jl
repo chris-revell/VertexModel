@@ -21,6 +21,9 @@ function psicPotential(dataDirectory, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -72,10 +75,10 @@ function psicPotential(dataDirectory, show)
     Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false,align=:left)
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/psicPotential.pdf",fig)
+    save("$dataDirectory/pdf/psicPotential.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psicPotential.pdf",fig)
-    save("$dataDirectory/psicPotential.svg",fig)
+    save("$dataDirectory/svg/psicPotential.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psicPotential.svg",fig)
-    save("$dataDirectory/psicPotential.png",fig)
+    save("$dataDirectory/png/psicPotential.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psicPotential.png",fig)
 end

@@ -22,6 +22,9 @@ function fullSystem(dataDirectory, centralCell, plotCells, plotLinks, scatterEdg
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -95,10 +98,10 @@ function fullSystem(dataDirectory, centralCell, plotCells, plotLinks, scatterEdg
     end
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/fullSystem.pdf",fig)
+    save("$dataDirectory/pdf/fullSystem.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/fullSystem.pdf",fig)
-    save("$dataDirectory/fullSystem.svg",fig)
+    save("$dataDirectory/svg/fullSystem.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/fullSystem.svg",fig)
-    save("$dataDirectory/fullSystem.png",fig)
+    save("$dataDirectory/png/fullSystem.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/fullSystem.png",fig)
 end

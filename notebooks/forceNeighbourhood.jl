@@ -22,6 +22,9 @@ function forceNeighbourhood(dataDirectory, centralCell, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -59,10 +62,10 @@ function forceNeighbourhood(dataDirectory, centralCell, show)
 
     show==1 ? display(fig) : nothing
 
-    save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.pdf",fig)
+    save("$dataDirectory/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNeighbourhood.pdf",fig)
-    save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.svg",fig)
+    save("$dataDirectory/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNeighbourhood.svg",fig)
-    save("$dataDirectory/cell$(centralCell)ForceNeighbourhood.png",fig)
+    save("$dataDirectory/png/cell$(centralCell)ForceNeighbourhood.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNeighbourhood.png",fig)
 end

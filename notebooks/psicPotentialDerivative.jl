@@ -21,6 +21,9 @@ function psicPotentialDerivative(dataDirectory, show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -87,17 +90,17 @@ function psicPotentialDerivative(dataDirectory, show)
     Colorbar(fig2[1,1][1,2],limits=ğLims,colormap=:bwr,flipaxis=false,align=:left)
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/LfpsicDerivative.pdf",fig)
+    save("$dataDirectory/pdf/LfpsicDerivative.pdf",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LfpsicDerivative.pdf",fig)
-    save("$dataDirectory/LfpsicDerivative.svg",fig)
+    save("$dataDirectory/svg/LfpsicDerivative.svg",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LfpsicDerivative.svg",fig)
-    save("$dataDirectory/LfpsicDerivative.png",fig)
+    save("$dataDirectory/png/LfpsicDerivative.png",fig)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LfpsicDerivative.png",fig)
 
-    save("$dataDirectory/gbreve.pdf",fig2)
+    save("$dataDirectory/pdf/gbreve.pdf",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve.pdf",fig2)
-    save("$dataDirectory/gbreve.svg",fig2)
+    save("$dataDirectory/svg/gbreve.svg",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve.svg",fig2)
-    save("$dataDirectory/gbreve.png",fig2)
+    save("$dataDirectory/png/gbreve.png",fig2)
     save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve.png",fig2)
 end
