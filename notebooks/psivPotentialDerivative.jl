@@ -41,13 +41,15 @@ function psivPotentialDerivative(dataDirectory, show)
 
     cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
+    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
+
     Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
 
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
 
 
-    vertexDivs = -1.0.*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+    vertexDivs = -1.0.*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
 
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)

@@ -53,7 +53,7 @@ function allEigenModesLf(dataDirectory)
         for i=1:nCells
             poly!(ax,cellPolygons[i],color=[decomposition[i,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
-        save("$dataDirectory/png/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+        save("$dataDirectory/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
         save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLf/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
     end
 end

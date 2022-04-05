@@ -41,13 +41,15 @@ function allCurlsDivs(dataDirectory, show)
     linkTriangles = makeLinkTriangles(conditionsDict["params"],matricesDict["matrices"])
     linkTriangleAreas = abs.(area.(linkTriangles))
 
+    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
+
     cellCurls = calculateCellCurls(conditionsDict["params"],matricesDict["matrices"])
 
     cellDivs = calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
 
-    vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+    vertexDivs = calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
 
-    vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas)
+    vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
 
     divLims = (-maximum(abs.([vertexDivs; cellDivs])),maximum(abs.([vertexDivs; cellDivs])))
     curlLims = (-maximum(abs.(vertexCurls)),maximum(abs.(vertexCurls)))
