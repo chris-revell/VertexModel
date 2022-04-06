@@ -17,7 +17,7 @@ using Printf
 # Local modules
 includet("$(projectdir())/notebooks/functions.jl")
 
-function psivPotentialDerivative(dataDirectory, show)
+function capitalPsivSpectrum(dataDirectory,show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
@@ -41,21 +41,20 @@ function psivPotentialDerivative(dataDirectory, show)
 
     cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
-
     Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
 
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
 
+    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
 
-    vertexDivs = -1.0.*calculateVertexDivs(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
+    vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
 
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)
 
-    ḡ = ((onesVec'*E*vertexDivs)/(onesVec'*E*ones(nVerts))).*onesVec
-    ğ = vertexDivs.-ḡ
+    ḡ = ((onesVec'*E*vertexCurls)/(onesVec'*E*ones(nVerts))).*onesVec
+    ğ = vertexCurls.-ḡ
     ψ̆ = zeros(nVerts)
     eigenmodeAmplitudes = Float64[]
     for k=2:nVerts
@@ -65,50 +64,20 @@ function psivPotentialDerivative(dataDirectory, show)
         push!(eigenmodeAmplitudes,(numerator/denominator))
     end
 
-    derivative = Lₜ*ψ̆
+    ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
 
-    derivativeLims = (-maximum(abs.(derivative)),maximum(abs.(derivative)))
-
-    fig = Figure(resolution=(1000,1000),fontsize = 24)
-    ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
-    hidedecorations!(ax1)
-    hidespines!(ax1)
-    for k=1:nVerts
-        poly!(ax1,linkTriangles[k],color=[derivative[k]],colorrange=derivativeLims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
-    end
-    for i=1:nCells
-        poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
-    end
-    Colorbar(fig[1,1][1,2],limits=derivativeLims,colormap=:bwr,flipaxis=false,align=:left)
-
-    ğLims = (-maximum(abs.(ğ)),maximum(abs.(ğ)))
-    fig2 = Figure(resolution=(1000,1000),fontsize = 24)
-    ax2 = Axis(fig2[1,1][1,1],aspect=DataAspect(),fontsize=32)
-    ax2.title = LaTeXString("g\breve")
-    hidedecorations!(ax2)
-    hidespines!(ax2)
-    for k=1:nVerts
-        poly!(ax2,linkTriangles[k],color=[-ğ[k]],colorrange=derivativeLims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
-    end
-    for i=1:nCells
-        poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
-    end
-    Colorbar(fig2[1,1][1,2],limits=ğLims,colormap=:bwr,flipaxis=false,align=:left)
+    fig = Figure(resolution=(1000,700),fontsize = 24)
+    ax2 = Axis(fig[1,1], xlabel="Eigenmode number, i", ylabel="Amplitude",fontsize=32)
+    xlims!(ax2,0,nVerts)
+    ylims!(ax2,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
+    barplot!(ax2,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/pdf/LtpsivDerivative.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LtpsivDerivative.pdf",fig)
-    save("$dataDirectory/svg/LtpsivDerivative.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LtpsivDerivative.svg",fig)
-    save("$dataDirectory/png/LtpsivDerivative.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LtpsivDerivative.png",fig)
-
-
-    save("$dataDirectory/pdf/gbreve_psiv.pdf",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve_psiv.pdf",fig2)
-    save("$dataDirectory/svg/gbreve_psiv.svg",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve_psiv.svg",fig2)
-    save("$dataDirectory/png/gbreve_psiv.png",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve_psiv.png",fig2)
+    save("$dataDirectory/pdf/capitalPsivSpectrum.pdf",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/capitalPsivSpectrum.pdf",fig)
+    save("$dataDirectory/svg/capitalPsivSpectrum.svg",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/capitalPsivSpectrum.svg",fig)
+    save("$dataDirectory/png/capitalPsivSpectrum.png",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/capitalPsivSpectrum.png",fig)
 end

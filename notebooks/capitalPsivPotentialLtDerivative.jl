@@ -17,7 +17,7 @@ using Printf
 # Local modules
 includet("$(projectdir())/notebooks/functions.jl")
 
-function psicPotentialDerivative(dataDirectory, show)
+function capitalPsivPotentialLtDerivative(dataDirectory,show)
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
     isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
@@ -41,66 +41,54 @@ function psicPotentialDerivative(dataDirectory, show)
 
     cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-    Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
+    Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
 
-    # Calculate div on each cell
-    cellDivs = -1.0.*calculateCellDivs(conditionsDict["params"],matricesDict["matrices"])
+    eigenvectors = (eigen(Matrix(Lₜ))).vectors
+    eigenvalues = (eigen(Matrix(Lₜ))).values
 
-    onesVec = ones(nCells)
-    H = Diagonal(cellAreas)
+    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
 
-    eigenvectors = (eigen(Matrix(Lf))).vectors
-    eigenvalues = (eigen(Matrix(Lf))).values
+    vertexCurls = calculateVertexCurls(conditionsDict["params"],matricesDict["matrices"],q,linkTriangleAreas)
 
-    ḡ = ((onesVec'*H*cellDivs)/(onesVec'*H*ones(nCells))).*onesVec
-    ğ = cellDivs.-ḡ
-    ψ̆ = zeros(nCells)
+    onesVec = ones(nVerts)
+    E = Diagonal(linkTriangleAreas)
+
+    ḡ = ((onesVec'*E*vertexCurls)/(onesVec'*E*ones(nVerts))).*onesVec
+    ğ = vertexCurls.-ḡ
+    ψ̆ = zeros(nVerts)
     eigenmodeAmplitudes = Float64[]
-    for k=2:nCells
-        numerator = eigenvectors[:,k]'*H*ğ
-        denominator = eigenvalues[k]*(eigenvectors[:,k]'*H*eigenvectors[:,k])
-        ψ̆ .-= (numerator/denominator).*eigenvectors[:,k]
+    for k=2:nVerts
+        numerator = -eigenvectors[:,k]'*E*ğ
+        denominator = eigenvalues[k]*(eigenvectors[:,k]'*E*eigenvectors[:,k])
+        ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
         push!(eigenmodeAmplitudes,(numerator/denominator))
     end
 
+    ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
 
-    derivative = Lf*ψ̆
+    derivative = Lₜ*ψ̆
 
     derivativeLims = (-maximum(abs.(derivative)),maximum(abs.(derivative)))
 
     fig = Figure(resolution=(1000,1000),fontsize = 24)
     ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
-    # ax1.title = LaTeXString("L_f\phi\breve")
     hidedecorations!(ax1)
     hidespines!(ax1)
+    for k=1:nVerts
+        poly!(ax1,linkTriangles[k],color=[derivative[k]],colorrange=derivativeLims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
+    end
     for i=1:nCells
-        poly!(ax1,cellPolygons[i],color=[derivative[i]],colormap=:bwr,colorrange=derivativeLims, strokecolor=(:black,1.0),strokewidth=5)
+        poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
     Colorbar(fig[1,1][1,2],limits=derivativeLims,colormap=:bwr,flipaxis=false,align=:left)
 
-    ğLims = (-maximum(abs.(ğ)),maximum(abs.(ğ)))
-    fig2 = Figure(resolution=(1000,1000),fontsize = 24)
-    ax2 = Axis(fig2[1,1][1,1],aspect=DataAspect(),fontsize=32)
-    # ax1.title = LaTeXString("L_f\phi\breve")
-    hidedecorations!(ax2)
-    hidespines!(ax2)
-    for i=1:nCells
-        poly!(ax2,cellPolygons[i],color=[ğ[i]],colormap=:bwr,colorrange=ğLims, strokecolor=(:black,1.0),strokewidth=5)
-    end
-    Colorbar(fig2[1,1][1,2],limits=ğLims,colormap=:bwr,flipaxis=false,align=:left)
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/pdf/LfpsicDerivative.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/LfpsicDerivative.pdf",fig)
-    save("$dataDirectory/svg/LfpsicDerivative.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/LfpsicDerivative.svg",fig)
-    save("$dataDirectory/png/LfpsicDerivative.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/LfpsicDerivative.png",fig)
-
-    save("$dataDirectory/pdf/gbreve.pdf",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve.pdf",fig2)
-    save("$dataDirectory/svg/gbreve.svg",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve.svg",fig2)
-    save("$dataDirectory/png/gbreve.png",fig2)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve.png",fig2)
+    save("$dataDirectory/pdf/capitalPsivPotentialLtDerivative.pdf",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/capitalPsivPotentialLtDerivative.pdf",fig)
+    save("$dataDirectory/svg/capitalPsivPotentialLtDerivative.svg",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/capitalPsivPotentialLtDerivative.svg",fig)
+    save("$dataDirectory/png/capitalPsivPotentialLtDerivative.png",fig)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/capitalPsivPotentialLtDerivative.png",fig)
 end
+capitalPsivPotentialLtDerivative

@@ -366,7 +366,7 @@ end
 #     return wideTildeVertexDivs
 # end
 
-function edgeLinkMidpoints(params,matrices,trapeziumAreas)
+function edgeLinkMidpoints(params,matrices,trapeziumAreas,T)
     @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matrices
     @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
 

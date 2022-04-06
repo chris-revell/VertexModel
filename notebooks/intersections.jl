@@ -18,188 +18,195 @@ includet("$(projectdir())/notebooks/functions.jl")
 
 dataDirectory = "data/sims/2022-03-16-16-02-03"
 
-isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
-isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
-isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
-isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
-isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
-isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
+function intersectionDivsCurls(dataDirectory)
 
-# Import system data
-conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = conditionsDict["params"]
-matricesDict = load("$dataDirectory/matricesFinal.jld2")
-@unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matricesDict["matrices"]
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
-# Create vector of polygons for each cell
-cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
+    # Import system data
+    conditionsDict    = load("$dataDirectory/dataFinal.jld2")
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,preferredPerimeter,preferredArea,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = conditionsDict["params"]
+    matricesDict = load("$dataDirectory/matricesFinal.jld2")
+    @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matricesDict["matrices"]
 
-# Find cell midpoint links T
-T = makeCellLinks(conditionsDict["params"],matricesDict["matrices"])
+    # Create vector of polygons for each cell
+    cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
-# Create vector of triangles from midpoint links
-linkTriangles = makeLinkTriangles(conditionsDict["params"],matricesDict["matrices"])
-linkTriangleAreas = abs.(area.(linkTriangles))
+    # Find cell midpoint links T
+    T = makeCellLinks(conditionsDict["params"],matricesDict["matrices"])
 
-edgeTrapezia = makeEdgeTrapezia(conditionsDict["params"],matricesDict["matrices"])
-trapeziumAreas = abs.(area.(edgeTrapezia))
+    # Create vector of triangles from midpoint links
+    linkTriangles = makeLinkTriangles(conditionsDict["params"],matricesDict["matrices"])
+    linkTriangleAreas = abs.(area.(linkTriangles))
 
-intersections = edgeLinkMidpoints(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
+    edgeTrapezia = makeEdgeTrapezia(conditionsDict["params"],matricesDict["matrices"])
+    trapeziumAreas = abs.(area.(edgeTrapezia))
 
-q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
+    intersections = edgeLinkMidpoints(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas,T)
 
-vertexMidpointCurls = calculateVertexMidpointCurls(conditionsDict["params"],matricesDict["matrices"],intersections,linkTriangleAreas,q)
-vertexMidpointCurlLims = (-maximum(abs.(vertexMidpointCurls)),maximum(abs.(vertexMidpointCurls)))
+    q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
 
-vertexMidpointDivs = calculateVertexMidpointDivs(conditionsDict["params"],matricesDict["matrices"],intersections,linkTriangleAreas,q)
-vertexMidpointDivLims = (-maximum(abs.(vertexMidpointDivs)),maximum(abs.(vertexMidpointDivs)))
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    cᵖ = boundaryEdges'.*edgeMidpoints
 
-cellMidpointDivs = calculateCellMidpointDivs(conditionsDict["params"],matricesDict["matrices"],intersections,q)
-cellMidpointDivLims = (-maximum(abs.(cellMidpointDivs)),maximum(abs.(cellMidpointDivs)))
+    vertexMidpointCurls = calculateVertexMidpointCurls(conditionsDict["params"],matricesDict["matrices"],intersections,linkTriangleAreas,q)
+    vertexMidpointCurlLims = (-maximum(abs.(vertexMidpointCurls)),maximum(abs.(vertexMidpointCurls)))
 
-cellMidpointCurls = calculateCellMidpointCurls(conditionsDict["params"],matricesDict["matrices"],intersections,q)
-cellMidpointCurlLims = (-maximum(abs.(cellMidpointCurls)),maximum(abs.(cellMidpointCurls)))
+    vertexMidpointDivs = calculateVertexMidpointDivs(conditionsDict["params"],matricesDict["matrices"],intersections,linkTriangleAreas,q)
+    vertexMidpointDivLims = (-maximum(abs.(vertexMidpointDivs)),maximum(abs.(vertexMidpointDivs)))
 
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax = Axis(grid[1,1][1,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
+    cellMidpointDivs = calculateCellMidpointDivs(conditionsDict["params"],matricesDict["matrices"],intersections,q)
+    cellMidpointDivLims = (-maximum(abs.(cellMidpointDivs)),maximum(abs.(cellMidpointDivs)))
 
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=(:white,0.0),strokewidth=1)
-end
+    cellMidpointCurls = calculateCellMidpointCurls(conditionsDict["params"],matricesDict["matrices"],intersections,q)
+    cellMidpointCurlLims = (-maximum(abs.(cellMidpointCurls)),maximum(abs.(cellMidpointCurls)))
 
-for k=1:nVerts
-    poly!(ax,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokecolor=(:black,0.5),strokewidth=1)
-end
+    # Set up figure canvas
+    fig1 = Figure(resolution=(1000,1000))
+    grid1 = fig1[1,1] = GridLayout()
+    ax1 = Axis(grid1[1,1][1,1],aspect=DataAspect())
+    hidedecorations!(ax1)
+    hidespines!(ax1)
 
-for j=1:nEdges
-    edgeCells = findall(!iszero,B[:,j])
-    if boundaryEdges[j] == 0
-        lines!(ax,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
-    else
-        lines!(ax,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+    # Plot cell polygons
+    for i=1:nCells
+        poly!(ax1,cellPolygons[i],color=(:white,0.0),strokewidth=1)
     end
-end
 
-scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
-scatter!(ax,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
-scatter!(ax,Point2f.(cellPositions),color=:red)
-scatter!(ax,Point2f.(intersections),color=:orange)
-Colorbar(grid[1,1][1,2],limits=vertexMidpointCurlLims,colormap=:bwr,flipaxis=false)
-
-save("$dataDirectory/pdf/vertexMidpointCurls.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/vertexMidpointCurls.pdf",fig)
-save("$dataDirectory/svg/vertexMidpointCurls.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/vertexMidpointCurls.svg",fig)
-save("$dataDirectory/png/vertexMidpointCurls.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/vertexMidpointCurls.png",fig)
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax = Axis(grid[1,1][1,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=(:white,0.0),strokewidth=1)
-end
-
-for k=1:nVerts
-    poly!(ax,linkTriangles[k],color=[vertexMidpointDivs[k]],colorrange=vertexMidpointDivLims,colormap=:bwr,strokecolor=(:black,0.5),strokewidth=1)
-end
-
-for j=1:nEdges
-    edgeCells = findall(!iszero,B[:,j])
-    if boundaryEdges[j] == 0
-        lines!(ax,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
-    else
-        lines!(ax,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+    for k=1:nVerts
+        poly!(ax1,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokecolor=(:black,0.5),strokewidth=1)
     end
-end
 
-scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
-scatter!(ax,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
-scatter!(ax,Point2f.(cellPositions),color=:red)
-scatter!(ax,Point2f.(intersections),color=:orange)
-Colorbar(grid[1,1][1,2],limits=vertexMidpointDivLims,colormap=:bwr,flipaxis=false)
-
-save("$dataDirectory/pdf/vertexMidpointDivs.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/vertexMidpointDivs.pdf",fig)
-save("$dataDirectory/svg/vertexMidpointDivs.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/vertexMidpointDivs.svg",fig)
-save("$dataDirectory/png/vertexMidpointDivs.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/vertexMidpointDivs.png",fig)
-
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax = Axis(grid[1,1][1,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[cellMidpointDivs[i]],colorrange=cellMidpointCurlLims,colormap=:bwr,strokewidth=1)
-end
-
-for j=1:nEdges
-    edgeCells = findall(!iszero,B[:,j])
-    if boundaryEdges[j] == 0
-        lines!(ax,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
-    else
-        lines!(ax,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+    for j=1:nEdges
+        edgeCells = findall(!iszero,B[:,j])
+        if boundaryEdges[j] == 0
+            lines!(ax1,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
+        else
+            lines!(ax1,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+        end
     end
-end
 
-scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
-scatter!(ax,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
-scatter!(ax,Point2f.(cellPositions),color=:red)
-scatter!(ax,Point2f.(intersections),color=:orange)
-Colorbar(grid[1,1][1,2],limits=cellMidpointDivLims,colormap=:bwr,flipaxis=false)
+    scatter!(ax1,Point2f.(R),alpha=0.5,color=:blue)
+    scatter!(ax1,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
+    scatter!(ax1,Point2f.(cellPositions),color=:red)
+    scatter!(ax1,Point2f.(intersections),color=:orange)
+    Colorbar(grid1[1,1][1,2],limits=vertexMidpointCurlLims,colormap=:bwr,flipaxis=false)
 
-save("$dataDirectory/pdf/cellMidpointDivs.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cellMidpointDivs.pdf",fig)
-save("$dataDirectory/svg/cellMidpointDivs.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cellMidpointDivs.svg",fig)
-save("$dataDirectory/png/cellMidpointDivs.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cellMidpointDivs.png",fig)
+    save("$dataDirectory/pdf/intersectionVertexCurls.pdf",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexCurls.pdf",fig1)
+    save("$dataDirectory/svg/intersectionVertexCurls.svg",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexCurls.svg",fig1)
+    save("$dataDirectory/png/intersectionVertexCurls.png",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexCurls.png",fig1)
 
-# Set up figure canvas
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax = Axis(grid[1,1][1,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
+    # Set up figure canvas
+    fig2 = Figure(resolution=(1000,1000))
+    grid2 = fig2[1,1] = GridLayout()
+    ax2 = Axis(grid2[1,1][1,1],aspect=DataAspect())
+    hidedecorations!(ax2)
+    hidespines!(ax2)
 
-# Plot cell polygons
-for i=1:nCells
-    poly!(ax,cellPolygons[i],color=[cellMidpointCurls[i]],colorrange=cellMidpointCurlLims,colormap=:bwr,strokewidth=1)
-end
-
-for j=1:nEdges
-    edgeCells = findall(!iszero,B[:,j])
-    if boundaryEdges[j] == 0
-        lines!(ax,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
-    else
-        lines!(ax,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+    # Plot cell polygons
+    for i=1:nCells
+        poly!(ax2,cellPolygons[i],color=(:white,0.0),strokewidth=1)
     end
+
+    for k=1:nVerts
+        poly!(ax2,linkTriangles[k],color=[vertexMidpointDivs[k]],colorrange=vertexMidpointDivLims,colormap=:bwr,strokecolor=(:black,0.5),strokewidth=1)
+    end
+
+    for j=1:nEdges
+        edgeCells = findall(!iszero,B[:,j])
+        if boundaryEdges[j] == 0
+            lines!(ax2,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
+        else
+            lines!(ax2,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+        end
+    end
+
+    scatter!(ax2,Point2f.(R),alpha=0.5,color=:blue)
+    scatter!(ax2,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
+    scatter!(ax2,Point2f.(cellPositions),color=:red)
+    scatter!(ax2,Point2f.(intersections),color=:orange)
+    Colorbar(grid2[1,1][1,2],limits=vertexMidpointDivLims,colormap=:bwr,flipaxis=false)
+
+    save("$dataDirectory/pdf/intersectionVertexDivs.pdf",fig2)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexDivs.pdf",fig2)
+    save("$dataDirectory/svg/intersectionVertexDivs.svg",fig2)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexDivs.svg",fig2)
+    save("$dataDirectory/png/intersectionVertexDivs.png",fig2)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexDivs.png",fig2)
+
+    # Set up figure canvas
+    fig3 = Figure(resolution=(1000,1000))
+    grid3 = fig3[1,1] = GridLayout()
+    ax3 = Axis(grid3[1,1][1,1],aspect=DataAspect())
+    hidedecorations!(ax3)
+    hidespines!(ax3)
+
+    # Plot cell polygons
+    for i=1:nCells
+        poly!(ax3,cellPolygons[i],color=[cellMidpointDivs[i]],colorrange=cellMidpointCurlLims,colormap=:bwr,strokewidth=1)
+    end
+
+    for j=1:nEdges
+        edgeCells = findall(!iszero,B[:,j])
+        if boundaryEdges[j] == 0
+            lines!(ax3,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
+        else
+            lines!(ax3,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+        end
+    end
+
+    scatter!(ax3,Point2f.(R),alpha=0.5,color=:blue)
+    scatter!(ax3,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
+    scatter!(ax3,Point2f.(cellPositions),color=:red)
+    scatter!(ax3,Point2f.(intersections),color=:orange)
+    Colorbar(grid3[1,1][1,2],limits=cellMidpointDivLims,colormap=:bwr,flipaxis=false)
+
+    save("$dataDirectory/pdf/intersectionCellDivs.pdf",fig3)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellDivs.pdf",fig3)
+    save("$dataDirectory/svg/intersectionCellDivs.svg",fig3)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellDivs.svg",fig3)
+    save("$dataDirectory/png/intersectionCellDivs.png",fig3)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellDivs.png",fig3)
+
+    # Set up figure canvas
+    fig4 = Figure(resolution=(1000,1000))
+    grid4 = fig4[1,1] = GridLayout()
+    ax4 = Axis(grid4[1,1][1,1],aspect=DataAspect())
+    hidedecorations!(ax4)
+    hidespines!(ax4)
+
+    # Plot cell polygons
+    for i=1:nCells
+        poly!(ax4,cellPolygons[i],color=[cellMidpointCurls[i]],colorrange=cellMidpointCurlLims,colormap=:bwr,strokewidth=1)
+    end
+
+    for j=1:nEdges
+        edgeCells = findall(!iszero,B[:,j])
+        if boundaryEdges[j] == 0
+            lines!(ax4,Point2f.(cellPositions[edgeCells]),linewidth=1,color=(:white,1.0))
+        else
+            lines!(ax4,Point2f.([cellPositions[edgeCells[1]],cᵖ[j]]),linewidth=1,color=(:white,1.0))
+        end
+    end
+
+    scatter!(ax4,Point2f.(R),alpha=0.5,color=:blue)
+    scatter!(ax4,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
+    scatter!(ax4,Point2f.(cellPositions),color=:red)
+    scatter!(ax4,Point2f.(intersections),color=:orange)
+    Colorbar(grid4[1,1][1,2],limits=cellMidpointCurlLims,colormap=:bwr,flipaxis=false)
+
+    save("$dataDirectory/pdf/intersectionCellCurls.pdf",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellCurls.pdf",fig4)
+    save("$dataDirectory/svg/intersectionCellCurls.svg",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellCurls.svg",fig4)
+    save("$dataDirectory/png/intersectionCellCurls.png",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellCurls.png",fig4)
 end
-
-scatter!(ax,Point2f.(R),alpha=0.5,color=:blue)
-scatter!(ax,Point2f.(edgeMidpoints),alpha=0.5,color=:green)
-scatter!(ax,Point2f.(cellPositions),color=:red)
-scatter!(ax,Point2f.(intersections),color=:orange)
-Colorbar(grid[1,1][1,2],limits=cellMidpointCurlLims,colormap=:bwr,flipaxis=false)
-
-save("$dataDirectory/pdf/cellMidpointCurls.pdf",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cellMidpointCurls.pdf",fig)
-save("$dataDirectory/svg/cellMidpointCurls.svg",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cellMidpointCurls.svg",fig)
-save("$dataDirectory/png/cellMidpointCurls.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cellMidpointCurls.png",fig)
