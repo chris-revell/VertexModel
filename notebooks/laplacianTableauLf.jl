@@ -46,7 +46,7 @@ function laplacianTableauLf(dataDirectory, show)
 
     decomposition = (eigen(Matrix(Lf))).vectors
 
-    signInversions = [3,4,5,9,11,12,16,17,18,19,21]
+    signInversions = [2, 4, 5, 6, 8, 10, 14, 15, 16, 17, 18, 19, 20, 21]
 
     # Set up figure canvas
     fig = Figure(resolution=(750,1600))
