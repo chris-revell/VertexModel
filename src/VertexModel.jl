@@ -58,7 +58,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,λ,viscousTimeS
         fig = Figure(resolution=(1000,1000))
         grid = fig[1,1] = GridLayout()
         ax1 = Axis(grid[1,1],aspect=DataAspect())
-        ax2 = Axis(grid[1,2],aspect=DataAspect())#,xreversed=true,yreversed=true)
+        ax2 = Axis(grid[1,2],aspect=DataAspect())
         hidedecorations!(ax1)
         hidespines!(ax1)
         hidedecorations!(ax2)
