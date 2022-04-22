@@ -1,6 +1,6 @@
-authors = ["chris-revell <christopher.revell@manchester.ac.uk>"]
 name = "VertexModel"
 uuid = "514bac63-329a-430c-b146-740bf51d96fc"
+authors = ["chris-revell <christopher.revell@manchester.ac.uk>"]
 version = "0.1.0"
 
 [deps]
@@ -11,6 +11,7 @@ Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 ElectronDisplay = "d872a56f-244b-5cc9-b574-2017b5b909a8"
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"

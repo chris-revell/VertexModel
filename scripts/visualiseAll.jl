@@ -16,7 +16,7 @@ using Printf
 
 # Local modules
 includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
-includet("$(projectdir())/notebooks/functions.jl")
+includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
 
 function visualiseFrame!(params,matrices,i,t,fig,ax1,ax2,mov,centralCell)
