@@ -1,0 +1,8 @@
+#!/bin/bash --login
+#$ -cwd               # Application will run from current working directory
+#$ -N juliaPFC        # Name given to batch job (optional)
+#$ -pe smp.pe 16      # Request 32 cores using SMP parallel environment
+#$ -m bea
+#$ -M christopher.revell@manchester.ac.uk
+
+/mnt/iusers01/maths01/x85521cr/julia-1.7.2/bin/julia -t $NSLOTS run.jl
