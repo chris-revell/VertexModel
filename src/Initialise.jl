@@ -38,7 +38,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/matricesFinal.jld2")
-        @unpack A,B,R = importedArrays["matrices"]
+        @unpack A,B,R,cellAges = importedArrays["matrices"]
     end
 
     # Infer system information from matrices
@@ -69,7 +69,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    cellAges          = rand(nCells).*nonDimCycleTime   # Random initial cell ages
+    initialSystem in ["one","three","seven"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
@@ -113,7 +113,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         cellAges,
         edgeLengths,
         edgeTangents,
-        edgeMidpoints,        
+        edgeMidpoints,
         F,
         externalF,
         ϵ,
