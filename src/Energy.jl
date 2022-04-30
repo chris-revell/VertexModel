@@ -16,11 +16,11 @@ using UnPack
 function energy(params,matrices)
 
     @unpack cellEnergies,cellAreas,cellPerimeters = matrices
-    @unpack nCells,preferredArea,preferredPerimeter,γ = params
+    @unpack nCells,A₀,L₀,γ = params
 
     energyTotal = 0.0
     for i=1:nCells
-        energyTotal += 0.5*(cellAreas[i]-preferredArea)^2 + 0.5*γ*(cellPerimeters[i]-preferredPerimeter)^2
+        energyTotal += 0.5*(cellAreas[i]-A₀)^2 + 0.5*γ*(cellPerimeters[i]-L₀)^2
     end
 
     return energyTotal

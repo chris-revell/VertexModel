@@ -19,8 +19,8 @@ mutable struct ParametersContainer
     nEdges             ::Int64    # Number of vertices
     γ                  ::Float64  # Parameters in energy relaxation
     λ                  ::Float64  # Parameters in energy relaxation
-    preferredPerimeter ::Float64  # Cell preferred perimeter length
-    preferredArea      ::Float64  # Cell preferred area
+    L₀                 ::Float64  # Cell preferred perimeter length L₀ = -λ/(2*γ)
+    A₀                 ::Float64  # Cell preferred area
     pressureExternal   ::Float64  # External pressure applied uniformly to system
     dt                 ::Float64  # Non dimensionalised time step
     outputTotal        ::Int64    # Total number of data outputs

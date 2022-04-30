@@ -18,7 +18,7 @@ using UnPack
 function spatialData!(R,params,matrices)
 
     @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
-    @unpack nCells,nEdges,γ,preferredPerimeter,preferredArea = params
+    @unpack nCells,nEdges,γ,L₀,A₀ = params
 
     cellPositions  .= C*R./cellEdgeCount
 
@@ -30,9 +30,9 @@ function spatialData!(R,params,matrices)
 
     cellPerimeters .= B̄*edgeLengths
 
-    cellTensions   .= γ.*(preferredPerimeter .- cellPerimeters)
+    cellTensions   .= γ.*(L₀ .- cellPerimeters)
 
-    cellPressures  .= cellAreas .- preferredArea
+    cellPressures  .= cellAreas .- A₀
 
     # Calculate oriented cell areas
     fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))

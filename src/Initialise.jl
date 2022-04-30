@@ -23,12 +23,13 @@ include("SpatialData.jl"); using .SpatialData
 include("CalculateForce.jl"); using .CalculateForce
 
 
-function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
-    preferredPerimeter = -λ/(2*γ)                       # Preferred perimeter length for each cell
+    # L₀ = -λ/(2*γ)                                     # Preferred perimeter length for each cell
+    λ = -2.0*L₀*γ
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Initialise system matrices from function or file
@@ -77,7 +78,7 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
     fill!(edgeMidpoints,@SVector zeros(2))
     F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
     fill!(F,@SVector zeros(2))
-    externalF       = Array{SVector{2,Float64}}(undef,nVerts)
+    externalF         = Array{SVector{2,Float64}}(undef,nVerts)
     fill!(externalF,@SVector zeros(2))
     rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
         0.0 0.5 0.5 0.5
@@ -127,8 +128,8 @@ function initialise(initialSystem,realTimetMax,γ,λ,preferredArea,pressureExter
         nEdges,
         γ,
         λ,
-        preferredPerimeter,
-        preferredArea,
+        L₀,
+        A₀,
         pressureExternal,
         dt,
         outputTotal,

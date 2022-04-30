@@ -171,7 +171,7 @@ mov = VideoStream(fig, framerate=5)
 t=0.0
 
 conditionsDictInitial    = load("$dataDirectory/params.jld2")
-@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,preferredPerimeter,preferredArea,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
+@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
 # matricesDictInitial = load("$dataDirectory/matricesInitial.jld2")
 
 # visualiseFrame!(conditionsDictInitial["params"],matricesDictInitial["matrices"],0,t,fig,ax1,ax2,mov)
