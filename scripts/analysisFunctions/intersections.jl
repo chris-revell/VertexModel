@@ -74,9 +74,9 @@ function intersectionDivsCurls(dataDirectory)
     hidedecorations!(ax1)
     hidespines!(ax1)
 
-    for k=1:nVerts
-        poly!(ax1,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokecolor=(:orange,0.75),strokewidth=1)
-    end
+    # for k=1:nVerts
+    #     poly!(ax1,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokecolor=(:orange,0.75),strokewidth=1)
+    # end
     # Plot cell polygons
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=(:white,0.0),strokewidth=1,strokecolor=(:black,1.0))
@@ -177,9 +177,9 @@ function intersectionDivsCurls(dataDirectory)
         poly!(ax4,cellPolygons[i],color=[cellMidpointCurls[i]],colorrange=cellMidpointCurlLims,colormap=:bwr,strokewidth=1)
     end
 
-    for k=1:nVerts
-        poly!(ax4,linkTriangles[k],color=(:white,0.0),colormap=:bwr,strokecolor=(:orange,0.75),strokewidth=1)
-    end
+    # for k=1:nVerts
+    #     poly!(ax4,linkTriangles[k],color=(:white,0.0),colormap=:bwr,strokecolor=(:orange,0.75),strokewidth=1)
+    # end
 
     # for j=1:nEdges
     #     edgeCells = findall(!iszero,B[:,j])

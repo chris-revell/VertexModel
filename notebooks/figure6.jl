@@ -17,7 +17,7 @@ using Printf
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/sims/2022-02-28-19-30-22"
+dataDirectory = "data/old/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")

@@ -19,7 +19,7 @@ include("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
 fig = Figure(resolution=(500,2000),fontsize = 24)
 
-dataDirs = ["data/sims/figure7/$x" for x in readdir("data/sims/figure7/") if isdir("data/sims/figure7/$x")]
+dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="old")]
 
 labels = [L"(a)",L"(b)",L"(c)",L"(d)",L"(e)",L"(f)",L"(g)",L"(h)",L"(i)",L"(j)",L"(k)",L"(l)",L"(m)",L"(n)",L"(o)",L"(p)",L"(q)",L"(r)",L"(s)",L"(t)",L"(u)",L"(v)",L"(w)",L"(x)",L"(y)",L"(z)"]
 
@@ -99,7 +99,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
     end
     Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 32)
 
-    ax3 = Axis(fig[i,3])#, xlabel="Eigenmode number", ylabel="Amplitude",fontsize=32)
+    ax3 = Axis(fig[i,3],yscale=log10)#, xlabel="Eigenmode number", ylabel="Amplitude",fontsize=32)
     hidedecorations!(ax3)
     xlims!(ax3,0,nVerts)
     ylims!(ax3,0,1.1*maximum(abs.([eigenmodeAmplitudesLt; eigenmodeAmplitudesLf])))

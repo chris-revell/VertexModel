@@ -106,7 +106,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         jldsave("$folderName/matricesFinal.jld2";matrices)
         jldsave("$folderName/dataFinal.jld2";params)
         # Save animated gif
-        save("$folderName/animated.mp4",mov)
+        save("$folderName/$(splitpath(folderName)[end]).mp4",mov)
     end
 
 end

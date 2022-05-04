@@ -16,7 +16,7 @@ using JLD2
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/sims/2022-02-28-19-30-22"
+dataDirectory = "data/old/2022-02-28-19-30-22"
 
 centralCell = 14
 

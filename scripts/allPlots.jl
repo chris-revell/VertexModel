@@ -30,31 +30,33 @@ includet("$(projectdir())/scripts/analysisFunctions/vertexCouples.jl")
 centralCell=1
 show=0
 
-dataDirs = ["data/sims/$x" for x in readdir("data/sims/") if isdir("data/sims/$x")]
+#dataDirs = ["data/AlexPaperParameters/$x" for x in readdir("data/AlexPaperParameters/") if isdir("data/AlexPaperParameters/$x")]
+dataDirs = ["/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x" for x in readdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x") if isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x")]
+dataDirs = ["data/figure7/$x" for x in readdir("data/figure7/$x") if isdir("data/figure7/$x")]
 
-for dataDirectory in dataDirs[end-5:end]
+for dataDirectory in dataDirs
     allCurlsDivs(dataDirectory, show)
     allEigenModesLf(dataDirectory)
-    allEigenModesLt(dataDirectory)
+    # allEigenModesLt(dataDirectory)
     allEigenModesLv(dataDirectory)
-    internalVertexCurls(dataDirectory,show)
+    # internalVertexCurls(dataDirectory,show)
     capitalPsivPotential(dataDirectory,show)
     capitalPsivSpectrum(dataDirectory,show)
-    capitalPsivPotentialLtDerivative(dataDirectory,show)
-    eigenvalues(dataDirectory, show)
-    forceNeighbourhood(dataDirectory, centralCell, show)
-    forceNetwork(dataDirectory, centralCell, show)
-    fullSystem(dataDirectory, centralCell, 1, 1, 1, 0, 1, 0, 1, 0, show)
+    # capitalPsivPotentialLtDerivative(dataDirectory,show)
+    # eigenvalues(dataDirectory, show)
+    # forceNeighbourhood(dataDirectory, centralCell, show)
+    # forceNetwork(dataDirectory, centralCell, show)
+    # fullSystem(dataDirectory, centralCell, 1, 1, 1, 0, 1, 0, 1, 0, show)
     laplacianTableauLf(dataDirectory, show)
-    laplacianTableauLt(dataDirectory, show)
+    # laplacianTableauLt(dataDirectory, show)
     laplacianTableauLv(dataDirectory, show)
-    orthogonality(dataDirectory)
+    # orthogonality(dataDirectory)
     psicPotential(dataDirectory, show)
-    psicPotentialLfDerivative(dataDirectory, show)
+    # psicPotentialLfDerivative(dataDirectory, show)
     psicSpectrum(dataDirectory, show)
     psivPotential(dataDirectory, show)
-    psivPotentialLtDerivative(dataDirectory, show)
+    # psivPotentialLtDerivative(dataDirectory, show)
     psivSpectrum(dataDirectory, show)
-    vertexCouples(dataDirectory, show)
-    intersectionDivsCurls(dataDirectory)
+    # vertexCouples(dataDirectory, show)
+    # intersectionDivsCurls(dataDirectory)
 end
