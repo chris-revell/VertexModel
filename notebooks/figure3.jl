@@ -21,7 +21,7 @@ dataDirectory = "data/old/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
@@ -44,7 +44,7 @@ decompositionLv = (eigen(Matrix(Lᵥ))).vectors
 
 # Set up figure canvas
 set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-fig = Figure(resolution=(1500,1600))
+fig = Figure(resolution=(2000,2150))
 superGrid = fig[1,1] = GridLayout()
 grid1 = superGrid[1,1] = GridLayout()
 
@@ -147,6 +147,6 @@ Label(grid2[9,:],
 
 resize_to_layout!(fig)
 
-# display(fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3.eps",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3.png",fig)
+display(fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3v2.eps",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3v2.png",fig)

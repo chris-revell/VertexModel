@@ -29,7 +29,7 @@ function intersectionDivsCurls(dataDirectory)
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,L₀,A₀,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = conditionsDict["params"]
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = conditionsDict["params"]
     matricesDict = load("$dataDirectory/matricesFinal.jld2")
     @unpack R,A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,cellPositions,cellPerimeters,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,F,externalF,ϵ = matricesDict["matrices"]
 
@@ -74,9 +74,9 @@ function intersectionDivsCurls(dataDirectory)
     hidedecorations!(ax1)
     hidespines!(ax1)
 
-    # for k=1:nVerts
-    #     poly!(ax1,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokecolor=(:orange,0.75),strokewidth=1)
-    # end
+    for k=1:nVerts
+        poly!(ax1,linkTriangles[k],color=[vertexMidpointCurls[k]],colorrange=vertexMidpointCurlLims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
+    end
     # Plot cell polygons
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=(:white,0.0),strokewidth=1,strokecolor=(:black,1.0))

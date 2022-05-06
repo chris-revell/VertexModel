@@ -21,7 +21,7 @@ dataDirectory = "data/old/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,externalF,boundaryVertices,cellPressures,edgeLengths = matricesDict["matrices"]
 
@@ -54,8 +54,8 @@ curlLims = (-maximum(abs.(vertexCurls)),maximum(abs.(vertexCurls)))
 # vertexDivLims = (-maximum(abs.(vertexDivs)),maximum(abs.(vertexDivs)))
 
 # Set up figure canvas
-set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-fig = Figure(resolution=(1000,1000))
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
+fig = Figure(resolution=(1000,1500))
 # grid = fig[1,1] = GridLayout()
 
 
@@ -66,7 +66,7 @@ hidespines!(ax1)
 for i=1:nCells
     poly!(ax1,cellPolygons[i],color=[cellDivs[i]],colormap=:bwr,colorrange=divLims, strokecolor=(:black,1.0),strokewidth=1)
 end
-Label(fig[1,1,Bottom()],LaTeXString("(a)"),textsize = 28)
+Label(fig[1,1,Bottom()],L"(a)",textsize = 32)
 # Colorbar(fig[1,2][1,2],limits=cellDivLims,colormap=:bwr,flipaxis=true)
 
 # Vertex div axis
@@ -79,7 +79,7 @@ end
 for i=1:nCells
     poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(fig[1,2,Bottom()],LaTeXString("(b)"),textsize = 28)
+Label(fig[1,2,Bottom()],L"(b)",textsize = 32)
 Colorbar(fig[1,3],limits=divLims,colormap=:bwr,flipaxis=true)
 
 
@@ -90,7 +90,7 @@ hidespines!(ax3)
 for i=1:nCells
     poly!(ax3,cellPolygons[i],color=[cellCurls[i]],colormap=:bwr,colorrange=curlLims,strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(fig[2,1,Bottom()],LaTeXString("(c)"),textsize = 28)
+Label(fig[2,1,Bottom()],L"(c)",textsize = 32)
 # Colorbar(fig[1,1][1,2],limits=cellCurlLims,colormap=:bwr,flipaxis=true)
 
 # Vertex curl axis
@@ -103,7 +103,7 @@ end
 for i=1:nCells
     poly!(ax4,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(fig[2,2,Bottom()],LaTeXString("(d)"),textsize = 28)
+Label(fig[2,2,Bottom()],L"(d)",textsize = 32)
 Colorbar(fig[2,3],limits=curlLims,colormap=:bwr,flipaxis=true)
 
 
@@ -137,7 +137,7 @@ end
 for i=1:nCells
     poly!(ax5,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(fig[3,1,Bottom()],LaTeXString("(e)"),textsize = 28)
+Label(fig[3,1,Bottom()],L"(e)",textsize = 32)
 
 # Vertex couples axis
 ax6 = Axis(fig[3,2],aspect=DataAspect())
@@ -149,7 +149,7 @@ end
 for i=1:nCells
     poly!(ax6,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
 end
-Label(fig[3,2,Bottom()],LaTeXString("(f)"),textsize = 28)
+Label(fig[3,2,Bottom()],L"(f)",textsize = 32)
 cb = Colorbar(fig[3,3],limits=otherLims,colormap=:bwr,flipaxis=true) #:bwr
 # cb.alignmode = Mixed(top=-10)
 

@@ -28,7 +28,7 @@ function forceNetwork(dataDirectory, centralCell, show)
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-    @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+    @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
     matricesDict = load("$dataDirectory/matricesFinal.jld2")
     @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeLengths,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths,externalF = matricesDict["matrices"]
 

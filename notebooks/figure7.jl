@@ -17,7 +17,8 @@ using Printf
 # Local modules
 include("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-fig = Figure(resolution=(500,2000),fontsize = 24)
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+fig = Figure(resolution=(2000,3000),fontsize = 32)
 
 dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="old")]
 
@@ -27,7 +28,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-    @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+    @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
     matricesDict = load("$dataDirectory/matricesFinal.jld2")
     @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
@@ -61,13 +62,13 @@ for (i,dataDirectory) in enumerate(dataDirs)
         push!(eigenmodeAmplitudesLf,(numerator/denominator))
     end
     ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
-    ax1 = Axis(fig[i,1],aspect=DataAspect(),fontsize=32)
+    ax1 = Axis(fig[i,1],aspect=DataAspect(),fontsize=48)
     hidedecorations!(ax1)
     hidespines!(ax1)
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=[ψ̆[i]],colormap=:bwr,colorrange=ψ̆Lims, strokecolor=(:black,1.0),strokewidth=1)
     end
-    Label(fig[i,1,Bottom()],labels[3*i-2],textsize = 32)
+    Label(fig[i,1,Bottom()],labels[3*i-2],textsize = 64)
     # Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false,align=:left)
 
     # psi_v axis
@@ -88,7 +89,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
         push!(eigenmodeAmplitudesLt,(numerator/denominator))
     end
     ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
-    ax2 = Axis(fig[i,2],aspect=DataAspect(),fontsize=32)
+    ax2 = Axis(fig[i,2],aspect=DataAspect(),fontsize=48)
     hidedecorations!(ax2)
     hidespines!(ax2)
     for k=1:nVerts
@@ -97,15 +98,15 @@ for (i,dataDirectory) in enumerate(dataDirs)
     for i=1:nCells
         poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
-    Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 32)
+    Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 64)
 
-    ax3 = Axis(fig[i,3])#, xlabel="Eigenmode number", ylabel="Amplitude",fontsize=32)
-    hidedecorations!(ax3)
+    ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel=L"log_{10}(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
+    # hidedecorations!(ax3)
     xlims!(ax3,1,nVerts)
-    ylims!(ax3,0,7)
-    lines!(ax3,collect(2:nCells),6.0.+log10.(abs.(eigenmodeAmplitudesLf)),width=1,color=(:blue,0.5),strokecolor=(:blue,0.5))
-    lines!(ax3,collect(2:nVerts),6.0.+log10.(abs.(eigenmodeAmplitudesLt)),width=1,color=(:orange,0.5),strokecolor=(:orange,0.5))
-    Label(fig[i,3,Bottom()],labels[3*i],textsize = 32)
+    ylims!(ax3,-6,1)
+    lines!(ax3,collect(2:nCells),log10.(abs.(eigenmodeAmplitudesLf)),linewidth=2,color=(:blue,0.5),strokecolor=(:blue,0.5))
+    lines!(ax3,collect(2:nVerts),log10.(abs.(eigenmodeAmplitudesLt)),linewidth=2,color=(:orange,0.5),strokecolor=(:orange,0.5))
+    Label(fig[i,3,Bottom()],labels[3*i],textsize = 64)
 end
 
 colsize!(fig.layout, 1, Aspect(1, 1))

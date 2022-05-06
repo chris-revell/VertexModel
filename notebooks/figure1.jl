@@ -31,7 +31,7 @@ annotateCells = 0
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,B,Bᵀ,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ = matricesDict["matrices"]
 
@@ -49,6 +49,7 @@ T = makeCellLinks(conditionsDict["params"],matricesDict["matrices"])
 cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"])
 
 # Set up figure canvas
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
 fig = Figure(resolution=(1000,400))
 ax1 = Axis(fig[1,1],aspect=DataAspect())
 hidedecorations!(ax1)

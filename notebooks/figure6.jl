@@ -21,7 +21,7 @@ dataDirectory = "data/old/2022-02-28-19-30-22"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
-@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
+@unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]
 matricesDict = load("$dataDirectory/matricesFinal.jld2")
 @unpack A,Aᵀ,B,Bᵀ,B̄,C,R,F,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,boundaryVertices,edgeLengths = matricesDict["matrices"]
 
@@ -34,8 +34,8 @@ cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"
 q = calculateSpokes(conditionsDict["params"],matricesDict["matrices"])
 
 # Set up figure canvas
-set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-fig = Figure(resolution=(1000,1000))
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica",fontsize=19)
+fig = Figure(resolution=(1000,1400))
 
 # psi_c potential axis
 Lf = makeLf(conditionsDict["params"],matricesDict["matrices"],trapeziumAreas)
@@ -103,7 +103,7 @@ Label(fig[2,1,Bottom()],L"(c)",textsize = 32)
 ax4 = Axis(fig[2,2], xlabel="Eigenmode number, k", ylabel="Amplitude", alignmode = Outside())
 xlims!(ax4,0,nVerts)
 ylims!(ax4,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
-barplot!(ax4,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
+barplot!(ax4,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:orange,strokecolor=:orange)
 Label(fig[2,2,Bottom()],L"(d)",textsize = 32)
 
 # Capital psi_v potential axis
@@ -140,7 +140,7 @@ Label(fig[3,1,Bottom()],L"(e)",textsize = 32)
 ax6 = Axis(fig[3,2], xlabel="Eigenmode number, k", ylabel="Amplitude", alignmode = Outside())
 xlims!(ax6,0,nVerts)
 ylims!(ax6,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
-barplot!(ax6,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
+barplot!(ax6,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:green,strokecolor=:green)
 Label(fig[3,2,Bottom()],L"(f)",textsize = 32)
 
 
