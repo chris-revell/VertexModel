@@ -99,12 +99,12 @@ for (i,dataDirectory) in enumerate(dataDirs)
     end
     Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 32)
 
-    ax3 = Axis(fig[i,3],yscale=log10)#, xlabel="Eigenmode number", ylabel="Amplitude",fontsize=32)
+    ax3 = Axis(fig[i,3])#, xlabel="Eigenmode number", ylabel="Amplitude",fontsize=32)
     hidedecorations!(ax3)
-    xlims!(ax3,0,nVerts)
-    ylims!(ax3,0,1.1*maximum(abs.([eigenmodeAmplitudesLt; eigenmodeAmplitudesLf])))
-    barplot!(ax3,collect(2:nCells),abs.(eigenmodeAmplitudesLf),width=1.0,color=(:blue,0.75),strokecolor=(:blue,0.75))
-    barplot!(ax3,collect(2:nVerts),abs.(eigenmodeAmplitudesLt),width=1.0,color=(:orange,0.75),strokecolor=(:orange,0.75))
+    xlims!(ax3,1,nVerts)
+    ylims!(ax3,0,7)
+    lines!(ax3,collect(2:nCells),6.0.+log10.(abs.(eigenmodeAmplitudesLf)),width=1,color=(:blue,0.5),strokecolor=(:blue,0.5))
+    lines!(ax3,collect(2:nVerts),6.0.+log10.(abs.(eigenmodeAmplitudesLt)),width=1,color=(:orange,0.5),strokecolor=(:orange,0.5))
     Label(fig[i,3,Bottom()],labels[3*i],textsize = 32)
 end
 
