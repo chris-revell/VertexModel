@@ -15,6 +15,7 @@ using StaticArrays
 using UnPack
 using Plots
 using GeometryBasics
+using SparseArrays
 
 function calculateForce!(R,params,matrices)
 
@@ -27,14 +28,19 @@ function calculateForce!(R,params,matrices)
     # Internal forces
     # NB This iteration could probably be improved to better leverage sparse arrays
     for k=1:nVerts
-        for i=1:nCells
-            for j=1:nEdges
-                # Pressure term
-                F[k,i] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])
-                # Tension term
-                F[k,i] += cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
-                # External force
-                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+        for j in nzrange(A,k)
+            for i in nzrange(B,j)
+                F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*nonzeros(B)[i]*nonzeros(Ā)[j]*(ϵ*edgeTangents[rowvals(A)[j]])
+                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*nonzeros(B̄)[i]*nonzeros(A)[j]*edgeTangents[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]]
+                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*nonzeros(B)[i]*nonzeros(Ā)[j]*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+        # for i=1:nCells
+        #     for j=1:nEdges
+        #         # Pressure term
+        #         F[k,i] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])
+        #         # Tension term
+        #         F[k,i] += cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
+        #         # External force
+        #         externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
             end
         end
     end
