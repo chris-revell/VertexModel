@@ -31,7 +31,7 @@ centralCell=1
 show=0
 
 #dataDirs = ["data/AlexPaperParameters/$x" for x in readdir("data/AlexPaperParameters/") if isdir("data/AlexPaperParameters/$x")]
-dataDirs = ["/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x" for x in readdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x") if isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/AlexPaperParameters/$x")]
+dataDirs = ["/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/AlexPaperParameters/$x" for x in readdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/AlexPaperParameters/$x") if isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/AlexPaperParameters/$x")]
 dataDirs = ["data/figure7/$x" for x in readdir("data/figure7/$x") if isdir("data/figure7/$x")]
 
 for dataDirectory in dataDirs

@@ -148,5 +148,5 @@ Label(grid2[9,:],
 resize_to_layout!(fig)
 
 display(fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3v2.eps",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/figure3v2.png",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.eps",fig)
+save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.png",fig)

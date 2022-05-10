@@ -39,7 +39,7 @@ function allEigenModesLt(dataDirectory)
     decomposition = (eigen(Matrix(Lₜ))).vectors
 
     isdir("$dataDirectory/eigenmodesLt") ? nothing : mkpath("$dataDirectory/eigenmodesLt")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt")
 
     # Set up figure canvas
     fig = Figure(resolution=(1000,1000))
@@ -57,6 +57,6 @@ function allEigenModesLt(dataDirectory)
             poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
         end
         save("$dataDirectory/eigenmodesLt/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
-        save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
+        save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/eigenmodesLt/eigenmode$(@sprintf("%03d", eigenvectorIndex)).png",fig)
     end
 end

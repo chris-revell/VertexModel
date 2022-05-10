@@ -20,9 +20,9 @@ dataDirectory = "data/sims/2022-03-16-16-02-03"
 
 function intersectionDivsCurls(dataDirectory)
 
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
+    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
     isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
     isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
     isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
@@ -88,11 +88,11 @@ function intersectionDivsCurls(dataDirectory)
     resize_to_layout!(fig1)
 
     save("$dataDirectory/pdf/intersectionVertexCurls.pdf",fig1)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexCurls.pdf",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexCurls.pdf",fig1)
     save("$dataDirectory/svg/intersectionVertexCurls.svg",fig1)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexCurls.svg",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexCurls.svg",fig1)
     save("$dataDirectory/png/intersectionVertexCurls.png",fig1)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexCurls.png",fig1)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexCurls.png",fig1)
 
     # Set up figure canvas
     # fig2 = Figure(resolution=(500,500))
@@ -126,11 +126,11 @@ function intersectionDivsCurls(dataDirectory)
     # Colorbar(grid2[1,1][1,2],limits=vertexMidpointDivLims,colormap=:bwr)
     #
     # save("$dataDirectory/pdf/intersectionVertexDivs.pdf",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexDivs.pdf",fig2)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionVertexDivs.pdf",fig2)
     # save("$dataDirectory/svg/intersectionVertexDivs.svg",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexDivs.svg",fig2)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionVertexDivs.svg",fig2)
     # save("$dataDirectory/png/intersectionVertexDivs.png",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexDivs.png",fig2)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionVertexDivs.png",fig2)
 
     # Set up figure canvas
     # fig3 = Figure(resolution=(500,500))
@@ -160,11 +160,11 @@ function intersectionDivsCurls(dataDirectory)
     # Colorbar(grid3[1,1][1,2],limits=cellMidpointDivLims,colormap=:bwr)
     #
     # save("$dataDirectory/pdf/intersectionCellDivs.pdf",fig3)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellDivs.pdf",fig3)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellDivs.pdf",fig3)
     # save("$dataDirectory/svg/intersectionCellDivs.svg",fig3)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellDivs.svg",fig3)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellDivs.svg",fig3)
     # save("$dataDirectory/png/intersectionCellDivs.png",fig3)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellDivs.png",fig3)
+    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellDivs.png",fig3)
 
     # Set up figure canvas
     fig4 = Figure(resolution=(500,500))
@@ -199,9 +199,9 @@ function intersectionDivsCurls(dataDirectory)
     resize_to_layout!(fig4)
 
     save("$dataDirectory/pdf/intersectionCellCurls.pdf",fig4)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellCurls.pdf",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/intersectionCellCurls.pdf",fig4)
     save("$dataDirectory/svg/intersectionCellCurls.svg",fig4)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellCurls.svg",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/intersectionCellCurls.svg",fig4)
     save("$dataDirectory/png/intersectionCellCurls.png",fig4)
-    save("/Users/christopher/Dropbox (The University of Manchester)/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellCurls.png",fig4)
+    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/intersectionCellCurls.png",fig4)
 end
