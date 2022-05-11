@@ -18,13 +18,21 @@ using DrWatson
 using CairoMakie
 using DelimitedFiles
 using Printf
+using Suppressor
 
 # Local modules
-include("CreateRunDirectory.jl"); using .CreateRunDirectory
-include("Visualise.jl"); using .Visualise
-include("Initialise.jl"); using .Initialise
-include("Iterate.jl"); using .Iterate
-include("Energy.jl"); using .Energy
+# include("CreateRunDirectory.jl"); using .CreateRunDirectory
+@suppress begin
+    using CreateRunDirectory
+    # include("Visualise.jl"); using .Visualise
+    using Visualise
+    # include("Initialise.jl"); using .Initialise
+    using Initialise
+    # include("Iterate.jl"); using .Iterate
+    using Iterate
+    # include("Energy.jl"); using .Energy
+    using Energy
+end
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state

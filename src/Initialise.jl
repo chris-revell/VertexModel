@@ -16,11 +16,16 @@ using JLD2
 using UnPack
 
 # Local modules
-include("InitialHexagons.jl"); using .InitialHexagons
-include("VertexModelContainers.jl"); using .VertexModelContainers
-include("TopologyChange.jl"); using .TopologyChange
-include("SpatialData.jl"); using .SpatialData
-include("CalculateForce.jl"); using .CalculateForce
+# include("InitialHexagons.jl"); using .InitialHexagons
+using InitialHexagons
+# include("VertexModelContainers.jl"); using .VertexModelContainers
+using VertexModelContainers
+# include("TopologyChange.jl"); using .TopologyChange
+using TopologyChange
+# include("SpatialData.jl"); using .SpatialData
+using SpatialData
+# include("CalculateForce.jl"); using .CalculateForce
+using CalculateForce
 
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)

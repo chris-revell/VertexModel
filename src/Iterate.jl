@@ -15,11 +15,16 @@ using UnPack
 using StaticArrays
 
 # Local modules
-include("SpatialData.jl"); using .SpatialData
-include("CalculateForce.jl"); using .CalculateForce
-include("T1Transitions.jl"); using .T1Transitions
-include("TopologyChange.jl"); using .TopologyChange
-include("Division.jl"); using .Division
+# include("SpatialData.jl"); using .SpatialData
+using SpatialData
+# include("CalculateForce.jl"); using .CalculateForce
+using CalculateForce
+# include("T1Transitions.jl"); using .T1Transitions
+using T1Transitions
+# include("TopologyChange.jl"); using .TopologyChange
+using TopologyChange
+# include("Division.jl"); using .Division
+using Division
 
 function iterate!(iteration,params,matrices)
 
