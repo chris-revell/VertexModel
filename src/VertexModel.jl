@@ -20,11 +20,11 @@ using DelimitedFiles
 using Printf
 
 # Local modules
-include("$(projectdir())/src/CreateRunDirectory.jl"); using .CreateRunDirectory
-include("$(projectdir())/src/Visualise.jl"); using .Visualise
-include("$(projectdir())/src/Initialise.jl"); using .Initialise
-include("$(projectdir())/src/Iterate.jl"); using .Iterate
-include("$(projectdir())/src/Energy.jl"); using .Energy
+include("CreateRunDirectory.jl"); using .CreateRunDirectory
+include("Visualise.jl"); using .Visualise
+include("Initialise.jl"); using .Initialise
+include("Iterate.jl"); using .Iterate
+include("Energy.jl"); using .Energy
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state

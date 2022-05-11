@@ -26,13 +26,18 @@ function calculateForce!(R,params,matrices)
     fill!(externalF,@SVector zeros(2))
 
     # Internal forces
-    # NB This iteration could probably be improved to better leverage sparse arrays
     for k=1:nVerts
         for j in nzrange(A,k)
-            for i in nzrange(B,j)
-                F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*nonzeros(B)[i]*nonzeros(Ā)[j]*(ϵ*edgeTangents[rowvals(A)[j]])
-                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*nonzeros(B̄)[i]*nonzeros(A)[j]*edgeTangents[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]]
-                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*nonzeros(B)[i]*nonzeros(Ā)[j]*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+            for i in nzrange(B,rowvals(A)[j])
+                # display("rowvals(B)[i]")
+                # display(rowvals(B)[i])
+                # display("rowvals(A)[j]")
+                # display(rowvals(A)[j])
+                # display("k")
+                # display(k)
+                F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k]*(ϵ*edgeTangents[rowvals(A)[j]])
+                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k]*edgeTangents[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]]
+                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k]*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
         # for i=1:nCells
         #     for j=1:nEdges
         #         # Pressure term
