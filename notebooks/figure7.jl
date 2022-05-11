@@ -13,6 +13,7 @@ using Random
 using Colors
 using JLD2
 using Printf
+using UnicodeFun
 
 # Local modules
 include("$(projectdir())/scripts/analysisFunctions/functions.jl")
@@ -100,7 +101,9 @@ for (i,dataDirectory) in enumerate(dataDirs)
     end
     Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 64)
 
-    ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel=L"log_{10}(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
+    #ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel=L"log_{10}(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
+    ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel="log$(to_subscript("10"))(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
+
     # hidedecorations!(ax3)
     xlims!(ax3,1,nVerts)
     ylims!(ax3,-6,1)
