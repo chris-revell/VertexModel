@@ -38,7 +38,7 @@ function spatialData!(R,params,matrices)
     fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
     for i=1:nCells
         for j=1:nEdges
-            cellOrientedAreas[i] += B[i,j]*edgeTangents[j]*edgeMidpoints[j]'
+            cellOrientedAreas[i] += B[i,j].*edgeTangents[j]*edgeMidpoints[j]'
         end
         cellAreas[i] = cellOrientedAreas[i][1,2]
     end
