@@ -13,6 +13,7 @@ module Iterate
 using LinearAlgebra
 using UnPack
 using StaticArrays
+using FastBroadcast
 
 # Local modules
 # include("SpatialData.jl"); using .SpatialData
@@ -28,10 +29,13 @@ using Division
 
 function iterate!(iteration,params,matrices)
 
-    @unpack R, tempR, ΔR, rkCoefficients = matrices
-    @unpack dt = params
+    @unpack R, tempR, ΔR, rkCoefficients, totalF = matrices
+    @unpack dt,nCells = params
 
-    tempR .= R .+ (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[1,iteration]
+    totalF .= sum(matrices.F,dims=2)
+    # mul!(totalF,matrices.F,ones(nCells))
+    @.. thread=false totalF .+= matrices.externalF
+    @.. thread=false tempR .= R .+ totalF.*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
@@ -50,7 +54,9 @@ function iterate!(iteration,params,matrices)
 
     calculateForce!(tempR,params,matrices)
 
-    ΔR .+= (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[2,iteration]/6.0
+    totalF .= sum(matrices.F,dims=2)
+    @.. thread=false totalF .+= matrices.externalF
+    @.. thread=false ΔR .+= totalF.*dt*rkCoefficients[2,iteration]/6.0
 
     return nothing
 end

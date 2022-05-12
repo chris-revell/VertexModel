@@ -13,17 +13,22 @@ module TopologyChange
 using LinearAlgebra
 using UnPack
 using SparseArrays
+using FastBroadcast
 
 @views function topologyChange!(matrices)
 
     @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices = matrices
 
     # Find adjacency matrices from incidence matrices
-    Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
     dropzeros!(Ā)
-    B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
+
+    @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
     dropzeros!(B̄)
-    C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
+
+    # C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
+    mul!(C,B̄,Ā)
+    @.. thread=false C .÷= 2
     dropzeros!(C)
 
     # Update transpose matrices

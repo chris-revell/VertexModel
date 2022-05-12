@@ -85,6 +85,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     fill!(F,@SVector zeros(2))
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)
     fill!(externalF,@SVector zeros(2))
+    totalF         = Array{SVector{2,Float64}}(undef,nVerts)
+    fill!(totalF,@SVector zeros(2))
     rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
         0.0 0.5 0.5 0.5
         1.0 2.0 2.0 1.0
@@ -122,6 +124,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         edgeMidpoints,
         F,
         externalF,
+        totalF,
         ϵ,
         rkCoefficients
     )
