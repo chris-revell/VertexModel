@@ -32,7 +32,7 @@ function iterate!(iteration,params,matrices)
     @unpack R, tempR, ΔR, rkCoefficients, totalF = matrices
     @unpack dt,nCells = params
 
-    totalF .= sum.(eachrow(matrices.F))
+    totalF .= sum.(eachrow(matrices.F))     # FastBroadcast doesn't work for this line; not sure why
     @.. thread=false totalF .+= matrices.externalF
     @.. thread=false tempR .= R .+ totalF.*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
@@ -53,7 +53,7 @@ function iterate!(iteration,params,matrices)
 
     calculateForce!(tempR,params,matrices)
 
-    totalF .= sum.(eachrow(matrices.F))
+    totalF .= sum.(eachrow(matrices.F))     # FastBroadcast doesn't work for this line; not sure why
     @.. thread=false totalF .+= matrices.externalF
     @.. thread=false ΔR .+= totalF.*dt*rkCoefficients[2,iteration]/6.0
 

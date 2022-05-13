@@ -150,13 +150,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         t1Threshold
     )
 
-
-
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
     spatialData!(R,params,matrices)
     calculateForce!(R,params,matrices)
-
 
     return params,matrices
 

@@ -16,6 +16,7 @@ using UnPack
 using Plots
 using GeometryBasics
 using SparseArrays
+using .Threads
 
 function calculateForce!(R,params,matrices)
 
@@ -26,7 +27,7 @@ function calculateForce!(R,params,matrices)
     fill!(externalF,@SVector zeros(2))
 
     # Internal forces
-    for k=1:nVerts
+    @threads for k=1:nVerts
         for j in nzrange(A,k)
             for i in nzrange(B,rowvals(A)[j])
                 F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])
