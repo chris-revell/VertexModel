@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: VertexModel.jl
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Christopher
+    name-particle: K
+    family-names: Revell
+    email: christopher.revell@manchester.ac.uk
+    affiliation: >-
+      University of Manchester, Department of
+      Mathematics
+    orcid: 'https://orcid.org/0000-0002-9646-2888'
+  - given-names: Oliver
+    name-particle: E
+    family-names: Jensen
+    email: oliver.jensen@manchester.ac.uk
+    affiliation: >-
+      University of Manchester, Department of
+      Mathematics
+    orcid: 'https://orcid.org/0000-0003-0172-6578'
