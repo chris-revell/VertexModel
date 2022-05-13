@@ -8,16 +8,14 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Christopher
-    name-particle: K
+  - given-names: Christopher K.
     family-names: Revell
     email: christopher.revell@manchester.ac.uk
     affiliation: >-
       University of Manchester, Department of
       Mathematics
     orcid: 'https://orcid.org/0000-0002-9646-2888'
-  - given-names: Oliver
-    name-particle: E
+  - given-names: Oliver E.
     family-names: Jensen
     email: oliver.jensen@manchester.ac.uk
     affiliation: >-
