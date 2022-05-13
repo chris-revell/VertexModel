@@ -22,3 +22,7 @@ authors:
       University of Manchester, Department of
       Mathematics
     orcid: 'https://orcid.org/0000-0003-0172-6578'
+identifiers:
+  - type: url
+    value: 'https://github.com/chris-revell/VertexModel'
+    description: Public GitHub repository
