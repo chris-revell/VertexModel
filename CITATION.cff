@@ -26,3 +26,9 @@ identifiers:
   - type: url
     value: 'https://github.com/chris-revell/VertexModel'
     description: Public GitHub repository
+repository-code: 'https://github.com/chris-revell/VertexModel'
+keywords:
+  - Julia
+  - Vertex model
+license: MIT
+date-released: '2022-05-15'
