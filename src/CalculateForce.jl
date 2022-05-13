@@ -15,6 +15,8 @@ using StaticArrays
 using UnPack
 using Plots
 using GeometryBasics
+using SparseArrays
+using .Threads
 
 function calculateForce!(R,params,matrices)
 
@@ -25,19 +27,28 @@ function calculateForce!(R,params,matrices)
     fill!(externalF,@SVector zeros(2))
 
     # Internal forces
-    # NB This iteration could probably be improved to better leverage sparse arrays
-    for k=1:nVerts
-        for i=1:nCells
-            for j=1:nEdges
-                # Pressure term
-                F[k,i] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])
-                # Tension term
-                F[k,i] += cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
-                # External force
-                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+    @threads for k=1:nVerts
+        for j in nzrange(A,k)
+            for i in nzrange(B,rowvals(A)[j])
+                F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])
+                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
+                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
         end
     end
+
+    # for k=1:nVerts
+    #     for i=1:nCells
+    #         for j=1:nEdges
+    #             # Pressure term
+    #             F[k,i] += 0.5*cellPressures[i]*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])
+    #             # Tension term
+    #             F[k,i] += cellTensions[i]*B̄[i,j]*A[j,k]*edgeTangents[j]/edgeLengths[j]
+    #             # External force
+    #             externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[i,j]*Ā[j,k]*(ϵ*edgeTangents[j])) # 0 unless boundaryVertices != 0
+    #         end
+    #     end
+    # end
 
 end
 

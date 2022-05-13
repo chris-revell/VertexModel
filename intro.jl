@@ -1,3 +1,5 @@
+push!(LOAD_PATH,"./")
+push!(LOAD_PATH,"src")
 using DrWatson
 println("Activating environment...")
 @quickactivate "VertexModel"

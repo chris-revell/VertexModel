@@ -16,11 +16,16 @@ using JLD2
 using UnPack
 
 # Local modules
-include("InitialHexagons.jl"); using .InitialHexagons
-include("VertexModelContainers.jl"); using .VertexModelContainers
-include("TopologyChange.jl"); using .TopologyChange
-include("SpatialData.jl"); using .SpatialData
-include("CalculateForce.jl"); using .CalculateForce
+# include("InitialHexagons.jl"); using .InitialHexagons
+using InitialHexagons
+# include("VertexModelContainers.jl"); using .VertexModelContainers
+using VertexModelContainers
+# include("TopologyChange.jl"); using .TopologyChange
+using TopologyChange
+# include("SpatialData.jl"); using .SpatialData
+using SpatialData
+# include("CalculateForce.jl"); using .CalculateForce
+using CalculateForce
 
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -80,6 +85,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     fill!(F,@SVector zeros(2))
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)
     fill!(externalF,@SVector zeros(2))
+    totalF         = Array{SVector{2,Float64}}(undef,nVerts)
+    fill!(totalF,@SVector zeros(2))
     rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
         0.0 0.5 0.5 0.5
         1.0 2.0 2.0 1.0
@@ -117,6 +124,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         edgeMidpoints,
         F,
         externalF,
+        totalF,
         ϵ,
         rkCoefficients
     )
@@ -142,13 +150,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         t1Threshold
     )
 
-
-
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
     spatialData!(R,params,matrices)
     calculateForce!(R,params,matrices)
-
 
     return params,matrices
 

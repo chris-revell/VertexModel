@@ -13,34 +13,43 @@ module SpatialData
 using LinearAlgebra
 using StaticArrays
 using UnPack
+using FastBroadcast
+using SparseArrays
 
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
+    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
     @unpack nCells,nEdges,γ,L₀,A₀ = params
 
-    cellPositions  .= C*R./cellEdgeCount
+    # cellPositions  .= C*R./cellEdgeCount
+    mul!(cellPositions,C,R)
+    @.. thread=false cellPositions ./= cellEdgeCount
 
-    edgeTangents   .= A*R
+    # edgeTangents   .= A*R
+    mul!(edgeTangents,A,R)
 
-    edgeLengths    .= norm.(edgeTangents)
+    @.. thread=false edgeLengths .= norm.(edgeTangents)
 
-    edgeMidpoints  .= 0.5.*Ā*R
+    # edgeMidpoints  .= 0.5.*Ā*R
+    mul!(edgeMidpoints,Ā,R)
+    @.. thread=false edgeMidpoints .*= 0.5
 
-    cellPerimeters .= B̄*edgeLengths
+    # cellPerimeters .= B̄*edgeLengths
+    mul!(cellPerimeters,B̄,edgeLengths)
 
-    cellTensions   .= γ.*(L₀ .- cellPerimeters)
+    @.. thread=false cellTensions   .= γ.*(L₀ .- cellPerimeters)
 
-    cellPressures  .= cellAreas .- A₀
+    @.. thread=false cellPressures  .= cellAreas .- A₀
 
     # Calculate oriented cell areas
-    fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
+    # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
     for i=1:nCells
-        for j=1:nEdges
-            cellOrientedAreas[i] += B[i,j]*edgeTangents[j]*edgeMidpoints[j]'
+        for j in nzrange(Bᵀ,i)
+            # cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'
+            cellAreas[i] += B[i,rowvals(Bᵀ)[j]]*(edgeTangents[rowvals(Bᵀ)[j]]⋅edgeMidpoints[rowvals(Bᵀ)[j]])
         end
-        cellAreas[i] = cellOrientedAreas[i][1,2]
+        # cellAreas[i] = cellOrientedAreas[i][1,2]
     end
 
     return nothing

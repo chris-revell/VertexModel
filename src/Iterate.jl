@@ -13,20 +13,28 @@ module Iterate
 using LinearAlgebra
 using UnPack
 using StaticArrays
+using FastBroadcast
 
 # Local modules
-include("SpatialData.jl"); using .SpatialData
-include("CalculateForce.jl"); using .CalculateForce
-include("T1Transitions.jl"); using .T1Transitions
-include("TopologyChange.jl"); using .TopologyChange
-include("Division.jl"); using .Division
+# include("SpatialData.jl"); using .SpatialData
+using SpatialData
+# include("CalculateForce.jl"); using .CalculateForce
+using CalculateForce
+# include("T1Transitions.jl"); using .T1Transitions
+using T1Transitions
+# include("TopologyChange.jl"); using .TopologyChange
+using TopologyChange
+# include("Division.jl"); using .Division
+using Division
 
 function iterate!(iteration,params,matrices)
 
-    @unpack R, tempR, ΔR, rkCoefficients = matrices
-    @unpack dt = params
+    @unpack R, tempR, ΔR, rkCoefficients, totalF = matrices
+    @unpack dt,nCells = params
 
-    tempR .= R .+ (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[1,iteration]
+    totalF .= sum.(eachrow(matrices.F))     # FastBroadcast doesn't work for this line; not sure why
+    @.. thread=false totalF .+= matrices.externalF
+    @.. thread=false tempR .= R .+ totalF.*dt*rkCoefficients[1,iteration]
     spatialData!(tempR,params,matrices)
 
     if iteration == 1
@@ -45,7 +53,9 @@ function iterate!(iteration,params,matrices)
 
     calculateForce!(tempR,params,matrices)
 
-    ΔR .+= (sum(matrices.F,dims=2).+matrices.externalF).*dt*rkCoefficients[2,iteration]/6.0
+    totalF .= sum.(eachrow(matrices.F))     # FastBroadcast doesn't work for this line; not sure why
+    @.. thread=false totalF .+= matrices.externalF
+    @.. thread=false ΔR .+= totalF.*dt*rkCoefficients[2,iteration]/6.0
 
     return nothing
 end

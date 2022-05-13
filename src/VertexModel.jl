@@ -18,13 +18,21 @@ using DrWatson
 using CairoMakie
 using DelimitedFiles
 using Printf
+using Suppressor
 
 # Local modules
-include("$(projectdir())/src/CreateRunDirectory.jl"); using .CreateRunDirectory
-include("$(projectdir())/src/Visualise.jl"); using .Visualise
-include("$(projectdir())/src/Initialise.jl"); using .Initialise
-include("$(projectdir())/src/Iterate.jl"); using .Iterate
-include("$(projectdir())/src/Energy.jl"); using .Energy
+# include("CreateRunDirectory.jl"); using .CreateRunDirectory
+# @suppress begin
+    using CreateRunDirectory
+    # include("Visualise.jl"); using .Visualise
+    using Visualise
+    # include("Initialise.jl"); using .Initialise
+    using Initialise
+    # include("Iterate.jl"); using .Iterate
+    using Iterate
+    # include("Energy.jl"); using .Energy
+    using Energy
+# end
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
@@ -41,7 +49,7 @@ include("$(projectdir())/src/Energy.jl"); using .Energy
 # outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
 
 
-function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle;subFolder="")
+function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
@@ -54,20 +62,24 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices,subFolder)
-        # Create plot canvas
-        fig = Figure(resolution=(1000,1000))
-        grid = fig[1,1] = GridLayout()
-        ax1 = Axis(grid[1,1],aspect=DataAspect())
-        ax2 = Axis(grid[1,2],aspect=DataAspect())
-        hidedecorations!(ax1)
-        hidespines!(ax1)
-        hidedecorations!(ax2)
-        hidespines!(ax2)
-        # Create animation object for visualisation
-        mov = VideoStream(fig, framerate=5)
-        # Visualise initial system
-        visualise(0.0,fig,ax1,ax2,mov,params,matrices)
-        save(datadir(subFolder,"$folderName/frames/frame$(@sprintf("%03d", 0)).png"),fig)
+        jldsave("$folderName/frames/matrices$(@sprintf("%03d", 0)).jld2";matrices)
+        jldsave("$folderName/frames/data$(@sprintf("%03d", 0)).jld2";params)
+        if plotToggle==1
+            # Create plot canvas
+            fig = Figure(resolution=(1000,1000))
+            grid = fig[1,1] = GridLayout()
+            ax1 = Axis(grid[1,1],aspect=DataAspect())
+            ax2 = Axis(grid[1,2],aspect=DataAspect())
+            hidedecorations!(ax1)
+            hidespines!(ax1)
+            hidedecorations!(ax2)
+            hidespines!(ax2)
+            # Create animation object for visualisation
+            mov = VideoStream(fig, framerate=5)
+            # Visualise initial system
+            visualise(0.0,fig,ax1,ax2,mov,params,matrices)
+            save(datadir(subFolder,"$folderName/frames/frame$(@sprintf("%03d", 0)).png"),fig)
+        end
     end
 
     t = 0.0001   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
@@ -92,11 +104,13 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
         # Visualise system at every output interval
         if t%outputInterval<dt && outputToggle==1
-            visualise(t,fig,ax1,ax2,mov,params,matrices)
             outCount += 1
-            save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
             jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
             jldsave("$folderName/frames/data$(@sprintf("%03d", outCount)).jld2";params)
+            if plotToggle==1
+                visualise(t,fig,ax1,ax2,mov,params,matrices)
+                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+            end
         end
     end
 
@@ -106,7 +120,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         jldsave("$folderName/matricesFinal.jld2";matrices)
         jldsave("$folderName/dataFinal.jld2";params)
         # Save animated gif
-        save("$folderName/$(splitpath(folderName)[end]).mp4",mov)
+        plotToggle==1 ? save("$folderName/$(splitpath(folderName)[end]).mp4",mov) : nothing
     end
 
 end

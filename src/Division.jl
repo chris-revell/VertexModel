@@ -20,7 +20,7 @@ indexLoop(a,N) = (N+a-1)%(N)+1
 function division!(params,matrices)
 
     @unpack nCells, nEdges, nVerts, nonDimCycleTime = params
-    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, externalF, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack R, A, B, C, cellAges, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -183,8 +183,9 @@ function division!(params,matrices)
         append!(R,newRs)
         append!(tempR,newRs)
         append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
-        append!(boundaryVertices,zeros(Int64,2*divisionCount))        
+        append!(boundaryVertices,zeros(Int64,2*divisionCount))
         append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
+        append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
         # Add 3 components to vectors for new edges
         append!(edgeLengths,zeros(Float64,3*divisionCount))
         append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
