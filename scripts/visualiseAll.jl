@@ -15,7 +15,7 @@ using JLD2
 using Printf
 
 # Local modules
-includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
+# includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelContainers
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
 
@@ -147,7 +147,7 @@ end
 
 
 # #dataDirectory = "data/sims/2022-02-28-19-30-22"
-dataDirs = ["data/fromCSF/Test/$x" for x in readdir("data/fromCSF/Test/") if isdir("data/fromCSF/Test/$x")]
+dataDirs = ["data/fromCSF/$x" for x in readdir("data/fromCSF/") if isdir("data/fromCSF/$x")]
 
 plotCells         = 1
 plotEdges         = 0

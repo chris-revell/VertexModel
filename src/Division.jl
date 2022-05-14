@@ -38,7 +38,7 @@ function division!(params,matrices)
 
             # Find all edges and vertices for cell i
             cellEdges = findall(j->j!=0,B[i,:])
-            cellVertices = findall(j->j!=0,C[i,:])
+            cellVertices = findall(k->k!=0,C[i,:])
 
             n = length(cellVertices)
 

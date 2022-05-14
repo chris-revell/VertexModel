@@ -24,22 +24,22 @@ function spatialData!(R,params,matrices)
 
     # cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)
-    @.. thread=true cellPositions ./= cellEdgeCount
+    @.. thread=false cellPositions ./= cellEdgeCount
 
     # edgeTangents   .= A*R
     mul!(edgeTangents,A,R)
 
-    @.. thread=true edgeLengths .= norm.(edgeTangents)
+    @.. thread=false edgeLengths .= norm.(edgeTangents)
 
     # edgeMidpoints  .= 0.5.*Ā*R
     mul!(edgeMidpoints,Ā,R)
-    @.. thread=true edgeMidpoints .*= 0.5
+    @.. thread=false edgeMidpoints .*= 0.5
 
     # cellPerimeters .= B̄*edgeLengths
     mul!(cellPerimeters,B̄,edgeLengths)
 
     # Calculate cell boundary tensions
-    @.. thread=true cellTensions   .= γ.*(L₀ .- cellPerimeters)
+    @.. thread=false cellTensions   .= γ.*(L₀ .- cellPerimeters)
 
     # Calculate oriented cell areas
     # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
@@ -52,7 +52,7 @@ function spatialData!(R,params,matrices)
     end
 
     # Calculate cell internal pressures
-    @.. thread=true cellPressures  .= cellAreas .- A₀
+    @.. thread=false cellPressures  .= cellAreas .- A₀
 
     return nothing
 
