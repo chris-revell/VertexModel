@@ -20,57 +20,60 @@ using UnPack
 
     transitionCount = 0
 
-    for i=1:nEdges
-        if edgeLengths[i] < t1Threshold
+    for j=1:nEdges
+        if edgeLengths[j] < t1Threshold
 
-            # Find vertices a and b at either end of the short edge i
-            a,b = findall(j->j!=0,Ā[i,:])
+            # Find vertices a and b at either end of the short edge j
+            a = findall(j->j>0,A[j,:])
+            b = findall(j->j<0,A[j,:])
 
-            if boundaryVertices[a] > 0 || boundaryVertices[b] > 0
+            if boundaryVertices[a] != 0 || boundaryVertices[b] != 0
                 # Skip edges for which either vertex is at the boundary
                 # Eventually we can probably figure out a better way of handling these edge cases
             else
                 # Find cells around vertices a and b
-                aCells = findall(j->j!=0,C[:,a])
-                bCells = findall(j->j!=0,C[:,b])
+                aCells = findall(i->i!=0,C[:,a])
+                bCells = findall(i->i!=0,C[:,b])
 
-                # Find edges around vertices a and b
-                aEdges = setdiff!(findall(j->j!=0,Ā[:,a]),[i])
-                bEdges = setdiff!(findall(j->j!=0,Ā[:,b]),[i])
+                # Find edges around vertices a and b, not including j
+                aEdges = setdiff!(findall(j->j!=0,A[:,a]),[j])
+                aEdgesAngles = [
+                    (atan((edgeMidpoints[aEdges[1]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π,
+                    (atan((edgeMidpoints[aEdges[2]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π
+                ]
+                k,l = aEdges[sortperm(aEdgesAngles)]
 
-                # Find cells P,Q,R,S surrounding vertices a and b.
-                # Cells Q and S are shared by both vertices a and b.
-                # Cells R and P neighbour only cells a and b respectively.
-                # Note that if vertex a or b is at the boundary, cell P or R will not exist.
-                cellQ,cellS = intersect(aCells,bCells)
-                cellR = setdiff(aCells,[cellQ,cellS])
-                cellP = setdiff(bCells,[cellQ,cellS])
+                bEdges = setdiff!(findall(j->j!=0,A[:,b]),[j])
+                bEdgesAngles = [
+                    (atan((edgeMidpoints[bEdges[1]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
+                    (atan((edgeMidpoints[bEdges[2]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π
+                ]
+                m,n = bEdges[sortperm(bEdgesAngles)]
 
-                # Set orientation for the whole system relative to cell Q
-                originalEdgeOrientation = B[cellQ,i]
+                cellP = setdiff(aCells,bCells)[1]
+                bCellAngles = [
+                    (atan((cellPositions[bCells[1]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
+                    (atan((cellPositions[bCells[2]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
+                    (atan((cellPositions[bCells[3]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π
+                ]
+                cellQ,cellR,cellS = bCells[sortperm(bCellAngles)]
 
-                # Remove edge i from cells Q and S
-                B[cellQ,i] = 0
-                B[cellS,i] = 0
-                # Add edge i to cells R and S, being careful to avoid boundaries where there is no cell R or P
-                length(cellR) > 0 ? B[cellR[1],i] = -originalEdgeOrientation : nothing
-                length(cellP) > 0 ? B[cellP[1],i] = originalEdgeOrientation : nothing
+                # Remove edge j from cells Q and S
+                B[cellQ,j] = 0
+                B[cellS,j] = 0
+                # Add edge j to cells R and S
+                B[cellR,j] = 1
+                B[cellP,j] = -1
 
-                # Find edge z around cell Q and vertex a
-                z = intersect(bEdges,findall(j->j!=0,B̄[cellQ,:]))[1]
-                # Adjust A to reflect edge z now meeting vertex a, not b
-                A[z,a] = A[z,b]
-                A[z,b] = 0
+                A[k,b] = A[k,a]
+                A[k,a] = 0
 
-                # Find edge e around cell S and vertex a
-                y = intersect(aEdges,findall(j->j!=0,B̄[cellS,:]))[1]
-                # Adjust A to reflect edge y now meeting vertex b, not a
-                A[y,b] = A[y,a]
-                A[y,a] = 0
+                A[m,a] = A[m,b]
+                A[m,b] = 0
 
-                # Change positions of vertices a and b. Ensure new edgeLengths[i] value is 10% longer than t1Threshold
-                R[a] -= originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
-                R[b] += originalEdgeOrientation*0.55*t1Threshold*ϵ*edgeTangents[i]/edgeLengths[i] + 0.5*edgeTangents[i]
+                # Change positions of vertices a and b. Ensure new edgeLengths[j] value is 10% longer than t1Threshold
+                R[a] = edgeMidpoints[j].+ϵ*edgeTangents[j]./1.9
+                R[b] = edgeMidpoints[j].-ϵ*edgeTangents[j]./1.9
 
                 transitionCount += 1
 
