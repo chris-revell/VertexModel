@@ -19,10 +19,10 @@ includet("$(projectdir())/src/VertexModelContainers.jl"); using .VertexModelCont
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
 
-function visualiseFrame!(params,matrices,i,t,fig,ax1,ax2,mov,centralCell)
+function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centralCell)
+   @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = params
+   @unpack A,B,C,R,F,B,Bᵀ,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,externalF,boundaryVertices = matrices
    t+=dt
-   @unpack nEdges,nVerts,nCells = params
-   @unpack R,A,B,Bᵀ,C,cellPositions,edgeTangents,edgeMidpoints,F,ϵ = matrices
    empty!(ax1)
    ax1.title="t = $(@sprintf("%.2f", t))"
    # Plot cells
@@ -147,7 +147,7 @@ end
 
 
 # #dataDirectory = "data/sims/2022-02-28-19-30-22"
-dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/SimulationRuns/2022-03-15-18-59-50"
+dataDirs = ["data/fromCSF/Test/$x" for x in readdir("data/fromCSF/Test/") if isdir("data/fromCSF/Test/$x")]
 
 plotCells         = 1
 plotEdges         = 0
@@ -159,25 +159,27 @@ annotateForceSpace= 0
 
 centralCell = 1
 
-fig = Figure(resolution=(1000,1000))
-grid = fig[1,1] = GridLayout()
-ax1 = Axis(grid[1,1],aspect=DataAspect())
-ax2 = Axis(grid[1,2],aspect=DataAspect())
-hidedecorations!(ax1)
-hidespines!(ax1)
-hidedecorations!(ax2)
-hidespines!(ax2)
-mov = VideoStream(fig, framerate=5)
-t=0.0
+for dataDirectory in dataDirs
+   fig = Figure(resolution=(1000,1000))
+   grid = fig[1,1] = GridLayout()
+   ax1 = Axis(grid[1,1],aspect=DataAspect())
+   ax2 = Axis(grid[1,2],aspect=DataAspect())
+   hidedecorations!(ax1)
+   hidespines!(ax1)
+   hidedecorations!(ax2)
+   hidespines!(ax2)
+   mov = VideoStream(fig, framerate=5)
+   t=0.0
 
-conditionsDictInitial    = load("$dataDirectory/params.jld2")
-@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
-# matricesDictInitial = load("$dataDirectory/matricesInitial.jld2")
+   #conditionsDictInitial    = load("$dataDirectory/params.jld2")
+   #@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
+   # matricesDictInitial = load("$dataDirectory/matricesInitial.jld2")
 
-# visualiseFrame!(conditionsDictInitial["params"],matricesDictInitial["matrices"],0,t,fig,ax1,ax2,mov)
-for i=1:outputTotal
-   conditionsDict    = load("$dataDirectory/frames/data$(@sprintf("%03d", i)).jld2")
-   matricesDict = load("$dataDirectory/frames/matrices$(@sprintf("%03d", i)).jld2")
-   visualiseFrame!(conditionsDict["params"],matricesDict["matrices"],i,t,fig,ax1,ax2,mov,centralCell)
+   # visualiseFrame!(conditionsDictInitial["params"],matricesDictInitial["matrices"],0,t,fig,ax1,ax2,mov)
+   for i=0:100
+      conditionsDict    = load("$dataDirectory/frames/data$(@sprintf("%03d", i)).jld2")
+      matricesDict = load("$dataDirectory/frames/matrices$(@sprintf("%03d", i)).jld2")
+      visualiseFrame!(dataDirectory,conditionsDict["params"],matricesDict["matrices"],i,t,fig,ax1,ax2,mov,centralCell)
+   end
+   save("$dataDirectory/animated.mp4",mov)
 end
-save("$dataDirectory/animated.mp4",mov)
