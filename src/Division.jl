@@ -43,19 +43,21 @@ function division!(params,matrices)
             n = length(cellVertices)
 
             # Find long axis of cell by calculating the two furthest separated vertices
-            maxDist = 0
-            longPair = [0,0]
+            distances = zeros(Float64,1)
+            longPair = [1,1]
             for j=1:n-1
                 for k=j+1:n
                     tmpDist = norm(R[cellVertices[j]].-R[cellVertices[k]])
-                    if tmpDist>maxDist
-                        maxDist = tmpDist
+                    if tmpDist>maximum(distances)
                         longPair .= [cellVertices[j],cellVertices[k]]
                     end
+                    push!(distances,tmpDist)
                 end
             end
-            # longAxis is the vector separating the two vertices with labels stored in longPair
+
+            # longAxis is the vector separating the two vertices with labels stored in longPair            
             longAxis = R[longPair[1]].-R[longPair[2]]
+
             # centrePoint is the position halfway between the two vertices in longPair
             centrePoint = R[longPair[2]].+0.5.*longAxis
 
