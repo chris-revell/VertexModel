@@ -21,25 +21,18 @@ using FastBroadcast
 
     # Find adjacency matrices from incidence matrices
     @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
-    dropzeros!(Ā)
-
     @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
-    dropzeros!(B̄)
 
     # C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
     mul!(C,B̄,Ā)
     @.. thread=false C .÷= 2
-    dropzeros!(C)
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))
-    dropzeros!(Aᵀ)
     Āᵀ .= abs.(Aᵀ)
-    dropzeros!(Āᵀ)
     Bᵀ .= sparse(transpose(B))
-    dropzeros!(Bᵀ)
     B̄ᵀ .= abs.(Bᵀ)
-    dropzeros!(B̄ᵀ)
+
 
     # Calculate additional topology data
     # Number of edges around each cell found by summing columns of B̄
@@ -51,6 +44,17 @@ using FastBroadcast
     # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
     boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
 
+
+    dropzeros!(A)
+    dropzeros!(B)
+    dropzeros!(C)
+    dropzeros!(Ā)
+    dropzeros!(B̄)
+    dropzeros!(C)
+    dropzeros!(Aᵀ)
+    dropzeros!(Āᵀ)
+    dropzeros!(Bᵀ)
+    dropzeros!(B̄ᵀ)
 
     # Test for inconsistencies in the incidence matrices
     # test = B*A
