@@ -65,20 +65,20 @@ function psicPotential(dataDirectory, show)
 
     ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
 
-    fig = Figure(resolution=(1000,1000),fontsize = 24)
-    ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
+    fig = Figure(resolution=(1000,1000),fontsize = 32)
+    ax1 = Axis(fig[1,1][1,1],aspect=DataAspect())
     hidedecorations!(ax1)
     hidespines!(ax1)
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=[ψ̆[i]],colormap=:bwr,colorrange=ψ̆Lims, strokecolor=(:black,1.0),strokewidth=5)
     end
-    Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false,align=:left)
+    Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false)
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/pdf/psicPotential.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psicPotential.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psicPotential.pdf",fig)
     save("$dataDirectory/svg/psicPotential.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psicPotential.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psicPotential.svg",fig)
     save("$dataDirectory/png/psicPotential.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psicPotential.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psicPotential.png",fig)
 end

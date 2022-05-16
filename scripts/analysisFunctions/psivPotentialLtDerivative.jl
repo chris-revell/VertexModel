@@ -69,8 +69,8 @@ function psivPotentialLtDerivative(dataDirectory, show)
 
     derivativeLims = (-maximum(abs.(derivative)),maximum(abs.(derivative)))
 
-    fig = Figure(resolution=(1000,1000),fontsize = 24)
-    ax1 = Axis(fig[1,1][1,1],aspect=DataAspect(),fontsize=32)
+    fig = Figure(resolution=(1000,1000),fontsize = 32)
+    ax1 = Axis(fig[1,1][1,1],aspect=DataAspect())
     hidedecorations!(ax1)
     hidespines!(ax1)
     for k=1:nVerts
@@ -79,11 +79,11 @@ function psivPotentialLtDerivative(dataDirectory, show)
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
-    Colorbar(fig[1,1][1,2],limits=derivativeLims,colormap=:bwr,flipaxis=false,align=:left)
+    Colorbar(fig[1,1][1,2],limits=derivativeLims,colormap=:bwr,flipaxis=false)
 
     ğLims = (-maximum(abs.(ğ)),maximum(abs.(ğ)))
-    fig2 = Figure(resolution=(1000,1000),fontsize = 24)
-    ax2 = Axis(fig2[1,1][1,1],aspect=DataAspect(),fontsize=32)
+    fig2 = Figure(resolution=(1000,1000),fontsize = 32)
+    ax2 = Axis(fig2[1,1][1,1],aspect=DataAspect())
     ax2.title = LaTeXString("g\breve")
     hidedecorations!(ax2)
     hidespines!(ax2)
@@ -93,22 +93,22 @@ function psivPotentialLtDerivative(dataDirectory, show)
     for i=1:nCells
         poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
-    Colorbar(fig2[1,1][1,2],limits=ğLims,colormap=:bwr,flipaxis=false,align=:left)
+    Colorbar(fig2[1,1][1,2],limits=ğLims,colormap=:bwr,flipaxis=false)
 
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/pdf/psivPotentialLtDerivative.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psivPotentialLtDerivative.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psivPotentialLtDerivative.pdf",fig)
     save("$dataDirectory/svg/psivPotentialLtDerivative.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psivPotentialLtDerivative.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psivPotentialLtDerivative.svg",fig)
     save("$dataDirectory/png/psivPotentialLtDerivative.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psivPotentialLtDerivative.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psivPotentialLtDerivative.png",fig)
 
 
     # save("$dataDirectory/pdf/gbreve_psiv.pdf",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve_psiv.pdf",fig2)
+    # #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/gbreve_psiv.pdf",fig2)
     # save("$dataDirectory/svg/gbreve_psiv.svg",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve_psiv.svg",fig2)
+    # #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/gbreve_psiv.svg",fig2)
     # save("$dataDirectory/png/gbreve_psiv.png",fig2)
-    # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve_psiv.png",fig2)
+    # #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/gbreve_psiv.png",fig2)
 end

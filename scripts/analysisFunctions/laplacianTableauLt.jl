@@ -90,9 +90,9 @@ function laplacianTableauLt(dataDirectory, show)
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/svg/eigenvectorTableauLt.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvectorTableauLt.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvectorTableauLt.svg",fig)
     save("$dataDirectory/pdf/eigenvectorTableauLt.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvectorTableauLt.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvectorTableauLt.pdf",fig)
     save("$dataDirectory/png/eigenvectorTableauLt.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvectorTableauLt.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvectorTableauLt.png",fig)
 end

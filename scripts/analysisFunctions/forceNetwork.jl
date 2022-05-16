@@ -123,11 +123,11 @@ function forceNetwork(dataDirectory, centralCell, show)
         end
         show==1 ? display(fig) : nothing
         save("$dataDirectory/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
-        save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
+        #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/cell$(centralCell)ForceNetwork.pdf",fig)
         save("$dataDirectory/svg/cell$(centralCell)ForceNetwork.svg",fig)
-        save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNetwork.svg",fig)
+        #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/cell$(centralCell)ForceNetwork.svg",fig)
         save("$dataDirectory/png/cell$(centralCell)ForceNetwork.png",fig)
-        save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNetwork.png",fig)
+        #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/cell$(centralCell)ForceNetwork.png",fig)
     end
 
 end

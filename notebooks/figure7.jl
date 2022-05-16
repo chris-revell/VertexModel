@@ -63,7 +63,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
         push!(eigenmodeAmplitudesLf,(numerator/denominator))
     end
     ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
-    ax1 = Axis(fig[i,1],aspect=DataAspect(),fontsize=48)
+    ax1 = Axis(fig[i,1],aspect=DataAspect())
     hidedecorations!(ax1)
     hidespines!(ax1)
     for i=1:nCells
@@ -90,7 +90,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
         push!(eigenmodeAmplitudesLt,(numerator/denominator))
     end
     ψ̆Lims = (-maximum(abs.(ψ̆)),maximum(abs.(ψ̆)))
-    ax2 = Axis(fig[i,2],aspect=DataAspect(),fontsize=48)
+    ax2 = Axis(fig[i,2],aspect=DataAspect())
     hidedecorations!(ax2)
     hidespines!(ax2)
     for k=1:nVerts

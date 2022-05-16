@@ -17,7 +17,7 @@ using Printf
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/old/2022-02-28-19-30-22"
+dataDirectory = "/Users/christopher/Postdoc/Code/VertexModel/data/L₀=0.75_γ=0.2_22-05-16-13-17-23"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -148,5 +148,7 @@ Label(grid2[9,:],
 resize_to_layout!(fig)
 
 display(fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.eps",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.png",fig)
+# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.eps",fig)
+save("$dataDirectory/figure3.eps",fig)
+# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure3v2.png",fig)
+save("$dataDirectory/figure3.png",fig)

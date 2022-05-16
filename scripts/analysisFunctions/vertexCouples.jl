@@ -68,9 +68,9 @@ function vertexCouples(dataDirectory, show)
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/pdf/vertexCouples.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/vertexCouples.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/vertexCouples.pdf",fig)
     save("$dataDirectory/svg/vertexCouples.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/vertexCouples.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/vertexCouples.svg",fig)
     save("$dataDirectory/png/vertexCouples.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/vertexCouples.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/vertexCouples.png",fig)
 end

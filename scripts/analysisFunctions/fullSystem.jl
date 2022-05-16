@@ -99,9 +99,9 @@ function fullSystem(dataDirectory, centralCell, plotCells, plotLinks, scatterEdg
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/pdf/fullSystemCentralCell$centralCell.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/fullSystemCentralCell$centralCell.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/fullSystemCentralCell$centralCell.pdf",fig)
     save("$dataDirectory/svg/fullSystemCentralCell$centralCell.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/fullSystemCentralCell$centralCell.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/fullSystemCentralCell$centralCell.svg",fig)
     save("$dataDirectory/png/fullSystemCentralCell$centralCell.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/fullSystemCentralCell$centralCell.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/fullSystemCentralCell$centralCell.png",fig)
 end

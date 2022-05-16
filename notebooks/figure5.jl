@@ -17,7 +17,7 @@ using LaTeXStrings
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/old/2022-02-28-19-30-22"
+dataDirectory = "data/L₀=0.75_γ=0.2_22-05-16-12-34-17"
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -168,5 +168,7 @@ rowgap!(fig.layout,2,Relative(0.01))
 resize_to_layout!(fig)
 
 display(fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure5.eps",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure5.png",fig)
+# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure5.eps",fig)
+save("$dataDirectory/figure5.eps",fig)
+# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure5.png",fig)
+save("$dataDirectory/figure5.png",fig)

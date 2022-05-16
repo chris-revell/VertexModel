@@ -64,17 +64,17 @@ function psivSpectrum(dataDirectory, show)
         push!(eigenmodeAmplitudes,(numerator/denominator))
     end
 
-    fig = Figure(resolution=(1000,700),fontsize = 24)
-    ax2 = Axis(fig[1,1], xlabel="Eigenmode number, k", ylabel="Amplitude",fontsize=32)
+    fig = Figure(resolution=(1000,700),fontsize = 32)
+    ax2 = Axis(fig[1,1], xlabel="Eigenmode number, k", ylabel="Amplitude",)
     xlims!(ax2,0,nVerts)
     ylims!(ax2,0,1.1*maximum(abs.(eigenmodeAmplitudes)))
     barplot!(ax2,collect(2:nVerts),abs.(eigenmodeAmplitudes),width=1.0,color=:blue,strokecolor=:blue)
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/pdf/psivSpectrum.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psivSpectrum.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psivSpectrum.pdf",fig)
     save("$dataDirectory/svg/psivSpectrum.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psivSpectrum.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psivSpectrum.svg",fig)
     save("$dataDirectory/png/psivSpectrum.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psivSpectrum.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psivSpectrum.png",fig)
 end

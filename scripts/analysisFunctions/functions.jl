@@ -240,8 +240,18 @@ function makeLf(params,matrices,trapeziumAreas)
     boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
     diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
     Tₑ = Diagonal(diagonalComponent)
-    Lf = (H\B)*Tₑ*Bᵀ
+    invH = inv(H)
+    Lf = invH*B*Tₑ*Bᵀ
     dropzeros!(Lf)
+    # onesVec = ones(1,nCells)
+    # boundaryEdges = (abs.(onesVec*B))[1,:]
+    # H = Diagonal(cellAreas)
+    # boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
+    # diagonalComponent = (((edgeLengths.^2)./(2.0.*trapeziumAreas))) # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
+    # Tₑ = Diagonal(diagonalComponent)
+    # boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor)
+    # Lf = (H\B)*boundaryEdgesFactorMat*Tₑ*Bᵀ
+    # dropzeros!(Lf)
     return Lf
 end
 

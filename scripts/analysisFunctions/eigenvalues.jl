@@ -49,8 +49,8 @@ function eigenvalues(dataDirectory, show)
     Lₜ = makeLt(conditionsDict["params"],matricesDict["matrices"],T,linkTriangleAreas,trapeziumAreas)
     eigenvaluesLₜ = (eigen(Matrix(Lₜ))).values
 
-    fig = Figure(resolution=(1000,700),fontsize = 24)
-    ax1 = Axis(fig[1,1], xlabel="Eigenvalue number", ylabel="Eigenvalue",fontsize=32)
+    fig = Figure(resolution=(1000,700),fontsize = 32)
+    ax1 = Axis(fig[1,1], xlabel="Eigenvalue number", ylabel="Eigenvalue",)
     lineLf = lines!(ax1,collect(1:nCells),eigenvaluesLf,linewidth=5)
     lineLc = lines!(ax1,collect(1:nCells),eigenvaluesLc,linewidth=5)
     lineLₜ = lines!(ax1,collect(1:nVerts),eigenvaluesLₜ,linewidth=5)
@@ -63,9 +63,9 @@ function eigenvalues(dataDirectory, show)
 
     show==1 ? display(fig) : nothing
     save("$dataDirectory/svg/eigenvalueSpectrum.svg",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvalueSpectrum.svg",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvalueSpectrum.svg",fig)
     save("$dataDirectory/pdf/eigenvalueSpectrum.pdf",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvalueSpectrum.pdf",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvalueSpectrum.pdf",fig)
     save("$dataDirectory/png/eigenvalueSpectrum.png",fig)
-    save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvalueSpectrum.png",fig)
+    #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvalueSpectrum.png",fig)
 end
