@@ -30,8 +30,10 @@ using Suppressor
     using Initialise
     # include("Iterate.jl"); using .Iterate
     using Iterate
+    # include("SpatialData.jl"); using .SpatialData
+    using SpatialData
     # include("Energy.jl"); using .Energy
-    using Energy
+    # using Energy
 # end
 
 # Input parameters:
@@ -63,7 +65,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices,subFolder)
         jldsave("$folderName/frames/matrices$(@sprintf("%03d", 0)).jld2";matrices)
-        jldsave("$folderName/frames/data$(@sprintf("%03d", 0)).jld2";params)
+        jldsave("$folderName/frames/params$(@sprintf("%03d", 0)).jld2";params)
         if plotToggle==1
             # Create plot canvas
             fig = Figure(resolution=(1000,1000))
@@ -106,7 +108,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         if t%outputInterval<dt && outputToggle==1
             outCount += 1
             jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
-            jldsave("$folderName/frames/data$(@sprintf("%03d", outCount)).jld2";params)
+            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
             if plotToggle==1
                 visualise(t,fig,ax1,ax2,mov,params,matrices)
                 save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
@@ -116,6 +118,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
     # If outputToggle==1, save animation object and save final system matrices
     if outputToggle==1
+        # Update spatial data from final integration step
+        spatialData!(R,params,matrices)
         # Store final system characteristic matrices
         jldsave("$folderName/matricesFinal.jld2";matrices)
         jldsave("$folderName/dataFinal.jld2";params)
