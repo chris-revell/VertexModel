@@ -42,13 +42,12 @@ function spatialData!(R,params,matrices)
     @.. thread=false cellTensions   .= γ.*(L₀ .- cellPerimeters)
 
     # Calculate oriented cell areas
-    # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
+    fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
     for i=1:nCells
         for j in nzrange(Bᵀ,i)
-            # cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'
-            cellAreas[i] += B[i,rowvals(Bᵀ)[j]]*(edgeTangents[rowvals(Bᵀ)[j]]⋅edgeMidpoints[rowvals(Bᵀ)[j]])
+            cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
         end
-        # cellAreas[i] = cellOrientedAreas[i][1,2]
+        cellAreas[i] = cellOrientedAreas[i][1,2]
     end
 
     # Calculate cell internal pressures
