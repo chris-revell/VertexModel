@@ -31,8 +31,8 @@ end
 
    plotCells         = 1
    plotEdges         = 0
-   scatterEdges      = 1
-   scatterVertices   = 1
+   scatterEdges      = 0
+   scatterVertices   = 0
    scatterCells      = 1
    plotForces        = 0
 

@@ -70,7 +70,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         if plotToggle==1
             # Create plot canvas
             set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-            fig = Figure(resolution=(1000,5000))
+            fig = Figure(resolution=(2000,1000))
             grid = fig[1,1] = GridLayout()
             ax1 = Axis(grid[1,1],aspect=DataAspect())
             ax2 = Axis(grid[1,2],aspect=DataAspect())
@@ -93,19 +93,19 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        try
+        # try
             iterate!(1,params,matrices,t)
-        catch p
-            outCount += 1
-            spatialData!(R,params,matrices)
-            jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
-            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
-            if plotToggle==1
-                visualise(t,fig,ax1,ax2,mov,params,matrices)
-                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
-            end
-            throw(p)
-        end
+        # catch p
+        #     outCount += 1
+        #     spatialData!(R,params,matrices)
+        #     jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
+        #     jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
+        #     if plotToggle==1
+        #         visualise(t,fig,ax1,ax2,mov,params,matrices)
+        #         save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+        #     end
+        #     throw(p)
+        # end
         # 2nd step of Runge-Kutta
         iterate!(2,params,matrices,t)
         # 3rd step of Runge-Kutta

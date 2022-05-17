@@ -32,7 +32,9 @@ function division!(params,matrices)
     nVertsLocal = nVerts
 
     for i=1:nCells
-        if cellAges[i]>nonDimCycleTime && cellEdgeCount[i]>3
+        if cellEdgeCount[i]<4
+            nothing
+        elseif cellAges[i]>nonDimCycleTime
 
             divisionCount += 1
 
@@ -152,20 +154,21 @@ function division!(params,matrices)
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
             append!(newRs,[newPos1,newPos2])
 
-            cellAges[i] = nonDimCycleTime*0.5*rand()
+            cellAges[i] = 0.0#nonDimCycleTime*0.5*rand()
 
             nCellsLocal += 1
             nVertsLocal += 2
             nEdgesLocal += 3
 
-            # test = dropzeros!(Btmp*Atmp)
-            # if length(findall(!iszero,test)) > 0
-            #     display(i)
-            #     display(cellEdgeCount[i])
-            #     display(maximum(distances))
-            #     display(longPair)
-            #     display(findall(!iszero,test))
-            # end
+            test = dropzeros!(Btmp*Atmp)
+            if length(findall(!iszero,test)) > 0
+                display(i)
+                display(n)
+                display(maximum(distances))
+                display(longPair)
+                display(findall(!iszero,test))
+                throw()
+            end
             break
 
         else
@@ -187,7 +190,7 @@ function division!(params,matrices)
         append!(cellAreas,zeros(Float64,divisionCount))
         append!(cellTensions,zeros(Float64,divisionCount))
         append!(cellPressures,zeros(Float64,divisionCount))
-        append!(cellAges,nonDimCycleTime*0.5.*rand(Float64,divisionCount))
+        append!(cellAges,zeros(Float64,divisionCount))#nonDimCycleTime*0.5.*rand(Float64,divisionCount))
 
         # Add 2 components to vectors for new vertices
         append!(R,newRs)
