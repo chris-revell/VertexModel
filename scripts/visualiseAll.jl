@@ -24,7 +24,7 @@ function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centr
    @unpack A,B,C,R,F,B,Bᵀ,edgeTangents,edgeMidpoints,cellPositions,ϵ,cellAreas,externalF,boundaryVertices = matrices
    t+=dt
    empty!(ax1)
-   ax1.title="t = $(@sprintf("%.2f", t))"
+   ax1.title="Monolayer in real space"
    # Plot cells
    cellPolygons = makeCellPolygons(params,matrices)
    if plotCells == 1
@@ -32,6 +32,8 @@ function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centr
          poly!(ax1,cellPolygons[i],color=(getRandomColor(i),0.5))
       end
    end
+   scatter!(ax1,Point2f.(cellPositions[centralCell]),color=:red)
+   annotations!(ax1,"Cell $centralCell", Point2f.(cellPositions[centralCell]),color=:red)
    # Scatter vertices
    if scatterVertices == 1
       scatter!(ax1,Point2f.(R),color=:green)
@@ -147,7 +149,7 @@ end
 
 
 # #dataDirectory = "data/sims/2022-02-28-19-30-22"
-dataDirs = ["data/fromCSF/$x" for x in readdir("data/fromCSF/") if isdir("data/fromCSF/$x")]
+dataDirs = ["data/figure7/$x" for x in readdir("data/figure7/") if isdir("data/figure7/$x")]
 
 plotCells         = 1
 plotEdges         = 0
@@ -159,11 +161,14 @@ annotateForceSpace= 0
 
 centralCell = 1
 
+display(dataDirs)
+
 for dataDirectory in dataDirs
    fig = Figure(resolution=(1000,1000))
    grid = fig[1,1] = GridLayout()
    ax1 = Axis(grid[1,1],aspect=DataAspect())
    ax2 = Axis(grid[1,2],aspect=DataAspect())
+   Label(grid[2,:,Bottom()],"Movie showing monolayer in real space alongside the network of rotated forces acting at all vertices of cell $centralCell",textsize = 64)
    hidedecorations!(ax1)
    hidespines!(ax1)
    hidedecorations!(ax2)
@@ -171,13 +176,9 @@ for dataDirectory in dataDirs
    mov = VideoStream(fig, framerate=5)
    t=0.0
 
-   #conditionsDictInitial    = load("$dataDirectory/params.jld2")
-   #@unpack pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,L₀,A₀,outputTotal,realCycleTime,t1Threshold = conditionsDictInitial["params"]
-   # matricesDictInitial = load("$dataDirectory/matricesInitial.jld2")
 
-   # visualiseFrame!(conditionsDictInitial["params"],matricesDictInitial["matrices"],0,t,fig,ax1,ax2,mov)
    for i=0:100
-      conditionsDict    = load("$dataDirectory/frames/data$(@sprintf("%03d", i)).jld2")
+      conditionsDict    = load("$dataDirectory/frames/params$(@sprintf("%03d", i)).jld2")
       matricesDict = load("$dataDirectory/frames/matrices$(@sprintf("%03d", i)).jld2")
       visualiseFrame!(dataDirectory,conditionsDict["params"],matricesDict["matrices"],i,t,fig,ax1,ax2,mov,centralCell)
    end

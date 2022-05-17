@@ -55,7 +55,7 @@ function division!(params,matrices)
                 end
             end
 
-            # longAxis is the vector separating the two vertices with labels stored in longPair            
+            # longAxis is the vector separating the two vertices with labels stored in longPair
             longAxis = R[longPair[1]].-R[longPair[2]]
 
             # centrePoint is the position halfway between the two vertices in longPair
@@ -152,7 +152,7 @@ function division!(params,matrices)
             newPos2 = (R[cellVertices[indexLoop(intersectedIndex[2]+1,n)]].+R[cellVertices[intersectedIndex[2]]])./2
             append!(newRs,[newPos1,newPos2])
 
-            cellAges[i] = 0
+            cellAges[i] = nonDimCycleTime*0.5*rand()
 
             nCellsLocal += 1
             nVertsLocal += 2
@@ -179,7 +179,7 @@ function division!(params,matrices)
         append!(cellAreas,zeros(Float64,divisionCount))
         append!(cellTensions,zeros(Float64,divisionCount))
         append!(cellPressures,zeros(Float64,divisionCount))
-        append!(cellAges,zeros(Float64,divisionCount))
+        append!(cellAges,nonDimCycleTime*0.5.*rand(Float64,divisionCount))
 
         # Add 2 components to vectors for new vertices
         append!(R,newRs)

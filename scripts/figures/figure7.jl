@@ -21,11 +21,11 @@ include("$(projectdir())/scripts/analysisFunctions/functions.jl")
 set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
 fig = Figure(resolution=(2000,3000),fontsize = 32)
 
-dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="old")]
+dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="unfinished")]
 
 labels = [L"(a)",L"(b)",L"(c)",L"(d)",L"(e)",L"(f)",L"(g)",L"(h)",L"(i)",L"(j)",L"(k)",L"(l)",L"(m)",L"(n)",L"(o)",L"(p)",L"(q)",L"(r)",L"(s)",L"(t)",L"(u)",L"(v)",L"(w)",L"(x)",L"(y)",L"(z)"]
 
-for (i,dataDirectory) in enumerate(dataDirs[1:6])
+for (i,dataDirectory) in enumerate(dataDirs[1:5])
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -122,5 +122,5 @@ rowgap!(fig.layout,Relative(0.01))
 resize_to_layout!(fig)
 
 display(fig)
-save("figure7.png",fig)
-save("figure7.eps",fig)
+save("$(datadir())/figure7/figure7.png",fig)
+save("$(datadir())/figure7/figure7.eps",fig)

@@ -31,6 +31,7 @@ using UnPack
                 # Skip edges for which either vertex is at the boundary
                 # Eventually we can probably figure out a better way of handling these edge cases
             else
+                println("T1 occurs")
                 # Find cells around vertices a and b
                 aCells = findall(i->i!=0,C[:,a])
                 bCells = findall(i->i!=0,C[:,b])
