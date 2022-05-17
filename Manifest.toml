@@ -90,9 +90,9 @@ version = "1.0.5"
 
 [[deps.CairoMakie]]
 deps = ["Base64", "Cairo", "Colors", "FFTW", "FileIO", "FreeType", "GeometryBasics", "LinearAlgebra", "Makie", "SHA"]
-git-tree-sha1 = "9f71c7c0d154e256006eb91661f14dd8f1622c2e"
+git-tree-sha1 = "cb87c60a56059760d53a4f0dd3b822b20a448a9d"
 uuid = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-version = "0.8.1"
+version = "0.8.2"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -510,10 +510,10 @@ uuid = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 version = "0.9.3"
 
 [[deps.ImageIO]]
-deps = ["FileIO", "IndirectArrays", "JpegTurbo", "Netpbm", "OpenEXR", "PNGFiles", "QOI", "Sixel", "TiffImages", "UUIDs"]
-git-tree-sha1 = "539682309e12265fbe75de8d83560c307af975bd"
+deps = ["FileIO", "IndirectArrays", "JpegTurbo", "LazyModules", "Netpbm", "OpenEXR", "PNGFiles", "QOI", "Sixel", "TiffImages", "UUIDs"]
+git-tree-sha1 = "d9a03ffc2f6650bd4c831b285637929d99a4efb5"
 uuid = "82e4d734-157c-48bb-816b-45c225c6df19"
-version = "0.6.2"
+version = "0.6.5"
 
 [[deps.Imath_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -666,6 +666,11 @@ version = "0.1.6"
 deps = ["Artifacts", "Pkg"]
 uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
+[[deps.LazyModules]]
+git-tree-sha1 = "f4d24f461dacac28dcd1f63ebd88a8d9d0799389"
+uuid = "8cdb02fc-e678-4876-92c5-9defec4f444e"
+version = "0.3.0"
+
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
@@ -748,9 +753,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[deps.LoopVectorization]]
 deps = ["ArrayInterface", "CPUSummary", "ChainRulesCore", "CloseOpenIntervals", "DocStringExtensions", "ForwardDiff", "HostCPUFeatures", "IfElse", "LayoutPointers", "LinearAlgebra", "OffsetArrays", "PolyesterWeave", "SIMDDualNumbers", "SLEEFPirates", "SpecialFunctions", "Static", "ThreadingUtilities", "UnPack", "VectorizationBase"]
-git-tree-sha1 = "2c7b360d8b620a28c77ff6275f5612d4d6446942"
+git-tree-sha1 = "4392c19f0203df81512b6790a0a67446650bdce0"
 uuid = "bdcacae8-1622-11e9-2a5c-532679323890"
-version = "0.12.109"
+version = "0.12.110"
 
 [[deps.LoweredCodeUtils]]
 deps = ["JuliaInterpreter"]
@@ -772,9 +777,9 @@ version = "0.5.9"
 
 [[deps.Makie]]
 deps = ["Animations", "Base64", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "Distributions", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "Formatting", "FreeType", "FreeTypeAbstraction", "GeometryBasics", "GridLayoutBase", "ImageIO", "IntervalSets", "Isoband", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "MakieCore", "Markdown", "Match", "MathTeXEngine", "Observables", "OffsetArrays", "Packing", "PlotUtils", "PolygonOps", "Printf", "Random", "RelocatableFolders", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "Statistics", "StatsBase", "StatsFuns", "StructArrays", "UnicodeFun"]
-git-tree-sha1 = "0762d8af469c1666d7a979f85bc23c861f2d7be6"
+git-tree-sha1 = "048aec015ad88eb5c642d731e3e23f1b805ae8b3"
 uuid = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
-version = "0.17.1"
+version = "0.17.2"
 
 [[deps.MakieCore]]
 deps = ["Observables"]
@@ -992,9 +997,9 @@ version = "1.29.0"
 
 [[deps.Polyester]]
 deps = ["ArrayInterface", "BitTwiddlingConvenienceFunctions", "CPUSummary", "IfElse", "ManualMemory", "PolyesterWeave", "Requires", "Static", "StrideArraysCore", "ThreadingUtilities"]
-git-tree-sha1 = "8d95a735921204f5d551ac300b20d802a150433a"
+git-tree-sha1 = "0578fa5fde97f8cf19aa89f8373d92624314f547"
 uuid = "f517fe37-dbe3-4b94-8317-1923a5111588"
-version = "0.6.8"
+version = "0.6.9"
 
 [[deps.PolyesterWeave]]
 deps = ["BitTwiddlingConvenienceFunctions", "CPUSummary", "IfElse", "Static", "ThreadingUtilities"]
@@ -1234,9 +1239,9 @@ version = "1.0.1"
 
 [[deps.StrideArraysCore]]
 deps = ["ArrayInterface", "CloseOpenIntervals", "IfElse", "LayoutPointers", "ManualMemory", "Requires", "SIMDTypes", "Static", "ThreadingUtilities"]
-git-tree-sha1 = "d32a1b537a6083697cbdd5af02347d24499f7c6d"
+git-tree-sha1 = "e03eacc0b8c1520e73aa84922ce44a14f024b210"
 uuid = "7792a7ef-975c-4747-a70f-980b88e8d1da"
-version = "0.3.5"
+version = "0.3.6"
 
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]

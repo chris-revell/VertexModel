@@ -15,6 +15,7 @@ using SparseArrays
 using StaticArrays
 using UnPack
 using DrWatson
+using Makie
 using CairoMakie
 using DelimitedFiles
 using Printf
@@ -68,7 +69,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         jldsave("$folderName/frames/params$(@sprintf("%03d", 0)).jld2";params)
         if plotToggle==1
             # Create plot canvas
-            fig = Figure(resolution=(1000,1000))
+            set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+            fig = Figure(resolution=(1000,5000))
             grid = fig[1,1] = GridLayout()
             ax1 = Axis(grid[1,1],aspect=DataAspect())
             ax2 = Axis(grid[1,2],aspect=DataAspect())
@@ -91,21 +93,29 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        iterate!(1,params,matrices)
+        try
+            iterate!(1,params,matrices,t)
+        catch p
+            outCount += 1
+            spatialData!(R,params,matrices)
+            jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
+            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
+            if plotToggle==1
+                visualise(t,fig,ax1,ax2,mov,params,matrices)
+                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+            end
+            throw(p)
+        end
         # 2nd step of Runge-Kutta
-        iterate!(2,params,matrices)
+        iterate!(2,params,matrices,t)
         # 3rd step of Runge-Kutta
-        iterate!(3,params,matrices)
+        iterate!(3,params,matrices,t)
         # 4th step of Runge-Kutta
-        iterate!(4,params,matrices)
+        iterate!(4,params,matrices,t)
 
         # Result of Runge-Kutta steps
         R .+= ΔR
-        t += dt
-        cellAges .+= dt
-
-        # Visualise system at every output interval
-        if t%outputInterval<dt && outputToggle==1
+        if true in isnan.(norm.(R))
             outCount += 1
             jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
             jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
@@ -113,6 +123,22 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
                 visualise(t,fig,ax1,ax2,mov,params,matrices)
                 save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
             end
+            throw("nans")
+        end
+        t += dt
+        cellAges .+= dt
+
+        # Visualise system at every output interval
+        if t%outputInterval<dt && outputToggle==1
+            outCount += 1
+            spatialData!(R,params,matrices)
+            jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
+            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
+            if plotToggle==1
+                visualise(t,fig,ax1,ax2,mov,params,matrices)
+                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+            end
+            println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
         end
     end
 

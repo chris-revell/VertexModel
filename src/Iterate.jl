@@ -27,7 +27,7 @@ using TopologyChange
 # include("Division.jl"); using .Division
 using Division
 
-function iterate!(iteration,params,matrices)
+function iterate!(iteration,params,matrices,t)
 
     @unpack R, tempR, ΔR, rkCoefficients, totalF = matrices
     @unpack dt,nCells = params
@@ -42,8 +42,7 @@ function iterate!(iteration,params,matrices)
         if division!(params,matrices)>0
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
-        end
-        if (t1Transitions!(tempR,params,matrices))>1
+        elseif (t1Transitions!(tempR,params,matrices,t))>0
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end

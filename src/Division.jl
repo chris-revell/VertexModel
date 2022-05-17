@@ -32,7 +32,7 @@ function division!(params,matrices)
     nVertsLocal = nVerts
 
     for i=1:nCells
-        if cellAges[i] > nonDimCycleTime
+        if cellAges[i]>nonDimCycleTime && cellEdgeCount[i]>3
 
             divisionCount += 1
 
@@ -44,7 +44,7 @@ function division!(params,matrices)
 
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
-            longPair = [1,1]
+            longPair = [0,0]
             for j=1:n-1
                 for k=j+1:n
                     tmpDist = norm(R[cellVertices[j]].-R[cellVertices[k]])
@@ -158,6 +158,14 @@ function division!(params,matrices)
             nVertsLocal += 2
             nEdgesLocal += 3
 
+            # test = dropzeros!(Btmp*Atmp)
+            # if length(findall(!iszero,test)) > 0
+            #     display(i)
+            #     display(cellEdgeCount[i])
+            #     display(maximum(distances))
+            #     display(longPair)
+            #     display(findall(!iszero,test))
+            # end
             break
 
         else
