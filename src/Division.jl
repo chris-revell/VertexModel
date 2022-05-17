@@ -32,9 +32,7 @@ function division!(params,matrices)
     nVertsLocal = nVerts
 
     for i=1:nCells
-        if cellEdgeCount[i]<5
-            nothing
-        elseif cellAges[i]>nonDimCycleTime
+        if cellAges[i]>nonDimCycleTime && cellEdgeCount[i]>4
 
             divisionCount += 1
 
