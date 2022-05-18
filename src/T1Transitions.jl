@@ -30,20 +30,12 @@ using UnPack
                 # Skip edges for which either vertex is at the boundary
                 # Eventually we can probably figure out a better way of handling these edge cases
             else
-                # println("T1 occurs")
-                display(t)
-                display(j)
-                # display(a)
-                # display(b)
                 # Find cells around vertices a and b
                 aCells = findall(i->i!=0,C[:,a])
                 bCells = findall(i->i!=0,C[:,b])
-                # display(aCells)
-                # display(bCells)
 
                 # Find edges around vertices a and b, not including j
                 aEdges = setdiff!(findall(j->j!=0,A[:,a]),[j])
-                # display(aEdges)
                 aEdgesAngles = [
                     (atan((edgeMidpoints[aEdges[1]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π,
                     (atan((edgeMidpoints[aEdges[2]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π
@@ -51,7 +43,6 @@ using UnPack
                 k,l = aEdges[sortperm(aEdgesAngles)]
 
                 bEdges = setdiff!(findall(j->j!=0,A[:,b]),[j])
-                # display(bEdges)
                 bEdgesAngles = [
                     (atan((edgeMidpoints[bEdges[1]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
                     (atan((edgeMidpoints[bEdges[2]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π

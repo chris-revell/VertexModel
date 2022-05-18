@@ -158,15 +158,6 @@ function division!(params,matrices)
             nVertsLocal += 2
             nEdgesLocal += 3
 
-            test = dropzeros!(Btmp*Atmp)
-            if length(findall(!iszero,test)) > 0
-                display(i)
-                display(n)
-                display(maximum(distances))
-                display(longPair)
-                display(findall(!iszero,test))
-                throw()
-            end
             break
 
         else

@@ -18,14 +18,14 @@ using UnicodeFun
 # Local modules
 include("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica",fontsize=48)
 fig = Figure(resolution=(2000,3000),fontsize = 32)
 
 dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="old")]
 
 labels = [L"(a)",L"(b)",L"(c)",L"(d)",L"(e)",L"(f)",L"(g)",L"(h)",L"(i)",L"(j)",L"(k)",L"(l)",L"(m)",L"(n)",L"(o)",L"(p)",L"(q)",L"(r)",L"(s)",L"(t)",L"(u)",L"(v)",L"(w)",L"(x)",L"(y)",L"(z)"]
 
-for (i,dataDirectory) in enumerate(dataDirs)
+for (i,dataDirectory) in enumerate(dataDirs[[1,2,3,4,5,7]])
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -102,7 +102,7 @@ for (i,dataDirectory) in enumerate(dataDirs)
     Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 64)
 
     #ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel=L"log_{10}(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
-    ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel="log$(to_subscript("10"))(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
+    ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel="log$(to_subscript("10"))(Amplitude)",ygridvisible=false,xgridvisible=false)
 
     # hidedecorations!(ax3)
     xlims!(ax3,1,nVerts)

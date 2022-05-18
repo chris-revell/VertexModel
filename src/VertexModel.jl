@@ -22,34 +22,27 @@ using Printf
 using Suppressor
 
 # Local modules
-# include("CreateRunDirectory.jl"); using .CreateRunDirectory
-# @suppress begin
-    using CreateRunDirectory
-    # include("Visualise.jl"); using .Visualise
-    using Visualise
-    # include("Initialise.jl"); using .Initialise
-    using Initialise
-    # include("Iterate.jl"); using .Iterate
-    using Iterate
-    # include("SpatialData.jl"); using .SpatialData
-    using SpatialData
-    # include("Energy.jl"); using .Energy
-    # using Energy
-# end
+using CreateRunDirectory
+using Visualise
+using Initialise
+using Iterate
+using SpatialData
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
 # realTimetMax     (eg. 86400.0 )  Real time maximum system run time /seconds
 # realCycleTime    (eg. 86400.0 )  Cell cycle time in seconds
-# γ                (eg. 0.2     )  Parameters in energy relaxation
-# λ                (eg. -0.3    )  Parameters in energy relaxation
+# γ                (eg. 0.2     )  Parameter in energy relaxation
+# L₀               (eg. 0.75    )  Preferred cell perimeter length
 # viscousTimeScale (eg. 20.0    )  Relaxation rate, approx from Sarah's data.
 # dt               (eg. 0.01    )  Non dimensionalised time step
-# A₀    (eg. 1.0     )  Cell preferred area (1.0 by default)
-# pressureExternal (eg. 0.1     )  External pressure applied isotropically to system boundary
+# A₀               (eg. 1.0     )  Cell preferred area (1.0 by default)
+# pressureExternal (eg. 0.2     )  External pressure applied isotropically to system boundary
 # outputTotal      (eg. 20      )  Number of data outputs
 # t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
 # outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
+# plotToggle       (eg. 1       )  Argument controlling whether plots are produced from simulation
+# subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results 
 
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
@@ -93,19 +86,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
         # 4 step Runge-Kutta integration
         # 1st step of Runge-Kutta
-        # try
-            iterate!(1,params,matrices,t)
-        # catch p
-        #     outCount += 1
-        #     spatialData!(R,params,matrices)
-        #     jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
-        #     jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
-        #     if plotToggle==1
-        #         visualise(t,fig,ax1,ax2,mov,params,matrices)
-        #         save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
-        #     end
-        #     throw(p)
-        # end
+        iterate!(1,params,matrices,t)
         # 2nd step of Runge-Kutta
         iterate!(2,params,matrices,t)
         # 3rd step of Runge-Kutta
@@ -115,16 +96,6 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
         # Result of Runge-Kutta steps
         R .+= ΔR
-        if true in isnan.(norm.(R))
-            outCount += 1
-            jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
-            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
-            if plotToggle==1
-                visualise(t,fig,ax1,ax2,mov,params,matrices)
-                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
-            end
-            throw("nans")
-        end
         t += dt
         cellAges .+= dt
 
