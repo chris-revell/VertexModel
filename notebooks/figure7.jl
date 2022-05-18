@@ -18,8 +18,8 @@ using UnicodeFun
 # Local modules
 include("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica",fontsize=48)
-fig = Figure(resolution=(2000,3000),fontsize = 32)
+set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica",fontsize=19)
+fig = Figure(resolution=(1500,2000))
 
 dataDirs = ["data/figure7/$x" for x in readdir("data/figure7") if (isdir("data/figure7/$x") && x!="old")]
 
@@ -69,7 +69,7 @@ for (i,dataDirectory) in enumerate(dataDirs[[1,2,3,4,5,7]])
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=[ψ̆[i]],colormap=:bwr,colorrange=ψ̆Lims, strokecolor=(:black,1.0),strokewidth=1)
     end
-    Label(fig[i,1,Bottom()],labels[3*i-2],textsize = 64)
+    Label(fig[i,1,Bottom()],labels[3*i-2],textsize = 32)
     # Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false,align=:left)
 
     # psi_v axis
@@ -99,7 +99,7 @@ for (i,dataDirectory) in enumerate(dataDirs[[1,2,3,4,5,7]])
     for i=1:nCells
         poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
-    Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 64)
+    Label(fig[i,2,Bottom()],labels[3*i-1],textsize = 32)
 
     #ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel=L"log_{10}(Amplitude)",fontsize=48,ygridvisible=false,xgridvisible=false)
     ax3 = Axis(fig[i,3],aspect=AxisAspect(2.0), xlabel="Eigenmode number", ylabel="log$(to_subscript("10"))(Amplitude)",ygridvisible=false,xgridvisible=false)
@@ -109,7 +109,7 @@ for (i,dataDirectory) in enumerate(dataDirs[[1,2,3,4,5,7]])
     ylims!(ax3,-6,1)
     lines!(ax3,collect(2:nCells),log10.(abs.(eigenmodeAmplitudesLf)),linewidth=2,color=(:blue,0.5),strokecolor=(:blue,0.5))
     lines!(ax3,collect(2:nVerts),log10.(abs.(eigenmodeAmplitudesLt)),linewidth=2,color=(:orange,0.5),strokecolor=(:orange,0.5))
-    Label(fig[i,3,Bottom()],labels[3*i],textsize = 64)
+    Label(fig[i,3,Bottom()],labels[3*i],textsize = 32)
 end
 
 colsize!(fig.layout, 1, Aspect(1, 1))
