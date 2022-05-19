@@ -32,8 +32,8 @@ function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centr
          poly!(ax1,cellPolygons[i],color=(getRandomColor(i),0.5))
       end
    end
-   scatter!(ax1,Point2f.(cellPositions[centralCell]),color=:red)
-   annotations!(ax1,"Cell $centralCell", Point2f.(cellPositions[centralCell]),color=:red)
+   scatter!(ax1,Point2f.([cellPositions[centralCell]]),color=:red,markersize=12)
+   # annotations!(ax1,"Cell $centralCell", Point2f.([cellPositions[centralCell]]),color=:red)
    # Scatter vertices
    if scatterVertices == 1
       scatter!(ax1,Point2f.(R),color=:green)
@@ -126,7 +126,7 @@ function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centr
    # Draw force network
    startPosition = @SVector [0.0,0.0]
    for (i,v) in enumerate(cellVerticesDict[centralCell])
-       arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=4,arrowsize=16,color=(getRandomColor(centralCell),0.75))
+       arrows!(ax2,Point2f.([startPosition]),Vec2f.([ϵ*F[v,centralCell]]),linewidth=6,arrowsize=24,color=(getRandomColor(centralCell),0.75))
        annotateForceSpace == 1 ? annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75)) : nothing
        startPosition = startPosition + ϵ*F[v,centralCell]
        H = Array{SVector{2,Float64}}(undef,length(cellVerticesDict[neighbouringCells[i]])+1)
@@ -141,7 +141,7 @@ function visualiseFrame!(dataDirectory,params,matrices,i,t,fig,ax1,ax2,mov,centr
            H[j+1] = H[j]+cellForces[end]
        end
        annotateForceSpace == 1 ? annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75)) : nothing
-       arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=4,arrowsize=16)
+       arrows!(ax2,Point2f.(H),Vec2f.(cellForces),color=(getRandomColor(neighbouringCells[i]),0.75),linewidth=6,arrowsize=24)
    end
    recordframe!(mov)
    save("$dataDirectory/frames/frame$(@sprintf("%03d", i)).png",fig)
@@ -161,18 +161,32 @@ annotateForceSpace= 0
 
 centralCell = 1
 
-display(dataDirs)
+dataDirectory = dataDirs[3]
 
-for dataDirectory in dataDirs
-   fig = Figure(resolution=(1000,1000))
+# for dataDirectory in dataDirs
+   fig = Figure(resolution=(2000,3000),fontsize = 32)
+   fig = Figure(resolution=(2000,1000))
    grid = fig[1,1] = GridLayout()
    ax1 = Axis(grid[1,1],aspect=DataAspect())
    ax2 = Axis(grid[1,2],aspect=DataAspect())
-   Label(grid[2,:,Bottom()],"Movie showing monolayer in real space alongside the network of rotated forces acting at all vertices of cell $centralCell",textsize = 64)
+   Label(fig[2,1,Bottom()],"Movie showing the monolayer from Figure 7(g-i) in real space alongside \nthe network of rotated forces acting at all vertices of cell $centralCell.\n Cell $centralCell highlighted in the monolayer with a red dot.",textsize = 32)
+
+
+   resize_to_layout!(fig)
    hidedecorations!(ax1)
    hidespines!(ax1)
    hidedecorations!(ax2)
    hidespines!(ax2)
+
+   # colsize!(grid, 1, Aspect(1, 1))
+   # colsize!(grid, 2, Aspect(1, 1))
+   # colsize!(fig.layout, 3, Aspect(1, 1.5))
+   # colsize!(fig.layout, 1, Aspect(1, 1))
+   # rowsize!(fig.layout, 1, Aspect(1, 0.5))
+   rowsize!(fig.layout, 2, Aspect(1, 0.02))
+   # colgap!(fig.layout,Relative(0.0))
+   # rowgap!(fig.layout,Relative(0.01))
+
    mov = VideoStream(fig, framerate=5)
    t=0.0
 
@@ -182,5 +196,6 @@ for dataDirectory in dataDirs
       matricesDict = load("$dataDirectory/frames/matrices$(@sprintf("%03d", i)).jld2")
       visualiseFrame!(dataDirectory,conditionsDict["params"],matricesDict["matrices"],i,t,fig,ax1,ax2,mov,centralCell)
    end
-   save("$dataDirectory/animated.mp4",mov)
-end
+
+   save("$dataDirectory/Movie1.mp4",mov)
+# end
