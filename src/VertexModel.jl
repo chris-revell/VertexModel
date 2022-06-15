@@ -19,14 +19,16 @@ using Makie
 using CairoMakie
 using DelimitedFiles
 using Printf
-using Suppressor
+using FromFile
+
+@quickactivate
 
 # Local modules
-using CreateRunDirectory
-using Visualise
-using Initialise
-using Iterate
-using SpatialData
+@from "CreateRunDirectory.jl" using CreateRunDirectory
+@from "Visualise.jl" using Visualise
+@from "Initialise.jl" using Initialise
+@from "Iterate.jl" using Iterate
+@from "SpatialData.jl" using SpatialData
 
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
@@ -42,7 +44,7 @@ using SpatialData
 # t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
 # outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
 # plotToggle       (eg. 1       )  Argument controlling whether plots are produced from simulation
-# subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results 
+# subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results
 
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")

@@ -17,6 +17,8 @@ using UnPack
 using JLD2
 using DrWatson
 
+@quickactivate
+
 function createRunDirectory(params,matrices,subFolder)
 
     @unpack A,B,R = matrices

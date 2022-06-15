@@ -14,18 +14,15 @@ using SparseArrays
 using StaticArrays
 using JLD2
 using UnPack
+using FromFile
+using DrWatson
 
 # Local modules
-# include("InitialHexagons.jl"); using .InitialHexagons
-using InitialHexagons
-# include("VertexModelContainers.jl"); using .VertexModelContainers
-using VertexModelContainers
-# include("TopologyChange.jl"); using .TopologyChange
-using TopologyChange
-# include("SpatialData.jl"); using .SpatialData
-using SpatialData
-# include("CalculateForce.jl"); using .CalculateForce
-using CalculateForce
+@from "InitialHexagons.jl" using InitialHexagons
+@from "VertexModelContainers.jl" using VertexModelContainers
+@from "TopologyChange.jl" using TopologyChange
+@from "SpatialData.jl" using SpatialData
+@from "CalculateForce.jl" using CalculateForce
 
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)

@@ -14,18 +14,15 @@ using LinearAlgebra
 using UnPack
 using StaticArrays
 using FastBroadcast
+using DrWatson
+using FromFile
 
 # Local modules
-# include("SpatialData.jl"); using .SpatialData
-using SpatialData
-# include("CalculateForce.jl"); using .CalculateForce
-using CalculateForce
-# include("T1Transitions.jl"); using .T1Transitions
-using T1Transitions
-# include("TopologyChange.jl"); using .TopologyChange
-using TopologyChange
-# include("Division.jl"); using .Division
-using Division
+@from "SpatialData.jl" using SpatialData
+@from "CalculateForce.jl" using CalculateForce
+@from "T1Transitions.jl" using T1Transitions
+@from "TopologyChange.jl" using TopologyChange
+@from "Division.jl" using Division
 
 function iterate!(iteration,params,matrices,t)
 
