@@ -17,9 +17,7 @@ using UnPack
 using JLD2
 using DrWatson
 
-@quickactivate
-
-function createRunDirectory(params,matrices,subFolder)
+function createRunDirectory(params,matrices,subFolder)    
 
     @unpack A,B,R = matrices
     @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params

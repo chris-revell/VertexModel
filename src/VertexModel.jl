@@ -5,31 +5,6 @@
 #  Created by Christopher Revell on 31/01/2021.
 #
 #
-
-module VertexModel
-
-# Julia packages
-using LinearAlgebra
-using JLD2
-using SparseArrays
-using StaticArrays
-using UnPack
-using DrWatson
-using Makie
-using CairoMakie
-using DelimitedFiles
-using Printf
-using FromFile
-
-@quickactivate
-
-# Local modules
-@from "CreateRunDirectory.jl" using CreateRunDirectory
-@from "Visualise.jl" using Visualise
-@from "Initialise.jl" using Initialise
-@from "Iterate.jl" using Iterate
-@from "SpatialData.jl" using SpatialData
-
 # Input parameters:
 # initialSystem    (eg. "single")  String specifying initial system state
 # realTimetMax     (eg. 86400.0 )  Real time maximum system run time /seconds
@@ -46,8 +21,31 @@ using FromFile
 # plotToggle       (eg. 1       )  Argument controlling whether plots are produced from simulation
 # subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results
 
+module VertexModel
+
+# Julia packages
+using LinearAlgebra
+using JLD2
+using SparseArrays
+using StaticArrays
+using UnPack
+using DrWatson
+using Makie
+using CairoMakie
+using DelimitedFiles
+using Printf
+using FromFile
+
+# Local modules
+@from "CreateRunDirectory.jl" using CreateRunDirectory
+@from "Visualise.jl" using Visualise
+@from "Initialise.jl" using Initialise
+@from "Iterate.jl" using Iterate
+@from "SpatialData.jl" using SpatialData
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
+
+    @quickactivate
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
