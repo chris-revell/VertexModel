@@ -10,11 +10,3 @@ println("Loading VertexModel.jl...")
 using VertexModel
 println("Loading test parameters...")
 includet("scripts/testParameters.jl")
-#
-# println(
-# """
-# Currently active project is: $(projectname())
-#
-# Path of active project: $(projectdir())
-# """
-# )
