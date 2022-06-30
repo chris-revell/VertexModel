@@ -58,8 +58,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(params,matrices,subFolder)
-        jldsave("$folderName/frames/matrices$(@sprintf("%03d", 0)).jld2";matrices)
-        jldsave("$folderName/frames/params$(@sprintf("%03d", 0)).jld2";params)
+        jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", 0)).jld2");matrices)
+        jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", 0)).jld2");params)
         if plotToggle==1
             # Create plot canvas
             set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
@@ -75,7 +75,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
             mov = VideoStream(fig, framerate=5)
             # Visualise initial system
             visualise(0.0,fig,ax1,ax2,mov,params,matrices)
-            save(datadir(subFolder,"$folderName/frames/frame$(@sprintf("%03d", 0)).png"),fig)
+            save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", 0)).png"),fig)
         end
     end
 
@@ -103,11 +103,11 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         if t%outputInterval<dt && outputToggle==1
             outCount += 1
             spatialData!(R,params,matrices)
-            jldsave("$folderName/frames/matrices$(@sprintf("%03d", outCount)).jld2";matrices)
-            jldsave("$folderName/frames/params$(@sprintf("%03d", outCount)).jld2";params)
+            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", outCount)).jld2");matrices)
+            jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", outCount)).jld2");params)
             if plotToggle==1
                 visualise(t,fig,ax1,ax2,mov,params,matrices)
-                save("$folderName/frames/frame$(@sprintf("%03d", outCount)).png",fig)
+                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", outCount)).png"),fig)
             end
             println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
         end
@@ -118,10 +118,10 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         # Update spatial data from final integration step
         spatialData!(R,params,matrices)
         # Store final system characteristic matrices
-        jldsave("$folderName/matricesFinal.jld2";matrices)
-        jldsave("$folderName/dataFinal.jld2";params)
+        jldsave(datadir(subFolder,folderName,"matricesFinal.jld2");matrices)
+        jldsave(datadir(subFolder,folderName,"dataFinal.jld2");params)
         # Save animated gif
-        plotToggle==1 ? save("$folderName/$(splitpath(folderName)[end]).mp4",mov) : nothing
+        plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
 
 end

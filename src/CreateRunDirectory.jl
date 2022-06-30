@@ -17,20 +17,20 @@ using UnPack
 using JLD2
 using DrWatson
 
-function createRunDirectory(params,matrices,subFolder)    
+function createRunDirectory(params,matrices,subFolder)
 
     @unpack A,B,R = matrices
     @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
     params = @savename L₀ γ
-    folderName = datadir(subFolder,"$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))")
+    folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     mkpath(folderName)
     # Create frames subfirectory to store system state at each output time
-    mkpath("$(folderName)/frames")
+    mkpath(datadir(subFolder,folderName,"frames"))
 
     # Store system parameters.
-    open("$(folderName)/conditions.txt","w") do conditionsFile
+    open(datadir(subFolder,folderName,"conditions.txt"),"w") do conditionsFile
         println(conditionsFile, "initialSystem,     $initialSystem")
         println(conditionsFile, "realTimetMax,      $realTimetMax")
         println(conditionsFile, "realCycleTime,     $realCycleTime")
@@ -52,10 +52,10 @@ function createRunDirectory(params,matrices,subFolder)
     end
 
     # Store system parameters
-    jldsave("$(folderName)/params.jld2";params)
+    jldsave(datadir(subFolder,folderName,"params.jld2");params)
 
     # Store initial system characteristic matrices
-    jldsave("$(folderName)/matricesInitial.jld2";A,B,R)
+    jldsave(datadir(subFolder,folderName,"matricesInitial.jld2");A,B,R)
 
     return folderName
 
