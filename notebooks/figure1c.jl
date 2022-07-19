@@ -16,18 +16,18 @@ using JLD2
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/old/2022-02-28-19-30-22"
+dataDirectory = "/Users/christopher/Desktop/2022-02-28-19-30-22"
 
 centralCell = 14
 
 plotCells = 1
 plotLinks = 1
-scatterVertices = 0
-scatterEdges = 0
-scatterCells = 0
-annotateVertices = 0
-annotateEdges = 0
-annotateCells = 0
+scatterVertices = 1
+scatterEdges = 1
+scatterCells = 1
+# annotateVertices = 0
+# annotateEdges = 0
+# annotateCells = 0
 
 # Import system data
 conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -50,19 +50,18 @@ cellPolygons = makeCellPolygons(conditionsDict["params"],matricesDict["matrices"
 
 # Set up figure canvas
 set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-fig = Figure(resolution=(1000,400))
+fig = Figure(resolution=(1000,1000))
 ax1 = Axis(fig[1,1],aspect=DataAspect())
 hidedecorations!(ax1)
 hidespines!(ax1)
-Label(fig[1,1,Bottom()],L"(a)",textsize = 32)
 
 if plotCells==1
     # Plot cell polygons
     for i=1:nCells
         if cellNeighbourMatrix[centralCell,i] == 0
-            poly!(ax1,cellPolygons[i],color=(getRandomColor(i),0.25),strokecolor=(:black,0.5),strokewidth=1)
+            poly!(ax1,cellPolygons[i],color=(getRandomColor(i),0.25),strokecolor=(:black,1.0),strokewidth=1)
         else
-            poly!(ax1,cellPolygons[i],color=(getRandomColor(i),1.0),strokecolor=(:black,1.0),strokewidth=2)
+            poly!(ax1,cellPolygons[i],color=(getRandomColor(i),1.0),strokecolor=(:black,1.0),strokewidth=1)
         end
     end
 end
@@ -102,29 +101,26 @@ if scatterCells==1
     end
 end
 
-ax2 = Axis(fig[1,2],aspect=DataAspect())
-hidedecorations!(ax2)
-hidespines!(ax2)
-Label(fig[1,2,Bottom()],L"(b)",textsize = 32)
-image!(ax2,rotr90(load("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/OtherFigures/geometryCb.png")))
+centralCellRegion = Int64[]
+for i=1:nCells
+    if cellNeighbourMatrix[centralCell,i] != 0
+        for j in findall(!iszero,C[i,:])            
+            if C[centralCell,j] == 0                
+                push!(centralCellRegion,j)
+            end
+        end
+    end
+end
+vertexAngles = zeros(size(centralCellRegion))
+for (k,v) in enumerate(centralCellRegion)
+    vertexAngles[k] = atan((R[v].-cellPositions[centralCell])...)
+end
+centralCellRegion .= centralCellRegion[sortperm(vertexAngles)]
+poly!(ax1,Point2f.(R[centralCellRegion]),color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5)
 
-ax3 = Axis(fig[1,3],aspect=DataAspect())
-hidedecorations!(ax3)
-hidespines!(ax3)
-Label(fig[1,3,Bottom()],L"(c)",textsize = 32)
-image!(ax3,rotr90(load("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/OtherFigures/geometryCc.png")))
-
-# boxes = [Box(g,color=(:white,0.0)) for g in [fig[1,1],fig[1,2],fig[1,3]]]
-
-colgap!(fig.layout,1,Relative(0.0))
-colgap!(fig.layout,2,Relative(0.03))
 resize_to_layout!(fig)
 
 display(fig)
-# save("$dataDirectory/pdf/figure1.pdf",fig)
-# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure1.pdf",fig)
-# save("$dataDirectory/svg/figure1.svg",fig)
-# save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure1.svg",fig)
-# save("$dataDirectory/png/figure1.png",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure1.eps",fig)
-save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure1.png",fig)
+save("$dataDirectory/pdf/figure1a.pdf",fig)
+save("$dataDirectory/svg/figure1a.svg",fig)
+save("$dataDirectory/png/figure1a.png",fig)
