@@ -1,14 +1,19 @@
 ### VertexModel.jl
 
-Open Julia at project directory.
+Open Julia REPL at project root directory.
 
-run `include("intro.jl")`
+Activate environment with `using Pkg; Pkg.activate(".")` or access package manager with `]` and then enter `activate .` before exiting package manager with backspace. Alternatively, load DrWatson library with `using DrWatson` and enter `@quickactivate`.
 
-If running for the first time, run `]instantiate` then backspace
+If running for the first time, run `Using Pkg; Pkg.instantiate()` or access package manager with `]` and then enter `instantiate` before exiting package manager with backspace.
 
-Run function using example parameters by entering:
-`vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle;subFolder="")`
+Load test parameters by entering `includet("scripts/testParameters.jl"). This instantiates variables with values for running the vertex model code. 
+
+These steps can be made easier in future by running `include("intro.jl")`.
+
+Once `VertexModel.jl` has been precompiled, run function `vertexModel` using test parameters by entering:
+`vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="test")`
 
 TODO:
 
--
+- Control division by selecting from random distribution.
+- 
