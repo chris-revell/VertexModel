@@ -16,7 +16,7 @@ using JLD2
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "data/L₀=0.75_γ=0.2_22-05-16-12-05-16"
+dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/Vertex Model Project/Couple Stress paper stuff/PaperData/2022-02-28-19-30-22"
 
 centralCell=14
 
@@ -120,8 +120,8 @@ display(fig)
 
 # save("$dataDirectory/png/figure4.png",fig)
 # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure4v2.eps",fig)
-save("$dataDirectory/figure4.eps",fig)
+# save("$dataDirectory/figure4.pdf",fig)
 # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure4v2.svg",fig)
 # save("$dataDirectory/figure4.svg",fig)
 # save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/figure4v2.png",fig)
-save("$dataDirectory/figure4.png",fig)
+save("$dataDirectory/figure4.svg",fig)

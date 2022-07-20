@@ -16,7 +16,7 @@ using JLD2
 # Local modules
 includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
 
-dataDirectory = "/Users/christopher/Desktop/2022-02-28-19-30-22"
+dataDirectory = "/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/Vertex Model Project/Couple Stress paper stuff/PaperData/2022-02-28-19-30-22"
 
 centralCell = 14
 
