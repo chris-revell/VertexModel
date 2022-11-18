@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 05/12/2021.
 #
 #
-# Structs to hold system parameters and matrices and avoid passing dozens of arguments to each function
+# Structs to hold system parameters and matrices, allowing us avoid passing dozens of arguments to each function
 
 module VertexModelContainers
 
@@ -17,8 +17,8 @@ mutable struct ParametersContainer
     nVerts             ::Int64    # Number of cells
     nCells             ::Int64    # Number of edges
     nEdges             ::Int64    # Number of vertices
-    γ                  ::Float64  # Parameters in energy relaxation
-    λ                  ::Float64  # Parameters in energy relaxation
+    γ                  ::Float64  # Parameter in energy relaxation
+    λ                  ::Float64  # Parameter in energy relaxation
     L₀                 ::Float64  # Cell preferred perimeter length L₀ = -λ/(2*γ)
     A₀                 ::Float64  # Cell preferred area
     pressureExternal   ::Float64  # External pressure applied uniformly to system
