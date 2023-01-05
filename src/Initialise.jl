@@ -30,7 +30,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
-    # L₀ = -λ/(2*γ)                                     # Preferred perimeter length for each cell
     λ = -2.0*L₀*γ
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
@@ -93,7 +92,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         -1.0 0.0
     ]
 
-    # Pack matrces into a struct for convenience
+    # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
         R,
         tempR,
