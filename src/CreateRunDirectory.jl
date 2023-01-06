@@ -25,7 +25,6 @@ function createRunDirectory(params,matrices,subFolder)
     # Create directory for run data labelled with current time.
     params = @savename L₀ γ
     folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
-    mkpath(folderName)
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir(subFolder,folderName,"frames"))
 

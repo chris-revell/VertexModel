@@ -69,6 +69,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
             hidespines!(ax1)
             hidedecorations!(ax2)
             hidespines!(ax2)
+            xlims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
+            ylims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
             # Create animation object for visualisation
             mov = VideoStream(fig, framerate=5)
             # Visualise initial system

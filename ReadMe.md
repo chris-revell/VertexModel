@@ -8,7 +8,7 @@ If running for the first time, run `Using Pkg; Pkg.instantiate()` or access pack
 
 Load test parameters by entering `includet("scripts/testParameters.jl"). This instantiates variables with values for running the vertex model code. 
 
-These steps can be made easier in future by running `include("intro.jl")`.
+These steps can be made easier in future by running `include("loadAll.jl")`.
 
 Once `VertexModel.jl` has been precompiled, run function `vertexModel` using test parameters by entering:
 `vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="test")`

@@ -11,3 +11,4 @@ outputTotal      = 100
 t1Threshold      = 0.01
 outputToggle     = 1
 plotToggle       = 1
+subfolderVal     = "test"

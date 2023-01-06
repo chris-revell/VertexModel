@@ -42,6 +42,8 @@ end
    empty!(ax1)
 
    ax1.title="t = $(@sprintf("%.2f", t))"
+   xlims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
+   ylims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
 
    # Plot cells
    if plotCells == 1
