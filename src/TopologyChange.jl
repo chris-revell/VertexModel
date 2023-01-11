@@ -15,7 +15,7 @@ using UnPack
 using SparseArrays
 using FastBroadcast
 
-@views function topologyChange!(matrices)
+function topologyChange!(matrices)
 
     @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices = matrices
 

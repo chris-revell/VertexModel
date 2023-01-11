@@ -27,7 +27,7 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-@views function visualise(t,fig,ax1,ax2,mov,params,matrices)
+function visualise(t,fig,ax1,ax2,mov,params,matrices)
 
    plotCells         = 1
    plotEdges         = 0

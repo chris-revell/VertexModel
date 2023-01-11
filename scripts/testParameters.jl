@@ -1,8 +1,8 @@
 initialSystem    = "seven"
 realTimetMax     = 6.0*86400.0
 realCycleTime    = 86400.0
-γ                = 0.2
-L₀               = 0.75
+γ                = 0.1#0.15#0.2#0.1
+L₀               = 0.5#3.0#0.75#0.5
 viscousTimeScale = 20.0
 dt               = 0.5
 A₀               = 1.0

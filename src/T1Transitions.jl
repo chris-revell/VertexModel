@@ -13,7 +13,7 @@ module T1Transitions
 using LinearAlgebra
 using UnPack
 
-@views function t1Transitions!(R,params,matrices,t)
+function t1Transitions!(R,params,matrices,t)
 
     @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,ϵ,boundaryVertices,edgeMidpoints,cellPositions = matrices
     @unpack nEdges,t1Threshold = params
