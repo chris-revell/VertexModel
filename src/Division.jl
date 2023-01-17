@@ -45,6 +45,7 @@ function division!(params,matrices)
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
             longPair = [0,0]
+            # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = R[longPair[1]].-R[longPair[2]] 
             for j=1:n-1
                 for k=j+1:n
                     tmpDist = norm(R[cellVertices[j]].-R[cellVertices[k]])

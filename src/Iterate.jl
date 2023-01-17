@@ -39,7 +39,8 @@ function iterate!(iteration,params,matrices,t)
         if division!(params,matrices)>0
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
-        elseif (t1Transitions!(tempR,params,matrices,t))>0
+        end
+        if (t1Transitions!(tempR,params,matrices,t))>0
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end

@@ -16,4 +16,4 @@ Once `VertexModel.jl` has been precompiled, run function `vertexModel` using tes
 TODO:
 
 - Control division by selecting from random distribution.
-- 
+- How do we choose T1 transition edge length threshold? Should this depend on preferred cell perimeter? 

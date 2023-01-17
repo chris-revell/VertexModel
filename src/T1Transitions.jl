@@ -22,66 +22,42 @@ function t1Transitions!(R,params,matrices,t)
 
     for j=1:nEdges
         if edgeLengths[j] < t1Threshold
-
             # Find vertices a and b at either end of the short edge j
             a = findall(j->j>0,A[j,:])[1]
             b = findall(j->j<0,A[j,:])[1]
-            if boundaryVertices[a] != 0 || boundaryVertices[b] != 0
-                # Skip edges for which either vertex is at the boundary
-                # Eventually we can probably figure out a better way of handling these edge cases
-            else
-                display("T1")
-                display(j)
+            if boundaryVertices[a] == 0 && boundaryVertices[b] == 0 # Skip edges for which either vertex is at the boundary. Eventually we can probably figure out a better way of handling these edge cases
+                display("T1"); display(j)
                 # Find cells around vertices a and b
                 aCells = findall(i->i!=0,C[:,a])
                 bCells = findall(i->i!=0,C[:,b])
-
-                # Find edges around vertices a and b, not including j
-                aEdges = setdiff!(findall(j->j!=0,A[:,a]),[j])
-                aEdgesAngles = [
-                    (atan((edgeMidpoints[aEdges[1]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π,
-                    (atan((edgeMidpoints[aEdges[2]].-R[a])...)-atan((edgeMidpoints[j].-R[a])...)+2π)%2π
-                ]
-                k,l = aEdges[sortperm(aEdgesAngles)]
-
-                bEdges = setdiff!(findall(j->j!=0,A[:,b]),[j])
-                bEdgesAngles = [
-                    (atan((edgeMidpoints[bEdges[1]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
-                    (atan((edgeMidpoints[bEdges[2]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π
-                ]
-                m,n = bEdges[sortperm(bEdgesAngles)]
-
-                cellP = setdiff(aCells,bCells)[1]
-                bCellAngles = [
-                    (atan((cellPositions[bCells[1]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
-                    (atan((cellPositions[bCells[2]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π,
-                    (atan((cellPositions[bCells[3]].-R[b])...)-atan((edgeMidpoints[j].-R[b])...)+2π)%2π
-                ]
-                cellQ,cellR,cellS = bCells[sortperm(bCellAngles)]
-
-                # Remove edge j from cells Q and S
-                B[cellQ,j] = 0
-                B[cellS,j] = 0
-                # Add edge j to cells R and S
-                B[cellR,j] = 1
-                B[cellP,j] = -1
-
-                A[k,b] = A[k,a]
+                # Find cells P, Q, R, S surrounding vertices a and b
+                Q = findall(i->i>0,B[:,j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
+                S = findall(i->i<0,B[:,j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S
+                P = setdiff(aCells, [Q,S])[1] # Assume cell P shares vertex a, which has positive orientation with respect to edge j
+                R = setdiff(bCells, [Q,S])[1] # Assume cell R shares vertex b, which has negative orientation
+                # Find edges k and m to be removed from or added to vertices a and b 
+                k = (findall(i->i!=0,B[S,:])∩findall(i->i!=0,B[P,:]))[1] # Edge k shared by cell P and cell S
+                m = (findall(i->i!=0,B[Q,:])∩findall(i->i!=0,B[R,:]))[1] # Edge m shared by cell Q and cell R
+                # Remove edge j from cells Q and S, assuming orientation from clockwise rotation of edge j
+                B[Q,j] = 0; B[S,j] = 0
+                # Add edge j to cells R and S, assuming orientation from clockwise rotation of edge j
+                B[R,j] = 1; B[P,j] = -1
+                # Add vertex b to edge k, setting orientation from matrix B
+                A[k,b] = -B[P,k] #A[k,a]
+                # Remove vertex a from edge k
                 A[k,a] = 0
-
-                A[m,a] = A[m,b]
+                # Add vertex a to edge m, setting orientation from matrix B
+                A[m,a] = B[Q,m] #A[m,b]
+                # Remove vertex b from edge m 
                 A[m,b] = 0
 
-                # Change positions of vertices a and b. Ensure new edgeLengths[j] value is 10% longer than t1Threshold
-                R[a] = edgeMidpoints[j].+ϵ*edgeTangents[j].*1.1*t1Threshold/edgeLengths[j]
-                R[b] = edgeMidpoints[j].-ϵ*edgeTangents[j].*1.1*t1Threshold/edgeLengths[j]
+                # # Change positions of vertices a and b. Ensure new edgeLengths[j] value is 10% longer than t1Threshold
+                # R[a] = edgeMidpoints[j].+ϵ*edgeTangents[j].*1.1*t1Threshold/edgeLengths[j]
+                # R[b] = edgeMidpoints[j].-ϵ*edgeTangents[j].*1.1*t1Threshold/edgeLengths[j]
 
                 transitionCount += 1
 
-                # Break loop when a T1 transition occurs
-                # preventing more than 1 transition per time step.
-                # Eventually we can figure out a better way of
-                # handling multiple transitions per time step
+                # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
 
             end
