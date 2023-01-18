@@ -25,8 +25,7 @@ function t1Transitions!(R,params,matrices,t)
             # Find vertices a and b at either end of the short edge j
             a = findall(j->j>0,A[j,:])[1]
             b = findall(j->j<0,A[j,:])[1]
-            if boundaryVertices[a] == 0 && boundaryVertices[b] == 0 # Skip edges for which either vertex is at the boundary. Eventually we can probably figure out a better way of handling these edge cases
-                display("T1"); display(j)
+            if boundaryVertices[a] == 0 && boundaryVertices[b] == 0 # Skip edges for which either vertex is at the boundary. Eventually we can probably figure out a better way of handling these edge cases                
                 # Find cells around vertices a and b
                 aCells = findall(i->i!=0,C[:,a])
                 bCells = findall(i->i!=0,C[:,b])

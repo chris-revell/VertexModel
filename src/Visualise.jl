@@ -31,7 +31,7 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
 
     plotCells = 1
     plotEdges = 0
-    scatterEdges = 0
+    scatterEdges = 1
     scatterVertices = 1
     scatterCells = 1
     plotForces = 0
@@ -42,8 +42,8 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
     empty!(ax1)
 
     ax1.title = "t = $(@sprintf("%.2f", t))"
-    xlims!(ax1, min(minimum(first.(R)), minimum(last.(R))), max(maximum(first.(R)), maximum(last.(R))))
-    ylims!(ax1, min(minimum(first.(R)), minimum(last.(R))), max(maximum(first.(R)), maximum(last.(R))))
+    xlims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
+    ylims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
 
     # Plot cells
     if plotCells == 1
@@ -158,28 +158,10 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
     neighbourAngles .+= (2π - m)
     neighbourAngles = neighbourAngles .% (2π)
     neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
-
-    # display(neighbouringCells)
-    # display(cellVerticesDict[centralCell])
-    # display((boundaryVertices))
-    display("cellVerticesDict[centralCell]")
-    display(cellVerticesDict[centralCell])
-    display("cellVerticesDict[neighbouringCells[1]]")
-    display(cellVerticesDict[neighbouringCells[1]])
-    display("cellVerticesDict[neighbouringCells[2]]")
-    display(cellVerticesDict[neighbouringCells[2]])
-    display("cellVerticesDict[neighbouringCells[3]]")
-    display(cellVerticesDict[neighbouringCells[3]])
-    display("cellVerticesDict[neighbouringCells[4]]")
-    display(cellVerticesDict[neighbouringCells[4]])
-    display("cellVerticesDict[neighbouringCells[5]]")
-    display(cellVerticesDict[neighbouringCells[5]])
     
     # Draw force network
     startPosition = @SVector [0.0, 0.0]
     for (i, v) in enumerate(cellVerticesDict[centralCell])
-        display("cellVerticesDict[neighbouringCells[$i]]")
-        display(cellVerticesDict[neighbouringCells[i]])
         arrows!(ax2, Point2f.([startPosition]), Vec2f.([ϵ * F[v, centralCell]]), linewidth=4, arrowsize=16, color=(getRandomColor(centralCell), 0.75))
         #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
         startPosition = startPosition + ϵ * F[v, centralCell]

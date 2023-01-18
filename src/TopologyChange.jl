@@ -14,6 +14,8 @@ using LinearAlgebra
 using UnPack
 using SparseArrays
 using FastBroadcast
+using FromFile
+@from "SenseCheck.jl" using SenseCheck
 
 function topologyChange!(matrices)
 
@@ -55,9 +57,7 @@ function topologyChange!(matrices)
     boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
 
     # Test for inconsistencies in the incidence matrices
-    # test = B*A
-    # dropzeros!(test)
-    # length(findnz(test)[1]) > 0 ? throw() : nothing
+    # senseCheck(A, B; marker="TopologyChange)
 
     return nothing
 
