@@ -63,7 +63,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     fill!(ΔR,@SVector zeros(2))
     cellEdgeCount     = zeros(Int64,nCells)
     boundaryVertices  = zeros(Int64,nVerts)
-    boundaryEdges     = zeros(Int64,nVerts)
+    boundaryEdges     = zeros(Int64,nEdges)
     cellPositions     = Array{SVector{2,Float64}}(undef,nCells)
     fill!(cellPositions,@SVector zeros(2))
     cellPerimeters    = zeros(nCells)
@@ -109,6 +109,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         C,
         cellEdgeCount,
         boundaryVertices,
+        boundaryEdges,
         cellPositions,
         cellPerimeters,
         cellOrientedAreas,

@@ -207,6 +207,7 @@ function division!(params,matrices)
             append!(tempR,newRs)
             append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(boundaryVertices,zeros(Int64,2*divisionCount))
+            append!(boundaryEdges,zeros(Int64,3*divisionCount))
             append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             # Add 3 components to vectors for new edges

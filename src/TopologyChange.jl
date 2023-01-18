@@ -56,8 +56,7 @@ function topologyChange!(matrices)
     # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
     boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
 
-    onesVec = ones(1,nCellsOld)
-    boundaryEdges .= abs.(onesVec*B)  
+    boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
 
     # Test for inconsistencies in the incidence matrices
     # senseCheck(A, B; marker="TopologyChange)
