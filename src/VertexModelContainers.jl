@@ -48,6 +48,7 @@ mutable struct MatricesContainer
     C                ::SparseMatrixCSC{Int64, Int64}  # Adjacency matrix mapping cells to vertices. Rows => cells; Columns => vertices. (C=0.5*B̄*Ā)
     cellEdgeCount    ::Vector{Int64}                  # Vector of number of edges around each cell
     boundaryVertices ::Vector{Int64}                  # Vector of 1s and 0s denoting vertices that lie on the system boundary
+    boundaryEdges    ::Vector{Int64}                  # Vector of 1s and 0s denoting edges that lie on the system boundary
     cellPositions    ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors for each cell centre of mass
     cellPerimeters   ::Vector{Float64}                # Vector of scalar cell perimeter lengths
     cellOrientedAreas::Vector{SMatrix{2, 2, Float64}} # Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area

@@ -19,7 +19,7 @@ using FromFile
 
 function topologyChange!(matrices)
 
-    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices = matrices
+    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,boundaryEdges = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
@@ -55,6 +55,9 @@ function topologyChange!(matrices)
     # multiplying by Aᵀ gives nonzero values only where a vertex (row) has nonzero values at columns (edges) corresponding to nonzero values in the list of boundary edges.
     # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
     boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
+
+    onesVec = ones(1,nCellsOld)
+    boundaryEdges .= abs.(onesVec*B)  
 
     # Test for inconsistencies in the incidence matrices
     # senseCheck(A, B; marker="TopologyChange)

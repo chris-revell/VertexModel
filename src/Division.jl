@@ -19,7 +19,7 @@ using CircularArrays
 function division!(params,matrices)
 
     @unpack nonDimCycleTime = params
-    @unpack R, A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack R, A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -128,9 +128,7 @@ function division!(params,matrices)
             
             # Find the neighbouring cells that share the intersected edges
             # Add new edges to these neighbour cells
-            # These edges are clockwise in the new cell, so must be anticlockwise in these neighbour cells
-            onesVec = ones(1,nCellsOld)
-            boundaryEdges = abs.(onesVec*B)            
+            # These edges are clockwise in the new cell, so must be anticlockwise in these neighbour cells                      
             if boundaryEdges[intersectedEdges[1]] == 0
                 neighbourCell = setdiff(findall(j->j!=0,B[:,intersectedEdges[1]]),[i])[1]
                 Btmp[neighbourCell,newEdges[2]] = -1
