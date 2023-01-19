@@ -18,7 +18,7 @@ function senseCheck(A, B; marker="")
     test = B*A
     dropzeros!(test)
     if length(findnz(test)[1]) > 0
-        display("Non-zero values in BA: $(marker)")
+        throw("Non-zero values in BA: $(marker)")
     else
         return
     end
