@@ -15,7 +15,7 @@ using UnPack
 
 function t1Transitions!(R,params,matrices,t)
 
-    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,ϵ,boundaryVertices,edgeMidpoints,cellPositions = matrices
+    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,ϵ,boundaryVertices,boundaryEdges,edgeMidpoints,cellPositions = matrices
     @unpack nEdges,t1Threshold = params
 
     transitionCount = 0
