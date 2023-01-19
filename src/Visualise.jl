@@ -160,25 +160,25 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
     neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
     
     # Draw force network
-    # startPosition = @SVector [0.0, 0.0]
-    # for (i, v) in enumerate(cellVerticesDict[centralCell])
-    #     arrows!(ax2, Point2f.([startPosition]), Vec2f.([ϵ * F[v, centralCell]]), linewidth=4, arrowsize=16, color=(getRandomColor(centralCell), 0.75))
-    #     #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    #     startPosition = startPosition + ϵ * F[v, centralCell]
-    #     H = Array{SVector{2,Float64}}(undef, length(cellVerticesDict[neighbouringCells[i]]) + 1)
-    #     cellForces = SVector{2,Float64}[]
-    #     # Circular permutation of vertices to ensure vertex v is the first index
-    #     # in the ordered cellVertices list around cell neighbouringCells[i]
-    #     index = findall(x -> x == v, cellVerticesDict[neighbouringCells[i]])
-    #     cellVertices = circshift(cellVerticesDict[neighbouringCells[i]], 1 - index[1])
-    #     H[1] = startPosition
-    #     for (j, cv) in enumerate(cellVertices)
-    #         push!(cellForces, +ϵ * F[cv, neighbouringCells[i]])
-    #         H[j+1] = H[j] + cellForces[end]
-    #     end
-    #     #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
-    #     arrows!(ax2, Point2f.(H), Vec2f.(cellForces), color=(getRandomColor(neighbouringCells[i]), 0.75), linewidth=4, arrowsize=16)
-    # end
+    startPosition = @SVector [0.0, 0.0]
+    for (i, v) in enumerate(cellVerticesDict[centralCell])
+        arrows!(ax2, Point2f.([startPosition]), Vec2f.([ϵ * F[v, centralCell]]), linewidth=4, arrowsize=16, color=(getRandomColor(centralCell), 0.75))
+        #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
+        startPosition = startPosition + ϵ * F[v, centralCell]
+        H = Array{SVector{2,Float64}}(undef, length(cellVerticesDict[neighbouringCells[i]]) + 1)
+        cellForces = SVector{2,Float64}[]
+        # Circular permutation of vertices to ensure vertex v is the first index
+        # in the ordered cellVertices list around cell neighbouringCells[i]
+        index = findall(x -> x == v, cellVerticesDict[neighbouringCells[i]])
+        cellVertices = circshift(cellVerticesDict[neighbouringCells[i]], 1 - index[1])
+        H[1] = startPosition
+        for (j, cv) in enumerate(cellVertices)
+            push!(cellForces, +ϵ * F[cv, neighbouringCells[i]])
+            H[j+1] = H[j] + cellForces[end]
+        end
+        #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
+        arrows!(ax2, Point2f.(H), Vec2f.(cellForces), color=(getRandomColor(neighbouringCells[i]), 0.75), linewidth=4, arrowsize=16)
+    end
 
     recordframe!(mov)
     

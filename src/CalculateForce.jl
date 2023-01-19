@@ -20,7 +20,7 @@ using .Threads
 
 function calculateForce!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices = matrices
+    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
     @unpack nVerts,nCells,nEdges,pressureExternal = params
 
     fill!(F,@SVector zeros(2))
@@ -34,6 +34,13 @@ function calculateForce!(R,params,matrices)
                 F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
                 externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
+        end
+    end
+
+    peripheryLength = sum(boundaryEdges.*edgeLengths)    
+    for j in 1:nEdges #findall(x->x!=0,boundaryEdges)
+        for k in nzrange(Aᵀ,j)            
+            externalF[rowvals(Aᵀ)[k]] -= boundaryEdges[j]*0.01*(peripheryLength-sqrt(π*nCells))*Aᵀ[rowvals(Aᵀ)[k],j].*edgeTangents[j]./edgeLengths[j]
         end
     end
 
