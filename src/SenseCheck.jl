@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 18/01/2023.
 #
 #
-# Function to calculate system energy
+# Function to calculate check for nonzero values in B*A
 
 module SenseCheck
 

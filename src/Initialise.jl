@@ -25,7 +25,7 @@ using DrWatson
 @from "CalculateForce.jl" using CalculateForce
 
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -145,7 +145,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         tMax,
         realCycleTime,
         nonDimCycleTime,
-        t1Threshold
+        t1Threshold,
+        peripheralTension
     )
 
     # Initial evaluation of matrices based on system topology

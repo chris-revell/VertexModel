@@ -31,6 +31,7 @@ mutable struct ParametersContainer
     realCycleTime      ::Float64  # Cell cycle time in seconds
     nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
+    peripheralTension  ::Float64  # Tension at system periphery
 end
 
 mutable struct MatricesContainer

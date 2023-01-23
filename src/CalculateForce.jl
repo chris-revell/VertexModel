@@ -21,7 +21,7 @@ using .Threads
 function calculateForce!(R,params,matrices)
 
     @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal = params
+    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
 
     fill!(F,@SVector zeros(2))
     fill!(externalF,@SVector zeros(2))
@@ -40,7 +40,7 @@ function calculateForce!(R,params,matrices)
     peripheryLength = sum(boundaryEdges.*edgeLengths)    
     for j in 1:nEdges #findall(x->x!=0,boundaryEdges)
         for k in nzrange(Aᵀ,j)            
-            externalF[rowvals(Aᵀ)[k]] -= boundaryEdges[j]*0.01*(peripheryLength-sqrt(π*nCells))*Aᵀ[rowvals(Aᵀ)[k],j].*edgeTangents[j]./edgeLengths[j]
+            externalF[rowvals(Aᵀ)[k]] -= boundaryEdges[j]*peripheralTension*(peripheryLength-sqrt(π*nCells))*Aᵀ[rowvals(Aᵀ)[k],j].*edgeTangents[j]./edgeLengths[j]
         end
     end
 

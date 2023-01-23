@@ -7,6 +7,7 @@ viscousTimeScale = 20.0
 dt               = 0.5
 A₀               = 1.0
 pressureExternal = 0.2
+peripheralTension= 0.01
 outputTotal      = 100
 t1Threshold      = 0.01
 outputToggle     = 1
