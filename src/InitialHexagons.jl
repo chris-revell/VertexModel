@@ -187,20 +187,10 @@ function initialHexagons(n)
 
         for k=1:6
             R[k] = SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
+            R[k+6] = 3.0.*SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
         end
 
-        edgeLength1 = 1.0
-        edgeLength2 = 2.0*sin(π/3.0)
-
-        R[7]  = R[1] .+ SVector{2}([cos((-1*π)/3.0),sin((-1*π)/3.0)]).*edgeLength1
-        R[8]  = R[2] .+ SVector{2}([cos((-1*π)/3.0),sin((1*π)/3.0)]).*edgeLength1
-        R[9]  = R[3] .+ SVector{2}([0,1]).*edgeLength1
-        R[10] = R[4] .+ SVector{2}([cos((1*π)/3.0),sin((1*π)/3.0)]).*edgeLength1
-        R[11] = R[5] .+ SVector{2}([cos((1*π)/3.0),sin((-1*π)/3.0)]).*edgeLength1
-        R[12] = R[6] .+ SVector{2}([0,-1]).*edgeLength1
-        
-
-        # Set initial cell areas to 1.0
+        # # Set initial cell areas to 1.0
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
 
