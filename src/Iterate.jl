@@ -37,16 +37,16 @@ function iterate!(iteration,params,matrices,t)
 
     if iteration == 1
 
-        if division!(params,matrices)>0
-            senseCheck(matrices.A, matrices.B; marker="division")
-            topologyChange!(matrices)
-            spatialData!(tempR,params,matrices)
-        end
         if (t1Transitions!(tempR,params,matrices,t))>0
             senseCheck(matrices.A, matrices.B; marker="T1")
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end
+        if division!(params,matrices)>0
+            senseCheck(matrices.A, matrices.B; marker="division")
+            topologyChange!(matrices)
+            spatialData!(tempR,params,matrices)
+        end        
 
         fill!(ΔR,@SVector zeros(2))
     end
