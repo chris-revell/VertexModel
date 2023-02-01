@@ -21,6 +21,10 @@ using Makie
 using CairoMakie
 using StaticArrays
 using SparseArrays
+using CircularArrays
+using FromFile
+
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 function getRandomColor(seed)
     Random.seed!(seed)
@@ -31,9 +35,9 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
 
     plotCells = 1
     plotEdges = 0
-    scatterEdges = 0
-    scatterVertices = 0
-    scatterCells = 0
+    scatterEdges = 1
+    scatterVertices = 1
+    scatterCells = 1
     plotForces = 0
 
     @unpack boundaryVertices, R, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
@@ -115,70 +119,67 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
         arrows!(ax1, Point2f.(cellPositions), Vec2f.(sum(F, dims=1)), color=:red)
     end
 
-
+    # This routine will break if applied to a peripheral cell 
     empty!(ax2)
     centralCell = 1
     ax2.title = "Cell $centralCell force space"
 
     cellNeighbourMatrix = B * Bᵀ
     dropzeros!(cellNeighbourMatrix)
-    neighbouringCells = findall(!iszero, cellNeighbourMatrix[centralCell, :])
+    neighbouringCells = findall(!iszero, cellNeighbourMatrix[centralCell, :]) # Note this includes centralCell itself 
 
-    # Find and sort all vertices around cells neighbouring centralCell
+    # Find and sort all vertices and edges around cells neighbouring centralCell, including centralCell itself
     cellVerticesDict = Dict()
+    cellEdgesDict = Dict()
     for c in neighbouringCells
-        # Find vertices around cell
-        cellVertices = findall(x -> x != 0, C[c, :])
-        # Find angles of vertices around cell
-        vertexAngles = zeros(size(cellVertices))
-        for (k, v) in enumerate(cellVertices)
-            vertexAngles[k] = atan((R[v] .- cellPositions[c])...)
-        end
-        # Sort vertices around cell by polar angle
-        cellVertices .= cellVertices[sortperm(vertexAngles)]
-        # Store sorted cell vertices for this cell
-        cellVerticesDict[c] = cellVertices
+        cellVerticesDict[c], cellEdgesDict[c] = orderAroundCell(matrices,c)
     end
 
-    centralCellVertices = findall(x -> x != 0, C[centralCell, :])
-    centralVertexAngles = zeros(size(centralCellVertices))
-    for (k, v) in enumerate(centralCellVertices)
-        centralVertexAngles[k] = atan((R[v] .- cellPositions[centralCell])...)
+    # Sort neighbouringCells using shared edges 
+    # This block will break if applied to a peripheral cell 
+    orderedNeighbours = Int64[]
+    for j in cellEdgesDict[centralCell]
+        push!(orderedNeighbours, setdiff(findall(x->x!=0, B[:,j]), [centralCell])[1])
     end
-    m = minimum(centralVertexAngles)
-    centralVertexAngles .-= m
-    centralCellVertices .= centralCellVertices[sortperm(centralVertexAngles)]
-
-    # Sort cells neighbouring centralCell by angle
-    setdiff!(neighbouringCells, [centralCell]) # Remove centralCell from neighbours list
-    neighbourAngles = zeros(length(neighbouringCells))
-    for (i, c) in enumerate(neighbouringCells)
-        neighbourAngles[i] = atan((cellPositions[c] .- cellPositions[centralCell])...)
-    end
-    neighbourAngles .+= (2π - m)
-    neighbourAngles = neighbourAngles .% (2π)
-    neighbouringCells .= neighbouringCells[sortperm(neighbourAngles)]
+    orderedNeighbours = CircularArray(orderedNeighbours)
     
     # Draw force network
-    # startPosition = @SVector [0.0, 0.0]
-    # for (i, v) in enumerate(cellVerticesDict[centralCell])
-    #     arrows!(ax2, Point2f.([startPosition]), Vec2f.([ϵ * F[v, centralCell]]), linewidth=4, arrowsize=16, color=(getRandomColor(centralCell), 0.75))
-    #     #annotations!(ax2,string.([v]),Point2f.([startPosition.+ϵ*F[v,centralCell]./2.0]),color=(getRandomColor(centralCell),0.75))
-    #     startPosition = startPosition + ϵ * F[v, centralCell]
-    #     H = Array{SVector{2,Float64}}(undef, length(cellVerticesDict[neighbouringCells[i]]) + 1)
-    #     cellForces = SVector{2,Float64}[]
-    #     # Circular permutation of vertices to ensure vertex v is the first index
-    #     # in the ordered cellVertices list around cell neighbouringCells[i]
-    #     index = findall(x -> x == v, cellVerticesDict[neighbouringCells[i]])
-    #     cellVertices = circshift(cellVerticesDict[neighbouringCells[i]], 1 - index[1])
-    #     H[1] = startPosition
-    #     for (j, cv) in enumerate(cellVertices)
-    #         push!(cellForces, +ϵ * F[cv, neighbouringCells[i]])
-    #         H[j+1] = H[j] + cellForces[end]
-    #     end
-    #     #annotations!(ax2,string.(cellVertices),(Point2f.(H[1:end-1])+Vec2f.(cellForces)./2.0),color=(getRandomColor(neighbouringCells[i]),0.75))
-    #     arrows!(ax2, Point2f.(H), Vec2f.(cellForces), color=(getRandomColor(neighbouringCells[i]), 0.75), linewidth=4, arrowsize=16)
-    # end
+    h = @SVector [0.0, 0.0]
+    for (i, k) in enumerate(cellVerticesDict[centralCell])
+
+        # For vertex k, the ith vertex in clockwise ordered list of vertices around centralCell, 
+        # the corresponding edge and neighbour cell to loop around in force space are clockwise of k, 
+        # and therefore found from index i+1: orderedNeighbours[i+1] and cellEdgesDict[centralCell][i+1]
+        # Remember that these are circular arrays, so adding 1 to the last component takes you back to the start
+        kNeighbourCell = orderedNeighbours[i+1]
+        
+        # Draw an arrow corresponding to the rotated force of centralCell on vertex k, starting from the last h space point
+        arrows!(ax2, Point2f.([h]), Vec2f.([ϵ * F[k, centralCell]]), linewidth=4, arrowsize=16, color=(getRandomColor(centralCell), 0.75))
+        # Update the last h space vector accordingly by adding the rotated force applied to vertex k by centralCell
+        h = h + ϵ*F[k, centralCell]
+        
+        # List of static vectors to store h space vertices for corresponding neighbour cell 
+        # hList = Array{SVector{2,Float64}}(undef, length(cellVerticesDict[kNeighbourCell]) + 1)
+        hList = SVector{2,Float64}[]
+        # List of rotated forces applied by neighbour cell to its vertices 
+        rotatedForces = SVector{2,Float64}[]
+        
+        # Find the index of vertex k within ordered list of vertices around neighbouring cell kNeighbourCell
+        index = findall(x->x==k, cellVerticesDict[kNeighbourCell])[1]
+        
+        # Store list of h space locations corresponding to rotated forces applied to vertices of cell kNeighbourCell by cell kNeighbourCell
+        # Starting from last h space location, itself derived from the rotated force applied to vertex k by centralCell
+        push!(hList,h)
+        for m=1:length(cellVerticesDict[kNeighbourCell])
+            push!(rotatedForces, ϵ*F[cellVerticesDict[kNeighbourCell][index+m-1], kNeighbourCell])
+            push!(hList,hList[end]+rotatedForces[end])
+        end
+        
+        # Plot rotated forces as arrows connecting points in h space
+        arrows!(ax2, Point2f.(hList), Vec2f.(rotatedForces), color=(getRandomColor(kNeighbourCell), 0.75), linewidth=4, arrowsize=16)
+    end
+
+    # Need to set xlims and ylims in ax2 correctly
 
     recordframe!(mov)
     
