@@ -27,7 +27,7 @@ function calculateForce!(R,params,matrices)
     fill!(externalF,@SVector zeros(2))
 
     # Internal forces
-    @threads for k=1:nVerts
+    for k=1:nVerts
         for j in nzrange(A,k)
             for i in nzrange(B,rowvals(A)[j])
                 F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])

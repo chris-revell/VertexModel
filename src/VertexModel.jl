@@ -42,6 +42,7 @@ using FromFile
 @from "Initialise.jl" using Initialise
 @from "Iterate.jl" using Iterate
 @from "SpatialData.jl" using SpatialData
+@from "PlotSetup.jl" using PlotSetup
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,peripheralTension,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
 
@@ -50,7 +51,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
     # Extract some variables from containers for use below
     @unpack tMax, outputInterval = params
-    @unpack R, tempR, ΔR, cellAges = matrices
+    @unpack R, ΔR, cellAges = matrices
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -59,23 +60,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", 0)).jld2");matrices)
         jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", 0)).jld2");params)
         if plotToggle==1
-            # Create plot canvas
-            set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-            fig = Figure(resolution=(2000,1000))
-            grid = fig[1,1] = GridLayout()
-            ax1 = Axis(grid[1,1],aspect=DataAspect())
-            ax2 = Axis(grid[1,2],aspect=DataAspect())
-            hidedecorations!(ax1)
-            hidespines!(ax1)
-            hidedecorations!(ax2)
-            hidespines!(ax2)
-            xlims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
-            ylims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
-            # Create animation object for visualisation
-            mov = VideoStream(fig, framerate=5)
-            # Visualise initial system
-            visualise(0.0,fig,ax1,ax2,mov,params,matrices)
-            save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", 0)).png"),fig)
+            fig,ax1,ax2,mov=plotSetup(params,matrices,subFolder,folderName)
         end
     end
 
