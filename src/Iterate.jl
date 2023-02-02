@@ -42,12 +42,13 @@ function iterate!(iteration,params,matrices,t)
             topologyChange!(matrices)
             spatialData!(tempR,params,matrices)
         end
-        if division!(params,matrices)>0
-            senseCheck(matrices.A, matrices.B; marker="division")
-            topologyChange!(matrices)
-            spatialData!(tempR,params,matrices)
-        end        
-
+        if nCells < 200
+            if division!(params,matrices)>0
+                senseCheck(matrices.A, matrices.B; marker="division")
+                topologyChange!(matrices)
+                spatialData!(tempR,params,matrices)
+            end        
+        end
         fill!(ΔR,@SVector zeros(2))
     end
 

@@ -35,9 +35,9 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
 
     plotCells = 1
     plotEdges = 0
-    scatterEdges = 1
-    scatterVertices = 1
-    scatterCells = 1
+    scatterEdges = 0
+    scatterVertices = 0
+    scatterCells = 0
     plotForces = 0
 
     @unpack boundaryVertices, R, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
