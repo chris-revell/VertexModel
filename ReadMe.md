@@ -17,5 +17,3 @@ TODO:
 
 - Control distribution of cell divisions by selecting from random distribution.
 - How do we choose T1 transition edge length threshold? Should this depend on preferred cell perimeter? 
-- Remove vertices where there are two short peripheral edges belonging to the same cell.
-- Consolidate ordering of vertices and edges around cells using topology into a function that can be used everywhere; reduce reliance on calculating angles. 
