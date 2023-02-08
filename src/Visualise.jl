@@ -52,13 +52,8 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
     # Plot cells
     if plotCells == 1
         for i = 1:nCells
-            cellVertices = findall(x -> x != 0, C[i, :])
-            vertexAngles = zeros(size(cellVertices))
-            for (k, v) in enumerate(cellVertices)
-                vertexAngles[k] = atan((R[v] .- cellPositions[i])...)
-            end
-            cellVertices .= cellVertices[sortperm(vertexAngles)]
-            poly!(ax1, Point2f.(R[cellVertices]), color=(getRandomColor(i), 0.5))
+            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
+            poly!(ax1, Point2f.(R[orderedVertices]), color=(getRandomColor(i), 0.5))
         end
     end
 
@@ -119,7 +114,7 @@ function visualise(t, fig, ax1, ax2, mov, params, matrices)
         arrows!(ax1, Point2f.(cellPositions), Vec2f.(sum(F, dims=1)), color=:red)
     end
 
-    # This routine will break if applied to a peripheral cell 
+    # This routine will probably break if applied to a peripheral cell 
     empty!(ax2)
     centralCell = 1
     ax2.title = "Cell $centralCell force space"
