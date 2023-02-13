@@ -13,18 +13,13 @@ using Random
 using Colors
 using JLD2
 using Printf
+using FromFile 
 
 # Local modules
-include("$(projectdir())/scripts/analysisFunctions/functions.jl")
+@from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions 
 
 function psicPotential(dataDirectory, show)
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
-    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
-    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
-    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
-
+    
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
     @unpack nVerts,nCells,nEdges,pressureExternal,γ,λ,viscousTimeScale,realTimetMax,tMax,dt,outputInterval,outputTotal,realCycleTime,t1Threshold = conditionsDict["params"]

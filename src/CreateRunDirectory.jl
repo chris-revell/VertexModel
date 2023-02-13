@@ -23,7 +23,7 @@ function createRunDirectory(params,matrices,subFolder)
     @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
-    params = @savename L₀ γ
+    params = @savename L₀ γ dt t1Threshold realTimetMax
     folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir(subFolder,folderName,"frames"))
