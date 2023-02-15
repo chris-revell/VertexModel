@@ -16,6 +16,7 @@ using StaticArrays
 using UnPack
 using GeometryBasics
 using Random
+using FromFile
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -36,7 +37,7 @@ end
 
 function makeCellLinks(params,matrices)
     @unpack B,cellPositions,edgeMidpoints = matrices
-    @unpack nCells = params
+    @unpack nCells,nEdges = params
     onesVec = ones(1,nCells)
     boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
@@ -52,7 +53,7 @@ function makeCellLinks(params,matrices)
 end
 
 function makeLinkTriangles(params,matrices)
-    @unpack A,B,C,boundaryVertices,cellPositions = matrices
+    @unpack A,B,C,R,boundaryVertices,cellPositions,edgeMidpoints = matrices
     @unpack nCells,nVerts = params
     onesVec = ones(1,nCells)
     linkTriangles = Vector{Point2f}[]
@@ -89,7 +90,11 @@ function makeEdgeTrapezia(params,matrices)
     for j=1:nEdges
         edgeCells = findall(x->x!=0,B[:,j])
         edgeVertices = findall(x->x!=0,A[j,:])
-        push!(edgeTrapezia,Point2f.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
+        if length(edgeCells) > 1
+            push!(edgeTrapezia,Point2f.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
+        else
+            push!(edgeTrapezia,Point2f.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]]]))
+        end
     end
     return edgeTrapezia
 end
@@ -139,7 +144,7 @@ end
 # {divᶜb}ᵢ
 # Calculate div on each cell
 function calculateCellDivs(params,matrices)
-    @unpack C,cellPositions,edgeMidpoints,edgeTangents,cellAreas = matrices
+    @unpack B,C,R,F,cellPositions,edgeMidpoints,edgeTangents,cellAreas,ϵ = matrices
     @unpack nCells = params
     cellDivs = Float64[]
     for c=1:nCells
@@ -214,54 +219,6 @@ function calculateVertexCurls(params,matrices,q,linkTriangleAreas)
         push!(vertexCurls,curlSum)
     end
     return vertexCurls
-end
-
-function makeLf(params,matrices,trapeziumAreas)
-    @unpack B,Bᵀ,cellAreas,edgeLengths = matrices
-    @unpack nCells = params
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
-    H = Diagonal(cellAreas)
-    boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
-    diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
-    Tₑ = Diagonal(diagonalComponent)
-    invH = inv(H)
-    Lf = invH*B*Tₑ*Bᵀ
-    dropzeros!(Lf)    
-    return Lf
-end
-
-function makeLc(params,matrices,T,trapeziumAreas)
-    @unpack B,Bᵀ,cellAreas = matrices
-    @unpack nCells = params
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
-    boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
-    H = Diagonal(cellAreas)
-    Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-    invTₗ = inv(Tₗ)
-    boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1,:])
-    Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
-    dropzeros!(Lc)
-    return Lc
-end
-
-function makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
-    @unpack A,Aᵀ,edgeLengths = matrices
-    E = Diagonal(linkTriangleAreas)
-    Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
-    Lᵥ = (E\Aᵀ)*(Tₑ\A)
-    dropzeros!(Lᵥ)
-    return Lᵥ
-end
-
-function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
-    @unpack A,Aᵀ = matrices
-    E = Diagonal(linkTriangleAreas)
-    Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
-    Lₜ = (E\Aᵀ)*Tₗ*A
-    dropzeros!(Lₜ)
-    return Lₜ
 end
 
 function makeCellVerticesDict(params,matrices)
@@ -387,10 +344,6 @@ export calculateCellCurls
 export calculateCellDivs
 export calculateVertexDivs
 export calculateVertexCurls
-export makeLf
-export makeLc
-export makeLv
-export makeLt
 export makeCellVerticesDict
 export edgeLinkMidpoints
 export calculateSpokes
