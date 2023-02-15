@@ -24,6 +24,7 @@
 module VertexModel
 
 # Julia packages
+using DifferentialEquations
 using LinearAlgebra
 using JLD2
 using SparseArrays
@@ -43,6 +44,7 @@ using FromFile
 @from "Iterate.jl" using Iterate
 @from "SpatialData.jl" using SpatialData
 @from "PlotSetup.jl" using PlotSetup
+@from "Model.jl" using Model
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,peripheralTension,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
 
@@ -67,17 +69,13 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
     t = 0.0001   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
     outCount = 0
 
+    prob = ODEProblem(model!,matrices.R,(0.000001,tMax))
+
+    integrator = init(prob,alg;kwargs...)
+
     while t<tMax
 
-        # 4 step Runge-Kutta integration
-        # 1st step of Runge-Kutta
-        iterate!(1,params,matrices,t)
-        # 2nd step of Runge-Kutta
-        iterate!(2,params,matrices,t)
-        # 3rd step of Runge-Kutta
-        iterate!(3,params,matrices,t)
-        # 4th step of Runge-Kutta
-        iterate!(4,params,matrices,t)
+        
 
         # Result of Runge-Kutta steps
         R .+= ΔR

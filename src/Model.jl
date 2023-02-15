@@ -1,13 +1,13 @@
 #
-#  CalculateForce.jl
+#  Model.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 11/02/2021.
+#  Created by Christopher Revell on 15/02/2023.
 #
 #
-# Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices.
+# Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices and update vertex positions.
 
-module CalculateForce
+module Model
 
 # Julia packages
 using LinearAlgebra
@@ -15,11 +15,16 @@ using StaticArrays
 using UnPack
 using SparseArrays
 using .Threads
+using FromFile 
 
-function calculateForce!(R,params,matrices)
+@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
 
-    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
+function model!(du, u, p, t) #R,params,matrices)
+
+    spatialData!(u,p[1],p[2])
+
+    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = p[2]
+    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = p[1]
 
     fill!(F,@SVector zeros(2))
     fill!(externalF,@SVector zeros(2))
@@ -42,8 +47,10 @@ function calculateForce!(R,params,matrices)
         end
     end
 
+    du .= sum.(eachrow(matrices.F))
+
 end
 
-export calculateForce!
+export model!
 
 end
