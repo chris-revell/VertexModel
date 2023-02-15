@@ -29,7 +29,7 @@ function neighbourColours(x)
 end
 
 fig = CairoMakie.Figure(resolution=(1000,1000))
-ax = Axis(fig[1,1])
+ax = Axis(fig[1,1],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
