@@ -13,18 +13,19 @@ using Random
 using Colors
 using JLD2
 using Printf
+using FromFile
 
 # Local modules
-includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
+@from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions 
 
 function laplacianTableauLf(dataDirectory, show)
 
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
-    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
-    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
-    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    # isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    # isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    # isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -69,7 +70,7 @@ function laplacianTableauLf(dataDirectory, show)
             end
             Label(grid[y,x,Bottom()],
                     L"i=%$eigenvectorIndex",
-                    textsize = 16,
+                    fontsize = 16,
             )
         end
     end
@@ -85,17 +86,20 @@ function laplacianTableauLf(dataDirectory, show)
             end
             Label(grid[y+4,x,Bottom()],
                     L"i=%$eigenvectorIndex",
-                    textsize = 16,
+                    fontsize = 16,
             )
         end
     end
 
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/pdf/eigenvectorTableauLf.pdf",fig)
+    # save("$dataDirectory/pdf/eigenvectorTableauLf.pdf",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/eigenvectorTableauLf.pdf",fig)
-    save("$dataDirectory/svg/eigenvectorTableauLf.svg",fig)
+    # save("$dataDirectory/svg/eigenvectorTableauLf.svg",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/eigenvectorTableauLf.svg",fig)
-    save("$dataDirectory/png/eigenvectorTableauLf.png",fig)
+    save("$dataDirectory/eigenvectorTableauLf.png",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/eigenvectorTableauLf.png",fig)
 end
+
+dataDirectory = datadir("annealing","L₀=3.0_γ=0.15_23-02-08-08-03-02")
+laplacianTableauLf(dataDirectory, 1)

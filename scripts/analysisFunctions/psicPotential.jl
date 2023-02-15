@@ -70,10 +70,12 @@ function psicPotential(dataDirectory, show)
     Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false)
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/pdf/psicPotential.pdf",fig)
+    # save("$dataDirectory/pdf/psicPotential.pdf",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/psicPotential.pdf",fig)
-    save("$dataDirectory/svg/psicPotential.svg",fig)
+    # save("$dataDirectory/svg/psicPotential.svg",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/psicPotential.svg",fig)
-    save("$dataDirectory/png/psicPotential.png",fig)
+    save("$dataDirectory/psicPotential.png",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/psicPotential.png",fig)
 end
+
+psicPotential(datadir("annealing","L₀=3.0_γ=0.15_23-02-08-08-03-02"),1)

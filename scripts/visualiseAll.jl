@@ -169,7 +169,7 @@ dataDirectory = dataDirs[3]
    grid = fig[1,1] = GridLayout()
    ax1 = Axis(grid[1,1],aspect=DataAspect())
    ax2 = Axis(grid[1,2],aspect=DataAspect())
-   Label(fig[2,1,Bottom()],"Movie showing the monolayer from Figure 7(g-i) in real space alongside \nthe network of rotated forces acting at all vertices of cell $centralCell.\n Cell $centralCell highlighted in the monolayer with a red dot.",textsize = 32)
+   Label(fig[2,1,Bottom()],"Movie showing the monolayer from Figure 7(g-i) in real space alongside \nthe network of rotated forces acting at all vertices of cell $centralCell.\n Cell $centralCell highlighted in the monolayer with a red dot.",fontsize = 32)
 
 
    resize_to_layout!(fig)

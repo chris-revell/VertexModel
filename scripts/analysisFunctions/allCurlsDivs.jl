@@ -65,9 +65,9 @@ function allCurlsDivs(dataDirectory, show)
     for i=1:nCells
         poly!(ax1,cellPolygons[i],color=[cellDivs[i]],colormap=:bwr,colorrange=divLims, strokecolor=(:black,1.0),strokewidth=5)
     end
-    Label(grid[1, 1, Bottom()],LaTeXString("(a)"),textsize = 28)
-    # Label(grid[1, 1, Left()],LaTeXString("div"),textsize = 28)
-    # Label(grid[1, 1, Top()],LaTeXString("Cells"),textsize = 28)
+    Label(grid[1, 1, Bottom()],LaTeXString("(a)"),fontsize = 28)
+    # Label(grid[1, 1, Left()],LaTeXString("div"),fontsize = 28)
+    # Label(grid[1, 1, Top()],LaTeXString("Cells"),fontsize = 28)
 
     # Vertex div axis
     ax2 = Axis(grid[1,2],aspect=DataAspect())
@@ -79,8 +79,8 @@ function allCurlsDivs(dataDirectory, show)
     for i=1:nCells
         poly!(ax2,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
     end
-    Label(grid[1, 2, Bottom()],LaTeXString("(b)"),textsize = 28)
-    # Label(grid[1, 2, Top()],LaTeXString("Vertices"),textsize = 28)
+    Label(grid[1, 2, Bottom()],LaTeXString("(b)"),fontsize = 28)
+    # Label(grid[1, 2, Top()],LaTeXString("Vertices"),fontsize = 28)
     Colorbar(grid[1,3],limits=divLims,colormap=:bwr,flipaxis=false)
 
     # Cell curl axis
@@ -90,8 +90,8 @@ function allCurlsDivs(dataDirectory, show)
     for i=1:nCells
         poly!(ax3,cellPolygons[i],color=[cellCurls[i]],colormap=:bwr,colorrange=curlLims,strokecolor=(:black,1.0),strokewidth=5) #:bwr
     end
-    Label(grid[2, 1, Bottom()],LaTeXString("(c)"),textsize = 28)
-    # Label(grid[2, 1, Left()],LaTeXString("curl"),textsize = 28)
+    Label(grid[2, 1, Bottom()],LaTeXString("(c)"),fontsize = 28)
+    # Label(grid[2, 1, Left()],LaTeXString("curl"),fontsize = 28)
 
     # Vertex curl axis
     ax4 = Axis(grid[2,2][1,1],aspect=DataAspect())
@@ -103,7 +103,7 @@ function allCurlsDivs(dataDirectory, show)
     for i=1:nCells
         poly!(ax4,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=5) #:bwr
     end
-    Label(grid[2, 2, Bottom()],LaTeXString("(d)"),textsize = 28)
+    Label(grid[2, 2, Bottom()],LaTeXString("(d)"),fontsize = 28)
     Colorbar(grid[2,3],limits=curlLims,colormap=:bwr,flipaxis=false)
 
     show==1 ? display(fig) : nothing

@@ -13,17 +13,18 @@ using Random
 using Colors
 using JLD2
 using Printf
+using FromFile
 
 # Local modules
-includet("$(projectdir())/scripts/analysisFunctions/functions.jl")
+@from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions 
 
 function capitalPsivPotential(dataDirectory,show)
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
-    isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
-    isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
-    isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
-    isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf")
+    # isdir("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg") ? nothing : mkpath("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg")
+    # isdir("$dataDirectory/png") ? nothing : mkpath("$dataDirectory/png")
+    # isdir("$dataDirectory/pdf") ? nothing : mkpath("$dataDirectory/pdf")
+    # isdir("$dataDirectory/svg") ? nothing : mkpath("$dataDirectory/svg")
 
     # Import system data
     conditionsDict    = load("$dataDirectory/dataFinal.jld2")
@@ -80,10 +81,13 @@ function capitalPsivPotential(dataDirectory,show)
 
 
     show==1 ? display(fig) : nothing
-    save("$dataDirectory/pdf/capitalPsivPotential.pdf",fig)
+    # save("$dataDirectory/pdf/capitalPsivPotential.pdf",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/pdf/capitalPsivPotential.pdf",fig)
-    save("$dataDirectory/svg/capitalPsivPotential.svg",fig)
+    # save("$dataDirectory/svg/capitalPsivPotential.svg",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/svg/capitalPsivPotential.svg",fig)
-    save("$dataDirectory/png/capitalPsivPotential.png",fig)
+    save("$dataDirectory/capitalPsivPotential.png",fig)
     #save("/Users/christopher/Dropbox (The University of Manchester)/Chris-Oliver Shared/VertexModelFigures/$(splitdir(dataDirectory)[end])/png/capitalPsivPotential.png",fig)
 end
+
+dataDirectory = datadir("annealing","L₀=3.0_γ=0.15_23-02-08-08-03-02")
+capitalPsivPotential(dataDirectory,1)
