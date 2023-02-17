@@ -71,7 +71,20 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
 
     prob = ODEProblem(model!,matrices.R,(0.000001,tMax))
 
-    integrator = init(prob,alg;kwargs...)
+    integrator = init(prob,tsit5)
+
+    while t<tMax
+        if t%outputInterval<dt && outputToggle==1
+            outCount += 1
+            # spatialData!(R,params,matrices)
+            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", outCount)).jld2");matrices)
+            jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", outCount)).jld2");params)
+            if plotToggle==1
+                visualise(t,fig,ax1,ax2,mov,params,matrices)
+                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", outCount)).png"),fig)
+            end
+            println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
+        end
 
     while t<tMax
 
