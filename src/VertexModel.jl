@@ -62,7 +62,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", 0)).jld2");matrices)
         jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", 0)).jld2");params)
         if plotToggle==1
-            fig,ax1,ax2,mov=plotSetup(params,matrices,subFolder,folderName)
+            fig,ax1,mov=plotSetup(params,matrices,subFolder,folderName)
         end
     end
 
@@ -80,7 +80,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
             jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", outCount)).jld2");matrices)
             jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", outCount)).jld2");params)
             if plotToggle==1
-                visualise(t,fig,ax1,ax2,mov,params,matrices)
+                visualise(integrator.t,fig,ax1,mov,params,matrices)
                 save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", outCount)).png"),fig)
             end
             println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
@@ -95,18 +95,6 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         t += dt
         cellAges .+= dt
 
-        # Visualise system at every output interval
-        if t%outputInterval<dt && outputToggle==1
-            outCount += 1
-            spatialData!(R,params,matrices)
-            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", outCount)).jld2");matrices)
-            jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", outCount)).jld2");params)
-            if plotToggle==1
-                visualise(t,fig,ax1,ax2,mov,params,matrices)
-                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", outCount)).png"),fig)
-            end
-            println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
-        end
     end
 
     # If outputToggle==1, save animation object and save final system matrices

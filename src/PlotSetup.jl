@@ -30,23 +30,18 @@ function plotSetup(params,matrices,subFolder,folderName)
 
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    fig = Figure(resolution=(2000,1000))
+    fig = Figure(resolution=(1000,1000))
     grid = fig[1,1] = GridLayout()
     ax1 = Axis(grid[1,1],aspect=DataAspect())
-    ax2 = Axis(grid[1,2],aspect=DataAspect())
     hidedecorations!(ax1)
     hidespines!(ax1)
-    hidedecorations!(ax2)
-    hidespines!(ax2)
-    xlims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
-    ylims!(ax1,min(minimum(first.(R)),minimum(last.(R))), max(maximum(first.(R)),maximum(last.(R))))
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     # Visualise initial system
-    visualise(0.0,fig,ax1,ax2,mov,params,matrices)
+    visualise(0.0,fig,ax1,mov,params,matrices)
     save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", 0)).png"),fig)
     
-    return fig, ax1, ax2, mov
+    return fig, ax1, mov
    
 end
 
