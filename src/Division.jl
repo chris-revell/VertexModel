@@ -16,9 +16,10 @@ using SparseArrays
 using UnPack
 using CircularArrays
 using FromFile
+using DrWatson
 
-@from "OrderAroundCell.jl" using OrderAroundCell
-
+# Local modules
+@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
 
 function division!(params,matrices)
 

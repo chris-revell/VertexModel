@@ -16,7 +16,6 @@ using UnPack
 using FastBroadcast
 using SparseArrays
 
-
 function spatialData!(R,params,matrices)
 
     @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices

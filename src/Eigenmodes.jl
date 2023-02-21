@@ -13,10 +13,11 @@ using LinearAlgebra
 using SparseArrays
 using FromFile
 using GeometryBasics
+using DrWatson
 
 # Local modules
-@from "AnalysisFunctions" using AnalysisFunctions
-@from "Laplacians" using Laplacians
+@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "$(projectdir("src","Laplacians.jl"))" using Laplacians
 
 function eigenmodesLt(matrices,params)    
     T = makeCellLinks(params,matrices)

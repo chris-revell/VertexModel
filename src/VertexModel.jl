@@ -38,13 +38,13 @@ using Printf
 using FromFile
 
 # Local modules
-@from "CreateRunDirectory.jl" using CreateRunDirectory
-@from "Visualise.jl" using Visualise
-@from "Initialise.jl" using Initialise
-@from "Iterate.jl" using Iterate
-@from "SpatialData.jl" using SpatialData
-@from "PlotSetup.jl" using PlotSetup
-@from "Model.jl" using Model
+@from "$(projectdir("src","CreateRunDirectory.jl"))" using CreateRunDirectory
+@from "$(projectdir("src","Visualise.jl"))" using Visualise
+@from "$(projectdir("src","Initialise.jl"))" using Initialise
+@from "$(projectdir("src","Iterate.jl"))" using Iterate
+@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "$(projectdir("src","PlotSetup.jl"))" using PlotSetup
+@from "$(projectdir("src","Model.jl"))" using Model
 
 function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,peripheralTension,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
 

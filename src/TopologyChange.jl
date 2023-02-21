@@ -15,7 +15,10 @@ using UnPack
 using SparseArrays
 using FastBroadcast
 using FromFile
-@from "SenseCheck.jl" using SenseCheck
+using DrWatson
+
+# Local modules
+@from "$(projectdir("src","SenseCheck.jl"))" using SenseCheck
 
 function topologyChange!(matrices)
 

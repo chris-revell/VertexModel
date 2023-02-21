@@ -18,12 +18,12 @@ using DrWatson
 using FromFile
 
 # Local modules
-@from "SpatialData.jl" using SpatialData
-@from "CalculateForce.jl" using CalculateForce
-@from "T1Transitions.jl" using T1Transitions
-@from "TopologyChange.jl" using TopologyChange
-@from "Division.jl" using Division
-@from "SenseCheck.jl" using SenseCheck
+@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "$(projectdir("src","CalculateForce.jl"))" using CalculateForce
+@from "$(projectdir("src","T1Transitions.jl"))" using T1Transitions
+@from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
+@from "$(projectdir("src","Division.jl"))" using Division
+@from "$(projectdir("src","SenseCheck.jl"))" using SenseCheck
 
 function iterate!(iteration,params,matrices,t)
 

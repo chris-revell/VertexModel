@@ -18,12 +18,11 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "InitialHexagons.jl" using InitialHexagons
-@from "VertexModelContainers.jl" using VertexModelContainers
-@from "TopologyChange.jl" using TopologyChange
-@from "SpatialData.jl" using SpatialData
-@from "CalculateForce.jl" using CalculateForce
-
+@from "$(projectdir("src","InitialHexagons.jl"))" using InitialHexagons
+@from "$(projectdir("src","VertexModelContainers.jl"))" using VertexModelContainers
+@from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
+@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "$(projectdir("src","CalculateForce.jl"))" using CalculateForce
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 

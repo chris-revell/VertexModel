@@ -19,7 +19,7 @@ using Random
 using FromFile
 
 # Local modules
-@from "OrderAroundCell.jl" using OrderAroundCell
+@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
 
 function getRandomColor(seed)
     Random.seed!(seed)

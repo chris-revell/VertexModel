@@ -23,8 +23,10 @@ using StaticArrays
 using SparseArrays
 using CircularArrays
 using FromFile
+using DrWatson
 
-@from "OrderAroundCell.jl" using OrderAroundCell
+# Local modules
+@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
 
 function getRandomColor(seed)
     Random.seed!(seed)
