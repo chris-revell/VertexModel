@@ -35,9 +35,9 @@ mutable struct ParametersContainer
 end
 
 mutable struct MatricesContainer
-    R                ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors for each vertex (x,y) position
-    tempR            ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors to hold intermediate positions of each vertex in Runge-Kutta integration
-    ΔR               ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors to hold overall change of position of each vertex in Runge-Kutta integration
+    # R                ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors for each vertex (x,y) position
+    # tempR            ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors to hold intermediate positions of each vertex in Runge-Kutta integration
+    # ΔR               ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors to hold overall change of position of each vertex in Runge-Kutta integration
     A                ::SparseMatrixCSC{Int64, Int64}  # Incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
     B                ::SparseMatrixCSC{Int64, Int64}  # Incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
     Aᵀ               ::SparseMatrixCSC{Int64, Int64}  # Transpose of incidence matrix A

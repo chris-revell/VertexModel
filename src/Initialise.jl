@@ -56,10 +56,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     B̄                 = spzeros(Int64,nCells,nEdges)
     B̄ᵀ                = spzeros(Int64,nEdges,nCells)
     C                 = spzeros(Int64,nCells,nVerts)
-    tempR             = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(tempR,@SVector zeros(2))
-    ΔR                = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(ΔR,@SVector zeros(2))
+    # tempR             = Array{SVector{2,Float64}}(undef,nVerts)
+    # fill!(tempR,@SVector zeros(2))
+    # ΔR                = Array{SVector{2,Float64}}(undef,nVerts)
+    # fill!(ΔR,@SVector zeros(2))
     cellEdgeCount     = zeros(Int64,nCells)
     boundaryVertices  = zeros(Int64,nVerts)
     boundaryEdges     = zeros(Int64,nEdges)
@@ -94,9 +94,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
 
     # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
-        R,
-        tempR,
-        ΔR,
+        # R,
+        # tempR,
+        # ΔR,
         A,
         B,
         Aᵀ,
@@ -153,7 +153,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     spatialData!(R,params,matrices)
     calculateForce!(R,params,matrices)
 
-    return params,matrices
+    return R, params, matrices
 
 end
 

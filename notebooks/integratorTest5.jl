@@ -51,7 +51,7 @@ mov = VideoStream(fig, framerate=200)
 
 while integrator.t < tMax
     empty!(ax)
-    scatter!(ax,Point2.(first.(integrator.u),last.(integrator.u)),color=:red)
+    scatter!(ax,Point2.(first.(integrator.u),last.(integrator.u)),color=:red,markersize=0.1)
     recordframe!(mov)
     step!(integrator)
     if integrator.t%0.5 < integrator.dt

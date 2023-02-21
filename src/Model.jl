@@ -23,10 +23,11 @@ using DrWatson
 
 function model!(du, u, p, t) #R,params,matrices)
 
-    spatialData!(u,p[1],p[2])
+    params, matrices = p
+    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
+    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
 
-    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = p[2]
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = p[1]
+    spatialData!(u,params,matrices)
 
     fill!(F,@SVector zeros(2))
     fill!(externalF,@SVector zeros(2))

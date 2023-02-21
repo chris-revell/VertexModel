@@ -66,34 +66,25 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         end
     end
 
-    t = 0.0001   # Initial time is very small but slightly above 0 to avoid floating point issues with % operator in output interval calculation
     outCount = 0
 
-    prob = ODEProblem(model!,matrices.R,(0.000001,tMax))
+    prob = ODEProblem(model!,matrices.R,(0.0,tMax),[params,matrices])
+    integrator = init(prob,Tsit5())
 
-    integrator = init(prob,tsit5)
-
-    while t<tMax
-        if t%outputInterval<dt && outputToggle==1
+    while integrator.t<tMax
+        # spatialData!(R,params,matrices)
+        if integrator.t%outputInterval<integrator.dt && outputToggle==1
             outCount += 1
-            # spatialData!(R,params,matrices)
             jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", outCount)).jld2");matrices)
             jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", outCount)).jld2");params)
             if plotToggle==1
                 visualise(integrator.t,fig,ax1,mov,params,matrices)
                 save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", outCount)).png"),fig)
             end
-            println("$(@sprintf("%.2f", t))/$(@sprintf("%.2f", params.tMax))")
+            println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax))")
         end
 
-    while t<tMax
-
-        
-
-        # Result of Runge-Kutta steps
-        R .+= ΔR
-        t += dt
-        cellAges .+= dt
+        step!(integrator)
 
     end
 
