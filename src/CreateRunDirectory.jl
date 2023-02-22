@@ -17,13 +17,13 @@ using UnPack
 using JLD2
 using DrWatson
 
-function createRunDirectory(params,matrices,subFolder)
+function createRunDirectory(R,params,matrices,subFolder)
 
-    @unpack A,B,R = matrices
-    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
+    @unpack A,B = matrices
+    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
-    params = @savename L₀ γ dt t1Threshold realTimetMax
+    params = @savename L₀ γ t1Threshold realTimetMax
     folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir(subFolder,folderName,"frames"))
@@ -36,7 +36,6 @@ function createRunDirectory(params,matrices,subFolder)
         println(conditionsFile, "γ,                 $γ")
         println(conditionsFile, "λ,                 $λ")
         println(conditionsFile, "viscousTimeScale,  $viscousTimeScale")
-        println(conditionsFile, "dt,                $dt")
         println(conditionsFile, "A₀,                $A₀")
         println(conditionsFile, "pressureExternal,  $pressureExternal")
         println(conditionsFile, "outputTotal,       $outputTotal")

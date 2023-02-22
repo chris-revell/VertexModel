@@ -24,7 +24,7 @@ using DrWatson
 @from "$(projectdir("src","SpatialData.jl"))" using SpatialData
 @from "$(projectdir("src","CalculateForce.jl"))" using CalculateForce
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -39,7 +39,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/matricesFinal.jld2")
-        @unpack A,B,R,cellAges = importedArrays["matrices"]
+        @unpack A,B,cellAges = importedArrays["matrices"]
+        @unpack R = importedArrays["R"]
     end
 
     # Infer system information from matrices
@@ -136,7 +137,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,dt,
         L₀,
         A₀,
         pressureExternal,
-        dt,
         outputTotal,
         outputInterval,
         viscousTimeScale,

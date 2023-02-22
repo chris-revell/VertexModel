@@ -23,10 +23,7 @@ using CairoMakie
 @from "$(projectdir("src","CreateRunDirectory.jl"))" using CreateRunDirectory
 @from "$(projectdir("src","Visualise.jl"))" using Visualise
 
-function plotSetup(params,matrices,subFolder,folderName)
-
-    # Extract some variables from containers for use below    
-    @unpack R = matrices
+function plotSetup(R,params,matrices,subFolder,folderName)
 
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
@@ -38,7 +35,7 @@ function plotSetup(params,matrices,subFolder,folderName)
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     # Visualise initial system
-    visualise(0.0,fig,ax1,mov,params,matrices)
+    visualise(R,0.0,fig,ax1,mov,params,matrices)
     save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", 0)).png"),fig)
     
     return fig, ax1, mov

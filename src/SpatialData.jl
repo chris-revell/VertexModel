@@ -19,7 +19,7 @@ using SparseArrays
 function spatialData!(R,params,matrices)
 
     @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
-    @unpack nCells,nEdges,γ,L₀,A₀ = params
+    @unpack nCells,γ,L₀,A₀ = params
 
     # cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)

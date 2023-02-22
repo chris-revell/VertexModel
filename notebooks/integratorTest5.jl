@@ -22,25 +22,10 @@ function model!(du,u,p,t)
     return du
 end
 
-function condition(u,t,integrator) # Event when event_f(u,t) == 0
-    t%1.0 < integrator.dt ? (return 0) : (return 1)
-end
-
-# function affect!(integrator)
-#     u = integrator.u
-#     resize!(integrator,length(u)+1)
-#     u[end] = @SVector rand(2)
-#     nothing
-# end
-
-# callback = ContinuousCallback(condition,affect!)
-
 u0 = [@SVector rand(2) for _=1:N]
-
 tSpan = (0.,tMax)
 
 prob = ODEProblem(model!, u0, tSpan)
-
 integrator = init(prob, Tsit5())
 
 fig = CairoMakie.Figure()
@@ -51,14 +36,12 @@ mov = VideoStream(fig, framerate=200)
 
 while integrator.t < tMax
     empty!(ax)
-    scatter!(ax,Point2.(first.(integrator.u),last.(integrator.u)),color=:red,markerspace=SceneSpace,markersize=2*(2^(1/6)*0.1))
+    scatter!(ax,Point2.(first.(integrator.u),last.(integrator.u)),color=:red,markerspace=:data,markersize=π*(2^(1/6)*0.1)/2,linecolor=:black)
     recordframe!(mov)
     step!(integrator)
-    if integrator.t%0.5 < integrator.dt
-        # u = integrator.u
+    if integrator.t%0.5 < integrator.dt        
         resize!(integrator,length(integrator.u)+1)
-        integrator.u[end] = @SVector rand(2)
-        # push!(integrator.u,@SVector rand(2))
+        integrator.u[end] = @SVector rand(2)        
         u_modified!(integrator,true)
     end
 end

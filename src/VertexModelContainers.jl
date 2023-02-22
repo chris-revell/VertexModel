@@ -22,7 +22,6 @@ mutable struct ParametersContainer
     L₀                 ::Float64  # Cell preferred perimeter length L₀ = -λ/(2*γ)
     A₀                 ::Float64  # Cell preferred area
     pressureExternal   ::Float64  # External pressure applied uniformly to system
-    dt                 ::Float64  # Non dimensionalised time step
     outputTotal        ::Int64    # Total number of data outputs
     outputInterval     ::Float64  # Non dimensionalised data output interval
     viscousTimeScale   ::Float64  # Relaxation rate, approx from Sarah's data.

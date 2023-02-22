@@ -33,14 +33,14 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-function visualise(t, fig, ax1, mov, params, matrices)
+function visualise(R, t, fig, ax1, mov, params, matrices)
 
     plotCells = 1
     scatterEdges = 0
     scatterVertices = 0
     scatterCells = 0
 
-    @unpack boundaryVertices, R, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
+    @unpack boundaryVertices, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
 
     empty!(ax1)

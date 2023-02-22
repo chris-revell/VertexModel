@@ -10,21 +10,22 @@
 module Division
 
 # Julia packages
+using DrWatson
+using FromFile
+using UnPack
 using LinearAlgebra
 using StaticArrays
 using SparseArrays
-using UnPack
 using CircularArrays
-using FromFile
-using DrWatson
+using DifferentialEquations
 
 # Local modules
 @from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
 
-function division!(params,matrices)
+function division!(integrator,params,matrices)
 
     @unpack nonDimCycleTime = params
-    @unpack R, A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, tempR, ΔR, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -43,10 +44,10 @@ function division!(params,matrices)
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
             longPair = [0,0]
-            # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = R[longPair[1]].-R[longPair[2]] 
+            # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]] 
             for j=1:n-1
                 for k=j+1:n
-                    tmpDist = norm(R[orderedVertices[j]].-R[orderedVertices[k]])
+                    tmpDist = norm(integrator.u[orderedVertices[j]].-integrator.u[orderedVertices[k]])
                     if tmpDist>maximum(distances)
                         longPair .= [orderedVertices[j],orderedVertices[k]]
                     end
@@ -54,7 +55,7 @@ function division!(params,matrices)
                 end
             end
             # longAxis is the vector separating the two vertices with labels stored in longPair
-            longAxis = R[longPair[1]].-R[longPair[2]]
+            longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]]
             # Find short axis perpendicular to long axis
             shortAxis = ϵ*longAxis
             shortAngle1 = (atan(shortAxis...)+2π)%2π
@@ -62,7 +63,7 @@ function division!(params,matrices)
             intersectedIndex = [0,0]
             minAngle = atan((edgeMidpoints[orderedEdges[1]].-cellPositions[i])...)
             for ind = 1:n
-                if shortAngle1 <= atan((R[orderedVertices[ind]].-cellPositions[i])...)-minAngle
+                if shortAngle1 <= atan((integrator.u[orderedVertices[ind]].-cellPositions[i])...)-minAngle
                     intersectedIndex[1] = ind
                     break
                 end
@@ -144,20 +145,18 @@ function division!(params,matrices)
                 Atmp[edge, newCellVertices[k+1]] = 1
             end
 
-            # Add new vertex position
-            append!(newRs,[edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]])
+            # Add new vertex positions
+            resize!(integrator,length(integrator.u)+2)
+            integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+            u_modified!(integrator,true)
 
             cellAges[i] = 0.0#nonDimCycleTime*0.5*rand()
 
-            nCellsNew = nCellsOld+1
-            nVertsNew = nVertsOld+2
-            nEdgesNew = nEdgesOld+3
-
             divisionCount = 1
 
-            params.nCells = nCellsNew
-            params.nVerts = nVertsNew
-            params.nEdges = nEdgesNew
+            params.nCells = nCellsOld+1
+            params.nVerts = nVertsOld+2
+            params.nEdges = nEdgesOld+3
 
             # Add 1 component to vectors for new cell
             append!(cellEdgeCount,zeros(Int64,divisionCount))
@@ -168,30 +167,24 @@ function division!(params,matrices)
             append!(cellTensions,zeros(Float64,divisionCount))
             append!(cellPressures,zeros(Float64,divisionCount))
             append!(cellAges,zeros(Float64,divisionCount))#nonDimCycleTime*0.5.*rand(Float64,divisionCount))
-
-            # Add 2 components to vectors for new vertices
-            append!(R,newRs)
-            append!(tempR,newRs)
-            append!(ΔR,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(boundaryVertices,zeros(Int64,2*divisionCount))
             append!(boundaryEdges,zeros(Int64,3*divisionCount))
             append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
-            # Add 3 components to vectors for new edges
             append!(edgeLengths,zeros(Float64,3*divisionCount))
             append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
             append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
 
             matrices.A = Atmp
             matrices.B = Btmp
-            matrices.Aᵀ = spzeros(Int64,nVertsNew,nEdgesNew)
-            matrices.Ā  = spzeros(Int64,nEdgesNew,nVertsNew)
-            matrices.Āᵀ = spzeros(Int64,nVertsNew,nEdgesNew)
-            matrices.Bᵀ = spzeros(Int64,nEdgesNew,nCellsNew)
-            matrices.B̄  = spzeros(Int64,nCellsNew,nEdgesNew)
-            matrices.B̄ᵀ = spzeros(Int64,nEdgesNew,nCellsNew)
-            matrices.C  = spzeros(Int64,nCellsNew,nVertsNew)
-            matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsNew,nCellsNew)
+            matrices.Aᵀ = spzeros(Int64,nVertsOld+2,nEdgesOld+3)
+            matrices.Ā  = spzeros(Int64,nEdgesOld+3,nVertsOld+2)
+            matrices.Āᵀ = spzeros(Int64,nVertsOld+2,nEdgesOld+3)
+            matrices.Bᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
+            matrices.B̄  = spzeros(Int64,nCellsOld+1,nEdgesOld+3)
+            matrices.B̄ᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
+            matrices.C  = spzeros(Int64,nCellsOld+1,nVertsOld+2)
+            matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsOld+2,nCellsOld+1)
 
             break
 

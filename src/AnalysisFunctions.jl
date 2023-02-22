@@ -52,8 +52,8 @@ function makeCellLinks(params,matrices)
     return T
 end
 
-function makeLinkTriangles(params,matrices)
-    @unpack A,B,C,R,boundaryVertices,cellPositions,edgeMidpoints = matrices
+function makeLinkTriangles(R,params,matrices)
+    @unpack A,B,C,boundaryVertices,cellPositions,edgeMidpoints = matrices
     @unpack nCells,nVerts = params
     onesVec = ones(1,nCells)
     linkTriangles = Vector{Point2f}[]
@@ -83,8 +83,8 @@ function makeLinkTriangles(params,matrices)
     return linkTriangles
 end
 
-function makeEdgeTrapezia(params,matrices)
-    @unpack A,B,R,cellPositions = matrices
+function makeEdgeTrapezia(R,params,matrices)
+    @unpack A,B,cellPositions = matrices
     @unpack nEdges = params
     edgeTrapezia = Vector{Point2f}[]
     for j=1:nEdges
@@ -109,8 +109,8 @@ end
 
 # {curlᶜb}ᵢ
 # Calculate curl on each cell
-function calculateCellCurls(params,matrices)
-    @unpack C,R,cellPositions,edgeMidpoints,edgeTangents,cellAreas = matrices
+function calculateCellCurls(R,params,matrices)
+    @unpack C,cellPositions,edgeMidpoints,edgeTangents,cellAreas = matrices
     @unpack nCells = params
     cellCurls = Float64[]
     for c=1:nCells
@@ -143,8 +143,8 @@ end
 
 # {divᶜb}ᵢ
 # Calculate div on each cell
-function calculateCellDivs(params,matrices)
-    @unpack B,C,R,F,cellPositions,edgeMidpoints,edgeTangents,cellAreas,ϵ = matrices
+function calculateCellDivs(R,params,matrices)
+    @unpack B,C,F,cellPositions,edgeMidpoints,edgeTangents,cellAreas,ϵ = matrices
     @unpack nCells = params
     cellDivs = Float64[]
     for c=1:nCells
@@ -178,8 +178,8 @@ end
 
 # {divᵛb}ₖ
 # Calculate div at each vertex
-function calculateVertexDivs(params,matrices,q,linkTriangleAreas)
-    @unpack C,R,cellPositions,F,ϵ = matrices
+function calculateVertexDivs(R,params,matrices,q,linkTriangleAreas)
+    @unpack C,cellPositions,F,ϵ = matrices
     @unpack nVerts = params
     vertexDivs = Float64[]
     for k=1:nVerts
@@ -200,9 +200,9 @@ end
 
 # {CURLᵛb}ₖ
 # Calculate curl at each vertex
-function calculateVertexCurls(params,matrices,q,linkTriangleAreas)
-    @unpack C,R,cellPositions,F,ϵ = matrices
-    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,pressureExternal,dt,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
+function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
+    @unpack C,cellPositions,F,ϵ = matrices
+    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,pressureExternal,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
     vertexCurls = Float64[]
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts
@@ -231,8 +231,8 @@ function makeCellVerticesDict(params,matrices)
     return cellVerticesDict
 end
 
-function edgeLinkMidpoints(params,matrices,trapeziumAreas,T)
-    @unpack A,B,R,cellPositions,edgeTangents,edgeMidpoints,ϵ = matrices
+function edgeLinkMidpoints(R,params,matrices,trapeziumAreas,T)
+    @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ = matrices
     @unpack nEdges = params
 
     # Rotation matrix around vertices is the opposite of that around cells
@@ -255,8 +255,8 @@ function edgeLinkMidpoints(params,matrices,trapeziumAreas,T)
     return intersections
 end
 
-function calculateSpokes(params,matrices)
-    @unpack R,C,cellPositions = matrices
+function calculateSpokes(R,params,matrices)
+    @unpack C,cellPositions = matrices
     @unpack nVerts,nCells = params
     q = Matrix{SVector{2,Float64}}(undef,nCells,nVerts)
     for i=1:nCells
