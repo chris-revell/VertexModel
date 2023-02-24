@@ -36,9 +36,9 @@ end
 function visualise(R, t, fig, ax1, mov, params, matrices)
 
     plotCells = 1
-    scatterEdges = 0
-    scatterVertices = 0
-    scatterCells = 0
+    scatterEdges = 1
+    scatterVertices = 1
+    scatterCells = 1
 
     @unpack boundaryVertices, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
@@ -74,6 +74,11 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
         scatter!(ax1, Point2f.(cellPositions), color=:red)
         annotations!(ax1, string.(collect(1:length(cellPositions))), Point2f.(cellPositions), color=:red)
     end
+
+    # Plot resultant forces on vertices (excluding external pressure)
+    arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
+    # Plot resultant forces on cells
+    # arrows!(ax1, Point2f.(cellPositions), Vec2f.(sum(F, dims=1)), color=:red)
 
     recordframe!(mov)
     

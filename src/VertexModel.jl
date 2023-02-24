@@ -84,12 +84,13 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
             topologyChange!(matrices)
             spatialData!(integrator.u,params,matrices)
         end
-        if division!(integrator,params,matrices)>0
-            senseCheck(matrices.A, matrices.B; marker="division")
-            topologyChange!(matrices)
-            spatialData!(integrator.u,params,matrices)
+        if params.nCells <22
+            if division!(integrator,params,matrices)>0
+                senseCheck(matrices.A, matrices.B; marker="division")
+                topologyChange!(matrices)
+                spatialData!(integrator.u,params,matrices)
+            end
         end
-
         step!(integrator)
 
         matrices.cellAges .+= integrator.dt
@@ -98,7 +99,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
     # If outputToggle==1, save animation object and save final system matrices
     if outputToggle==1
         # Update spatial data from final integration step
-        spatialData!(R,params,matrices)
+        spatialData!(integrator.u,params,matrices)
         # Store final system characteristic matrices
         jldsave(datadir(subFolder,folderName,"matricesFinal.jld2");matrices)
         jldsave(datadir(subFolder,folderName,"dataFinal.jld2");params)

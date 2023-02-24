@@ -16,6 +16,7 @@ using JLD2
 using UnPack
 using FromFile
 using DrWatson
+using Random
 
 # Local modules
 @from "$(projectdir("src","InitialHexagons.jl"))" using InitialHexagons
@@ -72,7 +73,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    initialSystem in ["one","three","seven"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
+    rng = MersenneTwister(1234)
+    initialSystem in ["one","three","seven"] ? cellAges = rand(rng,nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
