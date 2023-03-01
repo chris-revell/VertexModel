@@ -5,20 +5,6 @@
 #  Created by Christopher Revell on 31/01/2021.
 #
 #
-# Input parameters:
-# initialSystem    (eg. "single")  String specifying initial system state
-# realTimetMax     (eg. 86400.0 )  Real time maximum system run time /seconds
-# realCycleTime    (eg. 86400.0 )  Cell cycle time in seconds
-# γ                (eg. 0.2     )  Parameter in energy relaxation
-# L₀               (eg. 0.75    )  Preferred cell perimeter length
-# viscousTimeScale (eg. 20.0    )  Relaxation rate, approx from Sarah's data.
-# A₀               (eg. 1.0     )  Cell preferred area (1.0 by default)
-# pressureExternal (eg. 0.2     )  External pressure applied isotropically to system boundary
-# outputTotal      (eg. 20      )  Number of data outputs
-# t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
-# outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
-# plotToggle       (eg. 1       )  Argument controlling whether plots are produced from simulation
-# subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results
 
 module VertexModel
 
@@ -32,9 +18,6 @@ using SparseArrays
 using StaticArrays
 using CairoMakie
 using Printf
-# using Makie
-# using DelimitedFiles
-
 
 # Local modules
 @from "$(projectdir("src","CreateRunDirectory.jl"))" using CreateRunDirectory
@@ -48,7 +31,22 @@ using Printf
 @from "$(projectdir("src","Division.jl"))" using Division
 @from "$(projectdir("src","SenseCheck.jl"))" using SenseCheck
 
-function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,pressureExternal,peripheralTension,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="")
+function vertexModel(;
+    initialSystem="seven",
+    realTimetMax=6.0*86400.0,
+    realCycleTime=86400.0,
+    γ=0.15,
+    L₀=3.0,
+    A₀=1.0,
+    viscousTimeScale=20.0,
+    pressureExternal=0.2,
+    peripheralTension=0.01,
+    t1Threshold=0.01,
+    outputTotal=100,
+    outputToggle=1,
+    plotToggle=1,
+    subFolder=""
+) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
@@ -70,8 +68,8 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         spatialData!(integrator.u,params,matrices)
         
         if integrator.t%params.outputInterval<integrator.dt && outputToggle==1
-            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices)
-            jldsave(datadir(subFolder,folderName,"frames","params$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");params)
+            R = @view integrator.u[:]
+            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
             if plotToggle==1
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)
                 save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig)
@@ -101,8 +99,7 @@ function vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,visco
         # Update spatial data from final integration step
         spatialData!(integrator.u,params,matrices)
         # Store final system characteristic matrices
-        jldsave(datadir(subFolder,folderName,"matricesFinal.jld2");matrices)
-        jldsave(datadir(subFolder,folderName,"dataFinal.jld2");params)
+        jldsave(datadir(subFolder,folderName,"matricesFinal.jld2");matrices,params,R)        
         # Save animated gif
         plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end

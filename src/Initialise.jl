@@ -58,10 +58,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     B̄                 = spzeros(Int64,nCells,nEdges)
     B̄ᵀ                = spzeros(Int64,nEdges,nCells)
     C                 = spzeros(Int64,nCells,nVerts)
-    # tempR             = Array{SVector{2,Float64}}(undef,nVerts)
-    # fill!(tempR,@SVector zeros(2))
-    # ΔR                = Array{SVector{2,Float64}}(undef,nVerts)
-    # fill!(ΔR,@SVector zeros(2))
     cellEdgeCount     = zeros(Int64,nCells)
     boundaryVertices  = zeros(Int64,nVerts)
     boundaryEdges     = zeros(Int64,nEdges)
@@ -85,11 +81,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)
     fill!(externalF,@SVector zeros(2))
     totalF         = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(totalF,@SVector zeros(2))
-    rkCoefficients    = @SMatrix [  # Coefficients for Runge-Kutta integration
-        0.0 0.5 0.5 0.5
-        1.0 2.0 2.0 1.0
-    ]
+    fill!(totalF,@SVector zeros(2))    
     ϵ                 = @SMatrix [  # Clockwise rotation matrix setting orientation of cell faces
         0.0 1.0
         -1.0 0.0
@@ -97,9 +89,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
-        # R,
-        # tempR,
-        # ΔR,
         A,
         B,
         Aᵀ,
@@ -126,7 +115,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         externalF,
         totalF,
         ϵ,
-        rkCoefficients
     )
 
     # Pack parameters into a struct for convenience

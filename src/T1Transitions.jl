@@ -21,8 +21,7 @@ function t1Transitions!(R,params,matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold 
-            display(j)
+        if edgeLengths[j] < t1Threshold             
             # Find vertices a and b at either end of the short edge j
             a = findall(j->j>0,A[j,:])[1]
             b = findall(j->j<0,A[j,:])[1]
