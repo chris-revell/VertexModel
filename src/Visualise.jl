@@ -27,20 +27,17 @@ using DrWatson
 
 # Local modules
 @from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
-
-function getRandomColor(seed)
-    Random.seed!(seed)
-    rand(RGB{})
-end
+@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
 
 function visualise(R, t, fig, ax1, mov, params, matrices)
 
-    plotCells = 1
-    scatterEdges = 1
-    scatterVertices = 1
-    scatterCells = 1
+    plotCells       = 1
+    scatterEdges    = 0
+    scatterVertices = 0
+    scatterCells    = 0
+    plotForces      = 0
 
-    @unpack boundaryVertices, A, B, Bᵀ, C, cellPositions, edgeTangents, edgeMidpoints, F, ϵ = matrices
+    @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
 
     empty!(ax1)
@@ -76,9 +73,10 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     end
 
     # Plot resultant forces on vertices (excluding external pressure)
-    arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
-    # Plot resultant forces on cells
-    # arrows!(ax1, Point2f.(cellPositions), Vec2f.(sum(F, dims=1)), color=:red)
+    # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
+    if plotForces == 1
+        arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
+    end
 
     recordframe!(mov)
     

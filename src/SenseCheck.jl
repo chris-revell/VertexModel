@@ -20,7 +20,7 @@ function senseCheck(A, B; marker="")
     if length(findnz(test)[1]) > 0
         throw("Non-zero values in BA: $(marker)")
     else
-        return
+        return nothing
     end
 
 end

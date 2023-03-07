@@ -18,7 +18,7 @@ indexLoop(a,N) = (N+a-1)%(N)+1
 
 function initialHexagons(n)
 
-    # Argument of n=1 produces a single initial hexagonal cell
+    # Argument of n="one" produces a single initial hexagonal cell
     if n=="one"
 
         ATmp= [-1.0 1.0 0.0 0.0 0.0 0.0
@@ -28,14 +28,11 @@ function initialHexagons(n)
              0.0 0.0 0.0 0.0 -1.0 1.0
              1.0 0.0 0.0 0.0 0.0 -1.0]
         A = sparse(ATmp)
-
         B = -1.0.*ones(1,6)
-
         R = Array{SVector{2,Float64}}(undef,6)
         for k=1:6
             R[k] = SVector{2}([cos((k*π)/3.0),sin((k*π)/3.0)])
         end
-
         # Set initial cell areas to 1.0
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
@@ -190,10 +187,8 @@ function initialHexagons(n)
             R[k+6] = 3.0.*SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
         end
 
-        # # Set initial cell areas to 1.0
+        # Adjust intial cell areas
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
-
-
 
     end
 

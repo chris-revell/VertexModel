@@ -23,7 +23,6 @@ using Random
 @from "$(projectdir("src","VertexModelContainers.jl"))" using VertexModelContainers
 @from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
 @from "$(projectdir("src","SpatialData.jl"))" using SpatialData
-@from "$(projectdir("src","CalculateForce.jl"))" using CalculateForce
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
@@ -39,9 +38,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         A,B,R = initialHexagons(initialSystem)
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem/matricesFinal.jld2")
+        importedArrays = load("$initialSystem/dataFinal.jld2")
         @unpack A,B,cellAges = importedArrays["matrices"]
-        @unpack R = importedArrays["R"]
+        R = importedArrays["R"]
     end
 
     # Infer system information from matrices
@@ -141,7 +140,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
     spatialData!(R,params,matrices)
-    calculateForce!(R,params,matrices)
 
     return R, params, matrices
 

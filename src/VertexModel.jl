@@ -56,51 +56,61 @@ function vertexModel(;
         # Create fun directory, save parameters, and store directory name for later use.
         folderName = createRunDirectory(R,params,matrices,subFolder)
         if plotToggle==1
+            # Create plot object for later use 
             fig,ax1,mov=plotSetup(R,params,matrices,subFolder,folderName)
         end
     end
 
     # Set up ODE integrator 
     prob = ODEProblem(model!,R,(0.0,params.tMax),[params,matrices])
-    integrator = init(prob,Tsit5())
+    integrator = init(prob,Tsit5(),abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
+    # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
+        # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         
+        # Output data to file 
         if integrator.t%params.outputInterval<integrator.dt && outputToggle==1
+            # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
             R = @view integrator.u[:]
-            jldsave(datadir(subFolder,folderName,"frames","matrices$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
+            jldsave(datadir(subFolder,folderName,"frames","data$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
             if plotToggle==1
+                # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)
+                # Save still image of this time step 
                 save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig)
             end
+            # Update progress on command line 
             println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*100÷params.tMax)/$outputTotal")
         end
 
+        # Check system for T1 transitions 
         if t1Transitions!(integrator.u,params,matrices)>0
-            senseCheck(matrices.A, matrices.B; marker="T1")
-            topologyChange!(matrices)
-            spatialData!(integrator.u,params,matrices)
+            # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
+            topologyChange!(matrices) # Update system matrices after T1 transition  
+            spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        if params.nCells <22
-            if division!(integrator,params,matrices)>0
-                senseCheck(matrices.A, matrices.B; marker="division")
-                topologyChange!(matrices)
-                spatialData!(integrator.u,params,matrices)
-            end
+        if division!(integrator,params,matrices)>0
+            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+            topologyChange!(matrices) # Update system matrices after division 
+            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
         end
+        
+        # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
+        # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
     end
 
     # If outputToggle==1, save animation object and save final system matrices
     if outputToggle==1
-        # Update spatial data from final integration step
+        # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
-        # Store final system characteristic matrices
-        jldsave(datadir(subFolder,folderName,"matricesFinal.jld2");matrices,params,R)        
-        # Save animated gif
+        # Save final system state to file 
+        jldsave(datadir(subFolder,folderName,"dataFinal.jld2");matrices,params,R)        
+        # Save movie of simulation if plotToggle==1
         plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
 

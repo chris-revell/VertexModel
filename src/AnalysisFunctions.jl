@@ -17,6 +17,7 @@ using UnPack
 using GeometryBasics
 using Random
 using FromFile
+using Colors
 
 # Local modules
 @from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell

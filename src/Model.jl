@@ -36,13 +36,16 @@ function model!(du, u, p, t) #R,params,matrices)
     for k=1:nVerts
         for j in nzrange(A,k)
             for i in nzrange(B,rowvals(A)[j])
+                # Force components from cell pressure perpendicular to edge tangents 
                 F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])
+                # Force components from cell membrane tension parallel to edge tangents 
                 F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
+                # Force on vertex from external pressure 
                 externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
         end
     end
-
+    
     peripheryLength = sum(boundaryEdges.*edgeLengths)    
     for j in 1:nEdges #findall(x->x!=0,boundaryEdges)
         for k in nzrange(Aᵀ,j)            

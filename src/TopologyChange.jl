@@ -28,7 +28,7 @@ function topologyChange!(matrices)
     @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
     @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
-    # C .= B̄*Ā.÷2     # C adjacency matrix. Rows => cells; Columns => vertices (NB Integer division)
+    # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
     mul!(C,B̄,Ā)
     @.. thread=false C .÷= 2
 
@@ -59,10 +59,8 @@ function topologyChange!(matrices)
     # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
     boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
 
+    # Find list of edges at system periphery
     boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
-
-    # Test for inconsistencies in the incidence matrices
-    # senseCheck(A, B; marker="TopologyChange)
 
     return nothing
 
