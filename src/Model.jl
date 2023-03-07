@@ -21,10 +21,10 @@ using DrWatson
 # Local modules
 @from "$(projectdir("src","SpatialData.jl"))" using SpatialData
 
-function model!(du, u, p, t) #R,params,matrices)
+function model!(du, u, p, t)
 
     params, matrices = p
-    @unpack A,Aᵀ,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
+    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
     @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
 
     spatialData!(u,params,matrices)
@@ -32,7 +32,8 @@ function model!(du, u, p, t) #R,params,matrices)
     fill!(F,@SVector zeros(2))
     fill!(externalF,@SVector zeros(2))
 
-    # Internal forces
+    peripheryLength = sum(boundaryEdges.*edgeLengths)
+    
     for k=1:nVerts
         for j in nzrange(A,k)
             for i in nzrange(B,rowvals(A)[j])
@@ -43,17 +44,12 @@ function model!(du, u, p, t) #R,params,matrices)
                 # Force on vertex from external pressure 
                 externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
-        end
-    end
-    
-    peripheryLength = sum(boundaryEdges.*edgeLengths)    
-    for j in 1:nEdges #findall(x->x!=0,boundaryEdges)
-        for k in nzrange(Aᵀ,j)            
-            externalF[rowvals(Aᵀ)[k]] -= boundaryEdges[j]*peripheralTension*(peripheryLength-sqrt(π*nCells))*Aᵀ[rowvals(Aᵀ)[k],j].*edgeTangents[j]./edgeLengths[j]
+            # Force on vertex from peripheral tension
+            externalF[k] -= boundaryEdges[rowvals(A)[j]]*peripheralTension*(peripheryLength-sqrt(π*nCells))*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
         end
     end
 
-    du .= sum.(eachrow(matrices.F))
+    du .= sum.(eachrow(matrices.F)).+externalF
 
 end
 

@@ -10,8 +10,10 @@ Load test parameters by entering `includet("scripts/testParameters.jl"). This in
 
 These steps can be made easier in future by running `include("loadAll.jl")`.
 
-Once `VertexModel.jl` has been precompiled, run function `vertexModel` using test parameters by entering:
-`vertexModel(initialSystem,realTimetMax,realCycleTime,γ,L₀,A₀,viscousTimeScale,dt,pressureExternal,t1Threshold,outputTotal,outputToggle,plotToggle;subFolder="test")`
+Once `VertexModel.jl` has been precompiled, run function `vertexModel` using default parameters by entering:
+`vertexModel()`
+
+Input parameters are optional; use different values other than defaults by running eg. `vertexModel(realTimetMax=12345.0)`
 
 Input parameters:
 initialSystem    (eg. "single")  String specifying initial system state
