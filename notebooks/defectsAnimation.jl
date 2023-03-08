@@ -1,3 +1,5 @@
+# Script to produce a movie of defect evolution over cell network for a given system
+
 using JLD2
 using SparseArrays
 using LinearAlgebra

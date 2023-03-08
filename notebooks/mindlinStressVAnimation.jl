@@ -1,3 +1,5 @@
+# Script to produce a movie of Mindlin Stress evolution over vertex network for a given system
+
 using JLD2
 using SparseArrays
 using LinearAlgebra
