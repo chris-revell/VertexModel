@@ -19,33 +19,33 @@ using DrWatson
 @from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
 @from "$(projectdir("src","Laplacians.jl"))" using Laplacians
 
-function eigenmodesLt(matrices,params)    
+function eigenmodesLt(R,matrices,params)    
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
     decomposition = (eigen(Matrix(Lₜ))).vectors
     return decomposition
 end
 
-function allEigenModesLf(matrices,params)
+function eigenmodesLf(R,matrices,params)
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lf = makeLf(params,matrices,trapeziumAreas)
     decomposition = (eigen(Matrix(Lf))).vectors
     return decomposition
 end
 
-function eigenmodelLv(matrices,params)
+function eigenmodesLv(R,matrices,params)
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))    
     Lᵥ = makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
     decomposition = (eigen(Matrix(Lᵥ))).vectors

@@ -19,14 +19,14 @@ using GeometryBasics
 @from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
 @from "$(projectdir("src","Laplacians.jl"))" using Laplacians
 
-function psicPotential(params,matrices)
+function psicPotential(R,params,matrices)
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lf = makeLf(params,matrices,trapeziumAreas)
-    cellDivs = -1.0.*calculateCellDivs(params,matrices)
+    cellDivs = -1.0.*calculateCellDivs(R,params,matrices)
     onesVec = ones(params.nCells)
     H = Diagonal(matrices.cellAreas)
     eigenvectors = (eigen(Matrix(Lf))).vectors
@@ -44,17 +44,17 @@ function psicPotential(params,matrices)
     return ψ̆, spectrum
 end
 
-function psivPotential(params,matrices)
+function psivPotential(R,params,matrices)
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))
-    q = calculateSpokes(params,matrices)
+    q = calculateSpokes(R,params,matrices)
     Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
-    vertexDivs = -1.0.*calculateVertexDivs(params,matrices,q,linkTriangleAreas)
+    vertexDivs = -1.0.*calculateVertexDivs(R,params,matrices,q,linkTriangleAreas)
     onesVec = ones(params.nVerts)
     E = Diagonal(linkTriangleAreas)
     ḡ = ((onesVec'*E*vertexDivs)/(onesVec'*E*ones(params.nVerts))).*onesVec
@@ -70,17 +70,17 @@ function psivPotential(params,matrices)
     return ψ̆, spectrum
 end
 
-function capitalPsivPotential(params,matrices)
+function capitalPsivPotential(R,params,matrices)
     T = makeCellLinks(params,matrices)
-    edgeTrapezia = makeEdgeTrapezia(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(params,matrices)
+    linkTriangles = makeLinkTriangles(R,params,matrices)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
-    q = calculateSpokes(params,matrices)
-    vertexCurls = calculateVertexCurls(params,matrices,q,linkTriangleAreas)
+    q = calculateSpokes(R,params,matrices)
+    vertexCurls = calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     onesVec = ones(params.nVerts)
     E = Diagonal(linkTriangleAreas)
     ḡ = ((onesVec'*E*vertexCurls)/(onesVec'*E*ones(params.nVerts))).*onesVec

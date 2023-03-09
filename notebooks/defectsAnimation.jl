@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/OrderAroundCell.jl" using OrderAroundCell
 
-folderName = "annealing/L₀=3.0_γ=0.15_23-02-02-17-13-02"
+folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
 
 function neighbourColours(x)
     if x == 6
@@ -35,11 +35,9 @@ hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
 
 for t=0:100
-    @unpack matrices = load(datadir(folderName,"frames","matrices$(@sprintf("%03d", t)).jld2"))
-    @unpack params = load(datadir(folderName,"frames","params$(@sprintf("%03d", t)).jld2"))
-
-    @unpack B, Bᵀ, C, R, cellPositions = matrices
-    @unpack nCells = params
+    @unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", t)).jld2"))
+    @unpack B, Bᵀ, C, cellPositions = matrices
+    @unpack nCells, nVerts = params
 
     cellNeighbourMatrix = B*Bᵀ
 

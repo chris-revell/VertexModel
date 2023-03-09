@@ -27,11 +27,11 @@ function getRandomColor(seed)
     rand(RGB{})
 end
 
-function makeCellPolygons(params,matrices)
+function makeCellPolygons(R,params,matrices)
     cellPolygons = Vector{Point2f}[]
     for i=1:params.nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(cellPolygons,Point2f.(matrices.R[orderedVertices]))
+        push!(cellPolygons,Point2f.(R[orderedVertices]))
     end
     return cellPolygons
 end
