@@ -33,7 +33,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","seven"]
+    if initialSystem in ["one","three","seven", "three_uneq", "three_neq2"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
     else
@@ -69,7 +69,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
     # rng = MersenneTwister(1234)
-    initialSystem in ["one","three","seven"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
+    initialSystem in ["one","three","seven", "three_uneq", "three_neq2"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
