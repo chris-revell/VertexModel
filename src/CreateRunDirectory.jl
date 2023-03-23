@@ -54,6 +54,9 @@ function createRunDirectory(R,params,matrices,subFolder)
 
     # Store initial system characteristic matrices
     jldsave(datadir(subFolder,folderName,"matricesInitial.jld2");A,B,R)
+    writedlm(datadir(subFolder,folderName,"A_initial.csv"), A, ',')
+    writedlm(datadir(subFolder,folderName,"B_initial.csv"), B, ',')
+    writedlm(datadir(subFolder,folderName,"R_initial.csv"), R, ',')
 
     return folderName
 

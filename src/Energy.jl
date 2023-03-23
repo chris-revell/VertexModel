@@ -15,7 +15,7 @@ using UnPack
 
 function energy(params,matrices)
 
-    @unpack cellEnergies,cellAreas,cellPerimeters = matrices
+    @unpack cellAreas,cellPerimeters = matrices
     @unpack nCells,A₀,L₀,γ = params
 
     energyTotal = 0.0

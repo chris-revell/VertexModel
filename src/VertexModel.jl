@@ -18,6 +18,8 @@ using SparseArrays
 using StaticArrays
 using CairoMakie
 using Printf
+#using DelimitedFiles
+using CSV
 
 # Local modules
 @from "$(projectdir("src","CreateRunDirectory.jl"))" using CreateRunDirectory
@@ -30,6 +32,7 @@ using Printf
 @from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
 @from "$(projectdir("src","Division.jl"))" using Division
 @from "$(projectdir("src","SenseCheck.jl"))" using SenseCheck
+@from "$(projectdir("src","Energy.jl"))" using Energy
 
 function vertexModel(;
     initialSystem="seven",
@@ -74,18 +77,27 @@ function vertexModel(;
         if integrator.t%params.outputInterval<integrator.dt && outputToggle==1
             # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
             R = @view integrator.u[:]
-            jldsave(datadir(subFolder,folderName,"frames","data$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
+            jldsave(datadir(subFolder,folderName,"frames","data$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
+            CSV.write(datadir(subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R)
+            e_tot=energy(params,matrices)
+           # CSV.write(datadir(subFolder,folderName,"EnergyTotal.csv"), e_tot, append=true)
+            csvfile=open(datadir(subFolder,folderName,"EnergyTotal.csv"), "a")
+            println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
+            close(csvfile)
+            #print(e_tot)
+
             if plotToggle==1
                 # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)
                 # Save still image of this time step 
-                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig)
+                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig)
             end
             # Update progress on command line 
-            println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*100÷params.tMax)/$outputTotal")
+            println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal")
         end
 
         # Check system for T1 transitions 
+        #=
         if t1Transitions!(integrator.u,params,matrices)>0
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition  
@@ -96,7 +108,7 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u,params,matrices) # Update spatial data after division 
         end
-        
+        =#
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
