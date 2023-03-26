@@ -39,14 +39,17 @@ function vertexModel(;
     L₀=0.75,
     A₀=1.0,
     viscousTimeScale=20.0,
-    pressureExternal=0.0,
+    pressureExternal=0.1,
     peripheralTension=0.0,
     t1Threshold=0.01,
     outputTotal=100,
     outputToggle=1,
     plotToggle=1,
-    subFolder=""
+    subFolder="",
+    solver=Tsit5()
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
+
+    BLAS.set_num_threads(1)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
@@ -63,7 +66,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!,R,(0.0,params.tMax),[params,matrices])
-    integrator = init(prob,Tsit5(),abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
@@ -74,7 +77,7 @@ function vertexModel(;
         if integrator.t%params.outputInterval<integrator.dt && outputToggle==1
             # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
             R = @view integrator.u[:]
-            jldsave(datadir(subFolder,folderName,"frames","data$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
+            jldsave(datadir(subFolder,folderName,"frames","systemData$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
             if plotToggle==1
                 # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)
@@ -109,9 +112,9 @@ function vertexModel(;
         # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
         # Save final system state to file 
-        jldsave(datadir(subFolder,folderName,"dataFinal.jld2");matrices,params,R)        
+        jldsave(datadir(subFolder,folderName,"systemData$outputTotal.jld2");matrices,params,R)        
         # Save movie of simulation if plotToggle==1
-        plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
+        plotToggle==1 ? save(datadir(subFolder,folderName,"frames","$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
 
 end
