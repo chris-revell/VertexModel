@@ -9,6 +9,7 @@
 module VertexModel
 
 # Julia packages
+using PrecompileTools
 using DrWatson
 using FromFile
 using DifferentialEquations
@@ -65,7 +66,7 @@ function vertexModel(;
     end
 
     # Set up ODE integrator 
-    prob = ODEProblem(model!,R,(0.0,params.tMax),[params,matrices])
+    prob = ODEProblem(model!,R,(0.0,params.tMax),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
@@ -114,9 +115,14 @@ function vertexModel(;
         # Save final system state to file 
         jldsave(datadir(subFolder,folderName,"systemData$outputTotal.jld2");matrices,params,R)        
         # Save movie of simulation if plotToggle==1
-        plotToggle==1 ? save(datadir(subFolder,folderName,"frames","$(splitpath(folderName)[end]).mp4"),mov) : nothing
+        plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
 
+end
+
+# Ensure code is precompiled
+@compile_workload begin
+    vertexModel(realTimetMax=86400.0,outputToggle=0,plotToggle=0)
 end
 
 export vertexModel
