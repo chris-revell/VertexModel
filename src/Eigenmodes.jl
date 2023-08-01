@@ -16,8 +16,8 @@ using GeometryBasics
 using DrWatson
 
 # Local modules
-@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
-@from "$(projectdir("src","Laplacians.jl"))" using Laplacians
+@from "$(srcdir("AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "$(srcdir("Laplacians.jl"))" using Laplacians
 
 function eigenmodesLt(R,matrices,params)    
     T = makeCellLinks(params,matrices)

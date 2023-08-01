@@ -26,8 +26,8 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
-@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
+@from "$(srcdir("AnalysisFunctions.jl"))" using AnalysisFunctions
 
 function visualise(R, t, fig, ax1, mov, params, matrices)
 

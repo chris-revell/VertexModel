@@ -20,7 +20,7 @@ using CircularArrays
 using DifferentialEquations
 
 # Local modules
-@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
+@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
 
 function division!(integrator,params,matrices)
 

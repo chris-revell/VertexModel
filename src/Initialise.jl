@@ -19,10 +19,10 @@ using DrWatson
 using Random
 
 # Local modules
-@from "$(projectdir("src","InitialHexagons.jl"))" using InitialHexagons
-@from "$(projectdir("src","VertexModelContainers.jl"))" using VertexModelContainers
-@from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
-@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "$(srcdir("InitialHexagons.jl"))" using InitialHexagons
+@from "$(srcdir("VertexModelContainers.jl"))" using VertexModelContainers
+@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
+@from "$(srcdir("SpatialData.jl"))" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 

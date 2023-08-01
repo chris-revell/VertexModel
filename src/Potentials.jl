@@ -16,8 +16,8 @@ using FromFile
 using GeometryBasics
 
 # Local modules
-@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
-@from "$(projectdir("src","Laplacians.jl"))" using Laplacians
+@from "$(srcdir("AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "$(srcdir("Laplacians.jl"))" using Laplacians
 
 function psicPotential(R,params,matrices)
     T = makeCellLinks(params,matrices)

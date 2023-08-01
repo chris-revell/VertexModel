@@ -21,16 +21,16 @@ using CairoMakie
 using Printf
 
 # Local modules
-@from "$(projectdir("src","CreateRunDirectory.jl"))" using CreateRunDirectory
-@from "$(projectdir("src","Visualise.jl"))" using Visualise
-@from "$(projectdir("src","Initialise.jl"))" using Initialise
-@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
-@from "$(projectdir("src","PlotSetup.jl"))" using PlotSetup
-@from "$(projectdir("src","Model.jl"))" using Model
-@from "$(projectdir("src","T1Transitions.jl"))" using T1Transitions
-@from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
-@from "$(projectdir("src","Division.jl"))" using Division
-@from "$(projectdir("src","SenseCheck.jl"))" using SenseCheck
+@from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
+@from "$(srcdir("Visualise.jl"))" using Visualise
+@from "$(srcdir("Initialise.jl"))" using Initialise
+@from "$(srcdir("SpatialData.jl"))" using SpatialData
+@from "$(srcdir("PlotSetup.jl"))" using PlotSetup
+@from "$(srcdir("Model.jl"))" using Model
+@from "$(srcdir("T1Transitions.jl"))" using T1Transitions
+@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
+@from "$(srcdir("Division.jl"))" using Division
+@from "$(srcdir("SenseCheck.jl"))" using SenseCheck
 
 function vertexModel(;
     initialSystem="seven",
