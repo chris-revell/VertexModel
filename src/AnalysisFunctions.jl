@@ -101,6 +101,7 @@ function makeEdgeTrapezia(R,params,matrices)
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
+    edgeMidpointPolygons = Vector{Point2}[]
     for i=1:params.nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
         push!(edgeMidpointPolygons,Point2f.(matrices.edgeMidpoints[orderedEdges]))
