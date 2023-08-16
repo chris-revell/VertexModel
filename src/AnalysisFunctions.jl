@@ -101,7 +101,7 @@ function makeEdgeTrapezia(R,params,matrices)
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
-    edgeMidpointPolygons = Vector{Point2}[]
+    edgeMidpointPolygons = Vector{Point2f}[]
     for i=1:params.nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
         push!(edgeMidpointPolygons,Point2f.(matrices.edgeMidpoints[orderedEdges]))
@@ -204,7 +204,7 @@ end
 # Calculate curl at each vertex
 function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     @unpack C,cellPositions,F,ϵ = matrices
-    @unpack initialSystem,nVerts,nCells,nEdges,γ,λ,pressureExternal,outputTotal,outputInterval,viscousTimeScale,realTimetMax,tMax,realCycleTime,nonDimCycleTime,t1Threshold = params
+    @unpack nVerts = params
     vertexCurls = Float64[]
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts

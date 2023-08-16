@@ -31,18 +31,14 @@ function eigenmodesLt(R,matrices,params)
 end
 
 function eigenmodesLf(R,matrices,params)
-    T = makeCellLinks(params,matrices)
     edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(R,params,matrices)
-    linkTriangleAreas = abs.(area.(linkTriangles))
     Lf = makeLf(params,matrices,trapeziumAreas)
     decomposition = (eigen(Matrix(Lf))).vectors
     return decomposition
 end
 
 function eigenmodesLv(R,matrices,params)
-    T = makeCellLinks(params,matrices)
     edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
     linkTriangles = makeLinkTriangles(R,params,matrices)
