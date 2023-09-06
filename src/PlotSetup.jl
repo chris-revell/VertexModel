@@ -20,8 +20,8 @@ using FromFile
 using CairoMakie
 
 # Local modules
-# @from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
-# @from "$(srcdir("Visualise.jl"))" using Visualise
+# @from "CreateRunDirectory.jl" using CreateRunDirectory
+# @from "Visualise.jl" using Visualise
 
 function plotSetup(R,params,matrices,subFolder,folderName)
 

@@ -20,7 +20,7 @@ using FromFile
 using Colors
 
 # Local modules
-@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 function getRandomColor(seed)
     Random.seed!(seed)

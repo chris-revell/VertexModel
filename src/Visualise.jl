@@ -26,8 +26,8 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
-@from "$(srcdir("AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "OrderAroundCell.jl" using OrderAroundCell
+@from "AnalysisFunctions.jl" using AnalysisFunctions
 
 function visualise(R, t, fig, ax1, mov, params, matrices)
 
@@ -43,8 +43,8 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     empty!(ax1)
 
     ax1.title = "t = $(@sprintf("%.2f", t))"
-    xlims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
-    ylims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
+    # xlims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
+    # ylims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
 
     # Plot cells
     if plotCells == 1

@@ -15,7 +15,7 @@ using SparseArrays
 using FromFile
 
 # Local modules
-@from "$(srcdir("AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "AnalysisFunctions.jl" using AnalysisFunctions
 
 function makeLf(params,matrices,trapeziumAreas)
     @unpack B,Bᵀ,cellAreas,edgeLengths = matrices

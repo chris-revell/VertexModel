@@ -18,7 +18,7 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "$(srcdir("SenseCheck.jl"))" using SenseCheck
+@from "SenseCheck.jl" using SenseCheck
 
 function topologyChange!(matrices)
 

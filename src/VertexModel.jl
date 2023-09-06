@@ -11,7 +11,7 @@ module VertexModel
 # Julia packages
 using PrecompileTools
 using DrWatson
-using FromFile
+using FromFile:@from
 using DifferentialEquations
 using LinearAlgebra
 using JLD2
@@ -21,20 +21,20 @@ using CairoMakie
 using Printf
 
 # Local modules
-@from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
-@from "$(srcdir("Visualise.jl"))" using Visualise
-@from "$(srcdir("Initialise.jl"))" using Initialise
-@from "$(srcdir("SpatialData.jl"))" using SpatialData
-@from "$(srcdir("PlotSetup.jl"))" using PlotSetup
-@from "$(srcdir("Model.jl"))" using Model
-@from "$(srcdir("T1Transitions.jl"))" using T1Transitions
-@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
-@from "$(srcdir("Division.jl"))" using Division
-@from "$(srcdir("SenseCheck.jl"))" using SenseCheck
+@from "CreateRunDirectory.jl" using CreateRunDirectory
+@from "Visualise.jl" using Visualise
+@from "Initialise.jl" using Initialise
+@from "SpatialData.jl" using SpatialData
+@from "PlotSetup.jl" using PlotSetup
+@from "Model.jl" using Model
+@from "T1Transitions.jl" using T1Transitions
+@from "TopologyChange.jl" using TopologyChange
+@from "Division.jl" using Division
+@from "SenseCheck.jl" using SenseCheck
 
 function vertexModel(;
-    initialSystem="seven",
-    realTimetMax=6.0*86400.0,
+    initialSystem="large",
+    realTimetMax=2.0*86400.0,
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,

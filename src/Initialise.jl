@@ -19,10 +19,11 @@ using DrWatson
 using Random
 
 # Local modules
-@from "$(srcdir("InitialHexagons.jl"))" using InitialHexagons
-@from "$(srcdir("VertexModelContainers.jl"))" using VertexModelContainers
-@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
-@from "$(srcdir("SpatialData.jl"))" using SpatialData
+@from "InitialHexagons.jl" using InitialHexagons
+@from "largeInitialSystem.jl" using LargeInitialSystem
+@from "VertexModelContainers.jl" using VertexModelContainers
+@from "TopologyChange.jl" using TopologyChange
+@from "SpatialData.jl" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
@@ -32,10 +33,17 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     λ = -2.0*L₀*γ
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
+    # Use this line if you want to force an identical random number sequences
+    # rng = MersenneTwister(1234)
+
     # Initialise system matrices from function or file
     if initialSystem in ["one","three","seven"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+    elseif initialSystem=="large"
+        A,B,R = largeInitialSystem()
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/dataFinal.jld2")
@@ -68,8 +76,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    # rng = MersenneTwister(1234)
-    initialSystem in ["one","three","seven"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
