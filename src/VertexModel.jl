@@ -11,7 +11,7 @@ module VertexModel
 # Julia packages
 using PrecompileTools
 using DrWatson
-using FromFile:@from
+using FromFile
 using DifferentialEquations
 using LinearAlgebra
 using JLD2
@@ -42,7 +42,7 @@ function vertexModel(;
     viscousTimeScale=20.0,
     pressureExternal=0.1,
     peripheralTension=0.0,
-    t1Threshold=0.01,
+    t1Threshold=0.05,
     outputTotal=100,
     outputToggle=1,
     plotToggle=1,
@@ -78,12 +78,12 @@ function vertexModel(;
         if integrator.t%params.outputInterval<integrator.dt && outputToggle==1
             # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
             R = @view integrator.u[:]
-            jldsave(datadir(subFolder,folderName,"frames","systemData$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
+            # jldsave(datadir("sims",subFolder,folderName,"frames","systemData$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)            
             if plotToggle==1
                 # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)
                 # Save still image of this time step 
-                save(datadir(subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig)
+                save(datadir("sims",subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig)
             end
             # Update progress on command line 
             println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*100÷params.tMax)/$outputTotal")
@@ -113,9 +113,9 @@ function vertexModel(;
         # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
         # Save final system state to file 
-        jldsave(datadir(subFolder,folderName,"systemData$outputTotal.jld2");matrices,params,R)        
+        jldsave(datadir("sims",subFolder,folderName,"systemData$outputTotal.jld2");matrices,params,R)        
         # Save movie of simulation if plotToggle==1
-        plotToggle==1 ? save(datadir(subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
+        plotToggle==1 ? save(datadir("sims",subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
 
 end

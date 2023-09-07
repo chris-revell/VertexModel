@@ -18,6 +18,8 @@ using StaticArrays
 using SparseArrays
 using CircularArrays
 using DifferentialEquations
+using Distributions
+using Random
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -34,8 +36,10 @@ function division!(integrator,params,matrices)
     nEdgesOld = params.nEdges # Local copy of initial edge count
     nVertsOld = params.nVerts # Local copy of initial vertex count
 
+    distLogNormal=LogNormal(log(nonDimCycleTime), 0.1)
+
     for i=1:nCellsOld
-        if cellAges[i]>nonDimCycleTime && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
             
@@ -150,7 +154,7 @@ function division!(integrator,params,matrices)
             integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
             u_modified!(integrator,true)
 
-            cellAges[i] = 0.0#nonDimCycleTime*0.5*rand()
+            cellAges[i] = 0.0
 
             divisionCount = 1
 
