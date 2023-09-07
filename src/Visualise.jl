@@ -43,8 +43,10 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     empty!(ax1)
 
     ax1.title = "t = $(@sprintf("%.2f", t))"
-    # xlims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
-    # ylims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
+    # upperLim = maximum([max(i...) for i in R])
+    # upperLim = minimum([max(i...) for i in R])
+    # xlims!(ax1, minimum([max(i...) for i in R]), maximum([max(i...) for i in R]))
+    # ylims!(ax1, minimum([max(i...) for i in R]), maximum([max(i...) for i in R]))
 
     # Plot cells
     if plotCells == 1

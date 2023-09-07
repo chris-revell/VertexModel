@@ -34,7 +34,7 @@ using Printf
 
 function vertexModel(;
     initialSystem="large",
-    realTimetMax=2.0*86400.0,
+    realTimetMax=1.0*86400.0,
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,
