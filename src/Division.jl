@@ -47,7 +47,7 @@ function division!(integrator,params,matrices)
             
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
-            longPair = [0,0]
+            longPair = [1,3]
             # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]] 
             for j=1:n-1
                 for k=j+1:n

@@ -34,9 +34,6 @@ function plotSetup(R,params,matrices,subFolder,folderName)
     hidespines!(ax1)
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
-    # Visualise initial system
-    # visualise(R,0.0,fig,ax1,mov,params,matrices)
-    save(datadir("sims",subFolder,folderName,"frames","frame$(@sprintf("%03d", 0)).png"),fig)
     
     return fig, ax1, mov
    

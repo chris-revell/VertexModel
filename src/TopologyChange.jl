@@ -25,12 +25,12 @@ function topologyChange!(matrices)
     @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,boundaryEdges = matrices
 
     # Find adjacency matrices from incidence matrices
-    @.. thread=true Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
-    @.. thread=true B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
+    @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
     mul!(C,B̄,Ā)
-    @.. thread=true C .÷= 2
+    @.. thread=false C .÷= 2
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))
