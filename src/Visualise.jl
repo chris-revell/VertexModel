@@ -45,10 +45,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     ax1.title = "t = $(@sprintf("%.2f", t))"
 
     # Set limits
-    xmin = minimum(first.(R)); ymin = minimum(last.(R))
-    xrange = maximum(first.(R))-minimum(first.(R)); yrange = maximum(last.(R))-minimum(last.(R))
-    xlims!(ax1, (xmin,xmin+max(xrange,yrange)))
-    ylims!(ax1, (ymin,ymin+max(xrange,yrange)))
+    reset_limits!(ax1)
 
     # Plot cells
     if plotCells == 1
