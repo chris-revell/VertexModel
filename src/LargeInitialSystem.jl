@@ -2,7 +2,7 @@
 #  InitialHexagons.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 15/02/2021.
+#  Created by Christopher Revell on 06/09/2023.
 #
 #
 # Function to create an initial system of 1 or 3 hexagonal cells.
@@ -17,6 +17,9 @@ using DrWatson
 using FromFile
 using DelaunayTriangulation
 using StaticArrays
+using FromFile
+
+@from "SenseCheck.jl" using SenseCheck
 
 function largeInitialSystem()
 
@@ -89,6 +92,35 @@ function largeInitialSystem()
             end
         end
     end
+
+
+
+    # Prune peripheral vertices with 2 edges that both belong to the same cell
+    # Making the assumption that there will never be two such vertices adjacent to each other
+    verticesToRemove = Int64[]
+    edgesToRemove = Int64[]
+    for i=1:nVerts
+        edges = findall(x->x!=0,A[:,i])
+        cells1 = findall(x->x!=0, B[:,edges[1]])
+        cells2 = findall(x->x!=0, B[:,edges[2]])
+        if cells1==cells2           
+            # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
+            push!(verticesToRemove, i)
+            push!(edgesToRemove, edges[1])
+        end
+    end
+    for i in verticesToRemove
+        edges = findall(x->x!=0,A[:,i])
+        vertices = findall(x->x!=0, A[edges[1],:])
+        otherVertexOnEdge1 = setdiff(findall(x->x!=0, A[edges[1],:]), [i])[1]      
+        A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
+        A[edges[1], otherVertexOnEdge1] = 0
+    end
+    A = A[setdiff(1:size(A,1),edgesToRemove), setdiff(1:size(A,2),verticesToRemove)]
+    B = B[:, setdiff(1:size(B,2),edgesToRemove)]
+    R = R[setdiff(1:size(R,1),verticesToRemove)]
+
+    senseCheck(A, B; marker="Removing peropheral vertices")
 
     return A, B, R
 

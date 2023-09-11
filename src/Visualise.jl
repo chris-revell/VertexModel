@@ -44,9 +44,6 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
 
     ax1.title = "t = $(@sprintf("%.2f", t))"
 
-    # Set limits
-    reset_limits!(ax1)
-
     # Plot cells
     if plotCells == 1
         for i = 1:nCells
@@ -78,6 +75,9 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     if plotForces == 1
         arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
+
+    # Set limits
+    reset_limits!(ax1)
 
     recordframe!(mov)
     

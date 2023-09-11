@@ -42,7 +42,7 @@ function vertexModel(;
     viscousTimeScale=20.0,
     pressureExternal=0.1,
     peripheralTension=0.0,
-    t1Threshold=0.01,
+    t1Threshold=0.05,
     outputTotal=100,
     outputToggle=1,
     frameDataToggle=1,
@@ -50,10 +50,11 @@ function vertexModel(;
     printToggle=1,
     videoToggle=1,
     subFolder="",
-    solver=Tsit5()
+    solver=Tsit5(),
+    nBlasThreads=1
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
-    BLAS.set_num_threads(1)
+    BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
@@ -127,7 +128,7 @@ end
 
 # Ensure code is precompiled
 @compile_workload begin
-    vertexModel(realTimetMax=86400.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
+    vertexModel(realTimetMax=1000.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
 end
 
 export vertexModel
