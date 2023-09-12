@@ -27,7 +27,7 @@ using Random
 function division!(integrator,params,matrices)
 
     @unpack nonDimCycleTime = params
-    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -152,7 +152,7 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            u_modified!(integrator,true)
+            # u_modified!(integrator,true)
 
             cellAges[i] = 0.0
 
@@ -176,6 +176,7 @@ function division!(integrator,params,matrices)
             append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(edgeLengths,zeros(Float64,3*divisionCount))
+            append!(timeSinceT1,zeros(Float64,3*divisionCount))
             append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
             append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
 

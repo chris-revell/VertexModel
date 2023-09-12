@@ -97,11 +97,13 @@ function vertexModel(;
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u,params,matrices)>0
+            u_modified!(integrator,true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
         if division!(integrator,params,matrices)>0
+            u_modified!(integrator,true)
             # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u,params,matrices) # Update spatial data after division 
@@ -112,6 +114,7 @@ function vertexModel(;
 
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
+        matrices.timeSinceT1 .+= integrator.dt
     end
 
     # If outputToggle==1, save animation object and save final system matrices

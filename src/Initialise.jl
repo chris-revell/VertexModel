@@ -81,6 +81,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     fill!(edgeTangents,@SVector zeros(2))
     edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeMidpoints,@SVector zeros(2))
+    timeSinceT1       = zeros(nEdges)
     F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
     fill!(F,@SVector zeros(2))
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)
@@ -116,6 +117,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
+        timeSinceT1,
         F,
         externalF,
         totalF,
