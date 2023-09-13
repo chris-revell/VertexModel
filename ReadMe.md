@@ -2,33 +2,35 @@
 
 Open Julia REPL at project root directory.
 
-Activate environment with `using Pkg; Pkg.activate(".")` or access package manager with `]` and then enter `activate .` before exiting package manager with backspace. Alternatively, load DrWatson library with `using DrWatson` and enter `@quickactivate`.
+(When running for the first time) Add project to local Julia Dev package list: `using Pkg; Pkg.develop(path="./")`. This will allow precompilation to be cached. 
 
-If running for the first time, run `Using Pkg; Pkg.instantiate()` or access package manager with `]` and then enter `instantiate` before exiting package manager with backspace.
+Activate environment with `using Pkg; Pkg.activate(".")`. 
 
-Load test parameters by entering `includet("scripts/testParameters.jl"). This instantiates variables with values for running the vertex model code. 
-
-These steps can be made easier in future by running `include("loadAll.jl")`.
+(If running for the first time) Run `Using Pkg; Pkg.instantiate()`
 
 Once `VertexModel.jl` has been precompiled, run function `vertexModel` using default parameters by entering:
 `vertexModel()`
 
 Input parameters are optional; use different values other than defaults by running eg. `vertexModel(realTimetMax=12345.0)`
 
-Input parameters:
-initialSystem    (eg. "single")  String specifying initial system state
-realTimetMax     (eg. 86400.0 )  Real time maximum system run time /seconds
-realCycleTime    (eg. 86400.0 )  Cell cycle time in seconds
-γ                (eg. 0.2     )  Parameter in energy relaxation
-L₀               (eg. 0.75    )  Preferred cell perimeter length
-viscousTimeScale (eg. 20.0    )  Relaxation rate, approx from Sarah's data.
-A₀               (eg. 1.0     )  Cell preferred area (1.0 by default)
-pressureExternal (eg. 0.2     )  External pressure applied isotropically to system boundary
-outputTotal      (eg. 20      )  Number of data outputs
-t1Threshold      (eg. 0.01    )  Edge length at which a T1 transition is triggered
-outputToggle     (eg. 1       )  Argument controlling whether data are saved from simulation
-plotToggle       (eg. 1       )  Argument controlling whether plots are produced from simulation
-subFolder        (eg. "Test"  )  Name of subfolder within data directory in which to store results
+Possible input parameters:
+|Variable name:     | Default value:| Explanation:                                                      |
+|:------------------|:--------------|:------------------------------------------------------------------|
+|initialSystem      | `"seven"`     | String specifying initial system state                            |
+|realTimetMax       | `6.0*86400.0` | Real time maximum system run time /seconds                        |
+|realCycleTime      | `86400.0`     | Cell cycle time in seconds                                        |
+|γ                  | `0.2`         | Parameter in energy relaxation                                    |
+|L₀                 | `0.75`        | Preferred cell perimeter length                                   |
+|A₀                 | `1.0`         | Cell preferred area                                               |
+|viscousTimeScale   | `20.0`        | Relaxation rate, approx from Sarah's data.                        |
+|pressureExternal   | `0.1`         | External pressure applied isotropically to system boundary        |
+|peripheralTension  | `0.0`         | Tension applied to system boundary                                |
+|t1Threshold        | `0.01`        | Edge length at which a T1 transition is triggered                 |
+|outputTotal        | `100`         | Number of data output instances per simulation                    |
+|outputToggle       | `1`           | Controls whether data are saved from simulation                   |
+|plotToggle         | `1`           | Controls whether plots are produced from simulation               |
+|subFolder          | `""`          | Name of subfolder within data directory in which to store results |
+|solver             | `Tsit5()`     | Name of integration algorithm to use                              |
 
 TODO:
 - Control distribution of cell divisions by selecting from random distribution.

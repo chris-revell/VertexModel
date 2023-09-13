@@ -19,7 +19,7 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "SpatialData.jl" using SpatialData
 
 function model!(du, u, p, t)
 

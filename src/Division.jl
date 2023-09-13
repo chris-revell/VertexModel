@@ -18,14 +18,16 @@ using StaticArrays
 using SparseArrays
 using CircularArrays
 using DifferentialEquations
+using Distributions
+using Random
 
 # Local modules
-@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 function division!(integrator,params,matrices)
 
     @unpack nonDimCycleTime = params
-    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, edgeTangents, ϵ = matrices
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ = matrices
 
     divisionCount = 0
 
@@ -34,8 +36,10 @@ function division!(integrator,params,matrices)
     nEdgesOld = params.nEdges # Local copy of initial edge count
     nVertsOld = params.nVerts # Local copy of initial vertex count
 
+    distLogNormal=LogNormal(log(nonDimCycleTime), 0.1)
+
     for i=1:nCellsOld
-        if cellAges[i]>nonDimCycleTime && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
             
@@ -43,7 +47,7 @@ function division!(integrator,params,matrices)
             
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
-            longPair = [0,0]
+            longPair = [1,3]
             # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]] 
             for j=1:n-1
                 for k=j+1:n
@@ -148,9 +152,9 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            u_modified!(integrator,true)
+            # u_modified!(integrator,true)
 
-            cellAges[i] = 0.0#nonDimCycleTime*0.5*rand()
+            cellAges[i] = 0.0
 
             divisionCount = 1
 
@@ -172,6 +176,7 @@ function division!(integrator,params,matrices)
             append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
             append!(edgeLengths,zeros(Float64,3*divisionCount))
+            append!(timeSinceT1,zeros(Float64,3*divisionCount))
             append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
             append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
 

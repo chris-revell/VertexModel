@@ -19,10 +19,11 @@ using DrWatson
 using Random
 
 # Local modules
-@from "$(projectdir("src","InitialHexagons.jl"))" using InitialHexagons
-@from "$(projectdir("src","VertexModelContainers.jl"))" using VertexModelContainers
-@from "$(projectdir("src","TopologyChange.jl"))" using TopologyChange
-@from "$(projectdir("src","SpatialData.jl"))" using SpatialData
+@from "InitialHexagons.jl" using InitialHexagons
+@from "largeInitialSystem.jl" using LargeInitialSystem
+@from "VertexModelContainers.jl" using VertexModelContainers
+@from "TopologyChange.jl" using TopologyChange
+@from "SpatialData.jl" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
@@ -32,10 +33,17 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     λ = -2.0*L₀*γ
     nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
+    # Use this line if you want to force an identical random number sequences
+    # rng = MersenneTwister(1234)
+
     # Initialise system matrices from function or file
     if initialSystem in ["one","three","seven", "three_uneq", "three_neq2"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+    elseif initialSystem=="large"
+        A,B,R = largeInitialSystem()
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/dataFinal.jld2")
@@ -68,13 +76,13 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    # rng = MersenneTwister(1234)
-    initialSystem in ["one","three","seven", "three_uneq", "three_neq2"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
+    initialSystem in ["one","three","seven", "three_uneq", "three_neq2", "large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
     edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeMidpoints,@SVector zeros(2))
+    timeSinceT1       = zeros(nEdges)
     F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
     fill!(F,@SVector zeros(2))
     externalF         = Array{SVector{2,Float64}}(undef,nVerts)
@@ -110,6 +118,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
+        timeSinceT1,
         F,
         externalF,
         totalF,

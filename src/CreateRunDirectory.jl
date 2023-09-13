@@ -26,10 +26,10 @@ function createRunDirectory(R,params,matrices,subFolder)
     params = @savename L₀ γ t1Threshold realTimetMax
     folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
-    mkpath(datadir(subFolder,folderName,"frames"))
+    mkpath(datadir("sims",subFolder,folderName,"frames"))
 
     # Store system parameters.
-    open(datadir(subFolder,folderName,"conditions.txt"),"w") do conditionsFile
+    open(datadir("sims",subFolder,folderName,"conditions.txt"),"w") do conditionsFile
         println(conditionsFile, "initialSystem,     $initialSystem")
         println(conditionsFile, "realTimetMax,      $realTimetMax")
         println(conditionsFile, "realCycleTime,     $realCycleTime")
@@ -50,13 +50,13 @@ function createRunDirectory(R,params,matrices,subFolder)
     end
 
     # Store system parameters
-    jldsave(datadir(subFolder,folderName,"params.jld2");params)
+    jldsave(datadir("sims",subFolder,folderName,"params.jld2");params)
 
     # Store initial system characteristic matrices
-    jldsave(datadir(subFolder,folderName,"matricesInitial.jld2");A,B,R)
-    writedlm(datadir(subFolder,folderName,"A_initial.csv"), A, ',')
-    writedlm(datadir(subFolder,folderName,"B_initial.csv"), B, ',')
-    writedlm(datadir(subFolder,folderName,"R_initial.csv"), R, ',')
+    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");A,B,R)
+    writedlm(datadir("sims",subFolder,folderName,"A_initial.csv"), A, ',')
+    writedlm(datadir("sims",subFolder,folderName,"B_initial.csv"), B, ',')
+    writedlm(datadir("sims",subFolder,folderName,"R_initial.csv"), R, ',')
 
     return folderName
 

@@ -15,13 +15,16 @@ using UnPack
 
 function t1Transitions!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,ϵ,boundaryVertices,boundaryEdges,edgeMidpoints,cellPositions = matrices
+    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,timeSinceT1,ϵ,boundaryVertices,boundaryEdges,edgeMidpoints,cellPositions = matrices
     @unpack nEdges,t1Threshold = params
 
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold             
+        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > 1000.0
+
+            timeSinceT1[j] = 0
+
             # Find vertices a and b at either end of the short edge j
             a = findall(j->j>0,A[j,:])[1]
             b = findall(j->j<0,A[j,:])[1]

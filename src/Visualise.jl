@@ -26,8 +26,8 @@ using FromFile
 using DrWatson
 
 # Local modules
-@from "$(projectdir("src","OrderAroundCell.jl"))" using OrderAroundCell
-@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
+@from "OrderAroundCell.jl" using OrderAroundCell
+@from "AnalysisFunctions.jl" using AnalysisFunctions
 
 function visualise(R, t, fig, ax1, mov, params, matrices)
 
@@ -35,7 +35,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     scatterEdges    = 0
     scatterVertices = 0
     scatterCells    = 0
-    plotForces      = 0
+    plotForces      = 1
 
     @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
@@ -43,8 +43,6 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     empty!(ax1)
 
     ax1.title = "t = $(@sprintf("%.2f", t))"
-    xlims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
-    ylims!(ax1, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
 
     # Plot cells
     if plotCells == 1
@@ -77,6 +75,9 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     if plotForces == 1
         arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
+
+    # Set limits
+    reset_limits!(ax1)
 
     recordframe!(mov)
     

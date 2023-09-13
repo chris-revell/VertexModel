@@ -16,8 +16,8 @@ using GeometryBasics
 using DrWatson
 
 # Local modules
-@from "$(projectdir("src","AnalysisFunctions.jl"))" using AnalysisFunctions
-@from "$(projectdir("src","Laplacians.jl"))" using Laplacians
+@from "AnalysisFunctions.jl" using AnalysisFunctions
+@from "Laplacians.jl" using Laplacians
 
 function eigenmodesLt(R,matrices,params)    
     T = makeCellLinks(params,matrices)
@@ -31,18 +31,14 @@ function eigenmodesLt(R,matrices,params)
 end
 
 function eigenmodesLf(R,matrices,params)
-    T = makeCellLinks(params,matrices)
     edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(R,params,matrices)
-    linkTriangleAreas = abs.(area.(linkTriangles))
     Lf = makeLf(params,matrices,trapeziumAreas)
     decomposition = (eigen(Matrix(Lf))).vectors
     return decomposition
 end
 
 function eigenmodesLv(R,matrices,params)
-    T = makeCellLinks(params,matrices)
     edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     trapeziumAreas = abs.(area.(edgeTrapezia))
     linkTriangles = makeLinkTriangles(R,params,matrices)

@@ -56,6 +56,7 @@ mutable struct MatricesContainer
     edgeLengths      ::Vector{Float64}                # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing edge midpoints as (x,y) positions
+    timeSinceT1      ::Vector{Float64}                # Vector of times since each edge last underwent a T1 transition
     F                ::Matrix{SVector{2, Float64}}    # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
     externalF        ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing resultant force vectors acting on each vertex
