@@ -50,12 +50,11 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
         empty!(ax)
         # ax.title = "t = $(@sprintf("%.2f", t))"
         for k=1:nVerts
-            poly!(ax,linkTriangles[k],color=[potentials[t+1][k]],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
+            poly!(ax,linkTriangles[k],color=[potentials[t][k]],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
         end
         for i=1:nCells
             poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
         end
-        Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=false)
         reset_limits!(ax)
         recordframe!(mov)
     end

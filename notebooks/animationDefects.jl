@@ -52,18 +52,16 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
     hidespines!(ax)
     mov = VideoStream(fig, framerate=5)
 
-    for t=0:99
+    for t=1:99
         @unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", t)).jld2"))
         @unpack B, Bᵀ, C, cellPositions = matrices
         @unpack nCells, nVerts = params
 
         cellNeighbourMatrix = B*Bᵀ
-
         neighbourCounts = [cellNeighbourMatrix[i,i] for i in 1:nCells]
 
         empty!(ax)
-
-        ax.title = "t = $(@sprintf("%.2f", t))"
+        # ax.title = "t = $(@sprintf("%.2f", t))"
         for i = 1:nCells
             orderedVertices, orderedEdges = orderAroundCell(matrices, i)
             poly!(ax, Point2f.(R[orderedVertices]), color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
