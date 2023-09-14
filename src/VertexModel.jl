@@ -70,30 +70,33 @@ function vertexModel(;
     end
 
     # Set up ODE integrator 
-    prob = ODEProblem(model!,R,(0.0,params.tMax),(params,matrices))
+    prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
-        
+  
         # Output data to file 
         if integrator.t%params.outputInterval<integrator.dt
             # Update progress on command line 
-            printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*100÷params.tMax)/$outputTotal") : nothing 
+            printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
             if frameDataToggle==1
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
                 R = @view integrator.u[:]
-                jldsave(datadir("sims",subFolder,folderName,"frames","systemData$(@sprintf("%03d", integrator.t*100÷params.tMax)).jld2");matrices,params,R)
+                jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)                
             end
             # Save still image of this time step 
-            frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frames","frame$(@sprintf("%03d", integrator.t*100÷params.tMax)).png"),fig) : nothing
+            frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
         end
+
+        # Step integrator forwards in time to update vertex positions 
+        step!(integrator)
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u,params,matrices)>0
@@ -108,9 +111,6 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u,params,matrices) # Update spatial data after division 
         end
-        
-        # Step integrator forwards in time to update vertex positions 
-        step!(integrator)
 
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
@@ -121,8 +121,21 @@ function vertexModel(;
     if outputToggle==1
         # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
-        # Save final system state to file 
-        jldsave(datadir("sims",subFolder,folderName,"systemData$outputTotal.jld2");matrices,params,R)        
+
+        printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
+
+        # Save final data file regardless of whether other timepoint data files are saved
+        # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
+        R = @view integrator.u[:]
+        jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
+
+        if frameImageToggle==1 || videoToggle==1
+            # Render visualisation of system and add frame to movie
+            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)                
+        end
+        # Save still image of this time step 
+        frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
+
         # Save movie of simulation if videoToggle==1
         videoToggle==1 ? save(datadir("sims",subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
