@@ -14,46 +14,64 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/OrderAroundCell.jl" using OrderAroundCell
 
-folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
-
 function neighbourColours(x)
-    if x == 6
-        return (:white, 0.0)
+
+    if x==2
+        return (:red, 0.8)
+    elseif x==4
+        return (:red,0.6)
+    elseif x==4
+        return (:red,0.4)
     elseif x == 5
-        return (:red, 1.0)
+        return (:red, 0.2)
+    elseif x == 6
+        return (:white, 0.0)
     elseif x == 7
-        return (:blue, 1.0)
+        return (:blue, 0.2)
+    elseif x == 8
+        return (:blue, 0.4)
+    elseif x == 9
+        return (:red, 0.6)
+    elseif x == 10
+        return (:red, 0.8)
+    elseif x == 11
+        return (:red, 1.00)
     else
-        return (:grey, 1.0)
+        return (:grey, 0.75)
     end
 end
 
-fig = CairoMakie.Figure(resolution=(1000,1000))
-ax = Axis(fig[1,1],aspect=DataAspect())
-hidedecorations!(ax)
-hidespines!(ax)
-mov = VideoStream(fig, framerate=5)
 
-for t=0:100
-    @unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", t)).jld2"))
-    @unpack B, Bᵀ, C, cellPositions = matrices
-    @unpack nCells, nVerts = params
+for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
 
-    cellNeighbourMatrix = B*Bᵀ
+    folderName = "sims/examples/$f"
 
-    neighbourCounts = [cellNeighbourMatrix[i,i] for i in 1:nCells]
+    fig = CairoMakie.Figure(resolution=(1000,1000))
+    ax = Axis(fig[1,1],aspect=DataAspect())
+    hidedecorations!(ax)
+    hidespines!(ax)
+    mov = VideoStream(fig, framerate=5)
 
-    empty!(ax)
+    for t=0:99
+        @unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", t)).jld2"))
+        @unpack B, Bᵀ, C, cellPositions = matrices
+        @unpack nCells, nVerts = params
 
-    ax.title = "t = $(@sprintf("%.2f", t))"
-    xlims!(ax, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
-    ylims!(ax, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
+        cellNeighbourMatrix = B*Bᵀ
 
-    for i = 1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-        poly!(ax, Point2f.(R[orderedVertices]), color=[neighbourCounts[i]-6] , colorrange=(-4, 4), colormap=colormap("RdBu", 5), strokecolor=(:black,1.0), strokewidth=1)
+        neighbourCounts = [cellNeighbourMatrix[i,i] for i in 1:nCells]
+
+        empty!(ax)
+
+        ax.title = "t = $(@sprintf("%.2f", t))"
+        for i = 1:nCells
+            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
+            poly!(ax, Point2f.(R[orderedVertices]), color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
+        end
+        reset_limits!(ax)
+        recordframe!(mov)
     end
-    recordframe!(mov)
-end
 
-save(datadir(folderName,"defects.mp4"),mov)
+    save(datadir(folderName,"movieDefects.mp4"),mov)
+
+end

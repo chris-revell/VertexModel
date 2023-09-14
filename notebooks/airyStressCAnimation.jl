@@ -27,6 +27,8 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
     hidespines!(ax)
     mov = VideoStream(fig, framerate=5)
 
+    # Skip the starting configuration (t=0)
+
     potentials = Vector{Float64}[]
     ψ̆Lims = [0.0,0.0]
     for t=1:99
@@ -46,13 +48,13 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
 
         cellPolygons = makeCellPolygons(R,params,matrices)
         empty!(ax)
-        ax.title = "t = $(@sprintf("%.2f", t))"
+        # ax.title = "t = $(@sprintf("%.2f", t))"
         for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[potentials[t][i]],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=5)
+            poly!(ax,cellPolygons[i],color=[potentials[t+1][i]],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
         end
         reset_limits!(ax)
         recordframe!(mov)
     end
 
-    save(datadir(folderName,"airyStressC.mp4"),mov)
+    save(datadir(folderName,"movieAiryStressC.mp4"),mov)
 end
