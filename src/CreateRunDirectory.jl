@@ -26,7 +26,8 @@ function createRunDirectory(R,params,matrices,subFolder)
     params = @savename L₀ γ t1Threshold realTimetMax
     folderName = "$(params)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
-    mkpath(datadir("sims",subFolder,folderName,"frames"))
+    mkpath(datadir("sims",subFolder,folderName,"frameImages"))
+    mkpath(datadir("sims",subFolder,folderName,"frameData"))
 
     # Store system parameters.
     open(datadir("sims",subFolder,folderName,"conditions.txt"),"w") do conditionsFile
