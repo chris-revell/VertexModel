@@ -9,6 +9,8 @@ Activate environment with `using Pkg; Pkg.activate(".")`.
 
 (If running for the first time) Run `Using Pkg; Pkg.instantiate()`
 
+Load package by running `using VertexModel`
+
 Once `VertexModel.jl` has been precompiled, run function `vertexModel` using default parameters by entering:
 `vertexModel()`
 
