@@ -1,8 +1,9 @@
 ### VertexModel.jl
 
-Open Julia REPL at project root directory.
+If running for the first time, open Julia REPL in the directory that contains the VertexModel project directory, not the project directory itself. 
+Add the project to local Julia Dev package list: `using Pkg; Pkg.develop(path="./")`. This will allow precompilation to be cached. 
 
-(When running for the first time) Add project to local Julia Dev package list: `using Pkg; Pkg.develop(path="./")`. This will allow precompilation to be cached. 
+Open a Julia REPL at the project root directory. 
 
 Activate environment with `using Pkg; Pkg.activate(".")`. 
 
