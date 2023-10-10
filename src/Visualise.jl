@@ -29,13 +29,7 @@ using DrWatson
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices)
-
-    plotCells       = 1
-    scatterEdges    = 0
-    scatterVertices = 0
-    scatterCells    = 0
-    plotForces      = 1
+function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
 
     @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
