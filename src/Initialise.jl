@@ -25,7 +25,7 @@ using Random
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -93,6 +93,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         0.0 1.0
         -1.0 0.0
     ]
+    prefPerimeters = fill(L₀,nCells)
+    prefPerimeters[1]=L₀+δL
+    
+    #print(prefPerimeters)
 
     # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
@@ -123,6 +127,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         externalF,
         totalF,
         ϵ,
+        prefPerimeters
     )
 
     # Pack parameters into a struct for convenience
@@ -143,7 +148,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realCycleTime,
         nonDimCycleTime,
         t1Threshold,
-        peripheralTension
+        peripheralTension, 
+        δL
     )
 
     # Initial evaluation of matrices based on system topology

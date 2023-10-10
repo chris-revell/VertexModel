@@ -40,9 +40,10 @@ function vertexModel(;
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,
+    δL=0.1,
     A₀=1.0,
     viscousTimeScale=20.0,
-    pressureExternal=0.1,
+    pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
     outputTotal=100,
@@ -59,7 +60,7 @@ function vertexModel(;
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀, δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1

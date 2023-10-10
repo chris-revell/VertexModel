@@ -35,14 +35,14 @@ function visualise(R, t, fig, ax1, mov, params, matrices)
     scatterEdges    = 0
     scatterVertices = 0
     scatterCells    = 0
-    plotForces      = 1
+    plotForces      = 0
 
     @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
 
     empty!(ax1)
 
-    # ax1.title = "t = $(@sprintf("%.2f", t))"
+    ax1.title = "t = $(@sprintf("%.2f", t))"
 
     # Plot cells
     if plotCells == 1
