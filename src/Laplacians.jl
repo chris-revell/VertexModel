@@ -65,6 +65,26 @@ function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
     return Lₜ
 end
 
+
+function makeM(params,matrices)
+    @unpack A, Ā, Aᵀ, B, B̄, Bᵀ,cellAreas,edgeLengths, edgeTangents= matrices
+    @unpack nCells, nEdges, nVerts = params
+    #dAdr= - 1/2 Sum j ϵᵢ . Bᵢⱼ Āⱼₖ tⱼ = 1/2 Sum j Ānᵢⱼ = 1/2 B diag(ϵ.t) Ā
+    dAdr=-1/2*(B*Diagonal(eachcol((ϵ*reduce(vcat,transpose(t))')))*Ā)
+    #dLdr=Sum j B̄ᵢⱼ Aⱼₖ t̂ⱼ   = B̄ diag(t̂) A
+    dLdr= B̄*Diagonal(t./norm.(t))*A
+    
+    M=vcat(dAdr,dLdr)
+  
+    return M
+end
+
+
+function makeL(M)
+    L=tr.(M*M')
+    return L
+
+
 export makeLf, makeLc, makeLv, makeLt
 
 end #end module 
