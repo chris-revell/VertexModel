@@ -37,7 +37,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal
     # rng = MersenneTwister(1234)
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","seven", "three_uneq", "three_neq2", "seven_eq"]
+    if initialSystem in ["one","three","four","seven", "three_uneq", "three_neq2", "seven_eq"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
@@ -76,7 +76,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    initialSystem in ["one","three","seven", "three_uneq", "three_neq2", "seven_eq","large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
+    initialSystem in ["one","three", "four","seven", "three_uneq", "three_neq2", "seven_eq","large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
@@ -95,7 +95,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal
     ]
     prefPerimeters = fill(L₀,nCells)
     prefPerimeters[1]=L₀+δL
-    
+    #prefPerimeters[2]=L₀+δL
     #print(prefPerimeters)
 
     # Pack matrices into a struct for convenience
