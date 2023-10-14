@@ -178,7 +178,7 @@ function initialHexagons(n)
         B[4,18] = -1
         B[4,19] = -1
 
-        R = Array{SVector{2,Float64}}(undef,13)
+        R = Array{SVector{2,Float64}}(undef,16)
         a = sin(π/3)
         b = cos(π/3)
         R[1]  = SVector{2}([-1.0,-2*a])
