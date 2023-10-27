@@ -117,7 +117,7 @@ function makeX(params,matrices)
 
                     dAdrr[rowvals(B)[i], k,m ]+= -0.5*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k]*A[rowvals(A)[j],m].*(ϵ)
 
-                    dLdrr[rowvals(B)[i], k,m ]+=0.5*(B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k]*A[rowvals(A)[j],m]*(n[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]])*(n[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]])')/edgeLengths[rowvals(A)[j]]
+                    dLdrr[rowvals(B)[i], k,m ]+=(B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k]*A[rowvals(A)[j],m]*(n[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]])*(n[rowvals(A)[j]]/edgeLengths[rowvals(A)[j]])')/edgeLengths[rowvals(A)[j]]
 
                 end
 
