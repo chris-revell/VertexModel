@@ -54,7 +54,12 @@ function vertexModel(;
     videoToggle=1,
     subFolder="",
     solver=Tsit5(),
-    nBlasThreads=1
+    nBlasThreads=1,
+    plotCells = 1,
+    scatterEdges = 0,
+    scatterVertices = 0,
+    scatterCells = 0,
+    plotForces = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -99,7 +104,7 @@ function vertexModel(;
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
-                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)                
+                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
             end
             # Save still image of this time step 
             frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
@@ -143,7 +148,7 @@ function vertexModel(;
 
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
-            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices)                
+            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
         end
         # Save still image of this time step 
         frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
