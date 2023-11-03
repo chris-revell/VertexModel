@@ -86,7 +86,7 @@ function vertexModel(;
         # Output data to file 
         if integrator.t%params.outputInterval<integrator.dt
             # Update progress on command line 
-            printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
+            printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(Int64(integrator.t*outputTotal÷params.tMax))/$outputTotal") : nothing 
             if frameDataToggle==1
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
                 R = @view integrator.u[:]
