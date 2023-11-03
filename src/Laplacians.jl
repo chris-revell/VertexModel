@@ -68,14 +68,18 @@ end
 
 function makeG(params)
     @unpack nCells, γ = params
-    G=Diagonal(vcat(fill(1,nCells), fill(γ, nCells)))
+    # G=Diagonal(vcat(fill(1,nCells), fill(γ, nCells)))
+    G=Diagonal([i>nCells ? γ : 1 for i=1:2*nCells])
     return G
 end
 
 function makeM(matrices)
     @unpack A, Ā, B, B̄, edgeTangents, ϵ = matrices
     #dAdr= - 1/2 Sum j ϵᵢ . Bᵢⱼ Āⱼₖ tⱼ = 1/2 Sum j Ānᵢⱼ = 1/2 B diag(ϵ.t) Ā
-    dAdr=-1/2*(B*Diagonal(eachcol((ϵ*reduce(vcat,transpose(edgeTangents))')))*Ā)
+    
+    # dAdr=-1/2*(B*Diagonal(eachcol((ϵ*reduce(vcat,transpose(edgeTangents))')))*Ā)
+    dAdr = -0.5.*(B*Diagonal([ϵᵢ*t for t in edgeTangents])*Ā)
+
     #dLdr=Sum j B̄ᵢⱼ Aⱼₖ t̂ⱼ   = B̄ diag(t̂) A
     dLdr= B̄*Diagonal(edgeTangents./norm.(edgeTangents))*A
     
@@ -138,8 +142,7 @@ function makeQ(params,matrices,X, M)
     @unpack nCells, nVerts = params
     g=vcat(cellPressures, cellTensions)
 
-    gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
-    fill!(gX,@SMatrix zeros(2,2))
+    gX = fill(SMatrix{2,2,Float64}(zeros(2,2)),nVerts,nVerts)
     for α=1:2*nCells
         gX+=g[α]X[α, :,:]
     end
