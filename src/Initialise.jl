@@ -28,10 +28,10 @@ using Random
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
-    tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
-    outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
-    λ = -2.0*L₀*γ
-    nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
+    tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
+    outputInterval  = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
+    λ               = -2.0*L₀*γ
+    nonDimCycleTime = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Use this line if you want to force an identical random number sequences
     # rng = MersenneTwister(1234)
@@ -51,84 +51,50 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         R = importedArrays["R"]
     end
 
-    # Infer system information from matrices
-    nCells            = size(B)[1]
-    nEdges            = size(A)[1]
-    nVerts            = size(A)[2]
+    nCells = size(B,1)
+    nEdges = size(A,1)
+    nVerts = size(A,2)
 
-    # Preallocate empty arrays for additional system matrices.
-    # See VertexModelContainers for explanations.
-    Aᵀ                = spzeros(Int64,nVerts,nEdges)
-    Ā                 = spzeros(Int64,nEdges,nVerts)
-    Āᵀ                = spzeros(Int64,nVerts,nEdges)
-    Bᵀ                = spzeros(Int64,nEdges,nCells)
-    B̄                 = spzeros(Int64,nCells,nEdges)
-    B̄ᵀ                = spzeros(Int64,nEdges,nCells)
-    C                 = spzeros(Int64,nCells,nVerts)
-    cellEdgeCount     = zeros(Int64,nCells)
-    boundaryVertices  = zeros(Int64,nVerts)
-    boundaryEdges     = zeros(Int64,nEdges)
-    cellPositions     = Array{SVector{2,Float64}}(undef,nCells)
-    fill!(cellPositions,@SVector zeros(2))
-    cellPerimeters    = zeros(nCells)
-    cellOrientedAreas = Array{SMatrix{2,2,Float64}}(undef,nCells)
-    fill!(cellOrientedAreas,@SMatrix zeros(2,2))
-    cellAreas         = zeros(nCells)
-    cellTensions      = zeros(nCells)
-    cellPressures     = zeros(nCells)
-    edgeLengths       = zeros(nEdges)
-    edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
-    fill!(edgeTangents,@SVector zeros(2))
-    edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
-    fill!(edgeMidpoints,@SVector zeros(2))
-    timeSinceT1       = zeros(nEdges)
-    F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
-    fill!(F,@SVector zeros(2))
-    externalF         = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(externalF,@SVector zeros(2))
-    totalF         = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(totalF,@SVector zeros(2))    
-    ϵ                 = @SMatrix [  # Clockwise rotation matrix setting orientation of cell faces
-        0.0 1.0
-        -1.0 0.0
-    ]
-
-    # Pack matrices into a struct for convenience
+    # Pack preallocated matrices into a struct for convenience
     matrices = MatricesContainer(
         A,
         B,
-        Aᵀ,
-        Ā,
-        Āᵀ,
-        Bᵀ,
-        B̄,
-        B̄ᵀ,
-        C,
-        cellEdgeCount,
-        boundaryVertices,
-        boundaryEdges,
-        cellPositions,
-        cellPerimeters,
-        cellOrientedAreas,
-        cellAreas,
-        cellTensions,
-        cellPressures,
+        spzeros(Int64,nVerts,nEdges),                         # Aᵀ
+        spzeros(Int64,nEdges,nVerts),                         # Ā
+        spzeros(Int64,nVerts,nEdges),                         # Āᵀ
+        spzeros(Int64,nEdges,nCells),                         # Bᵀ
+        spzeros(Int64,nCells,nEdges),                         # B̄
+        spzeros(Int64,nEdges,nCells),                         # B̄ᵀ
+        spzeros(Int64,nCells,nVerts),                         # C
+        zeros(Int64,nCells),                                  # cellEdgeCount
+        zeros(Int64,nVerts),                                  # boundaryVertices
+        zeros(Int64,nEdges),                                  # boundaryEdges
+        fill(SVector{2,Float64}(zeros(2)), nCells),           # cellPositions
+        zeros(nCells),                                        # cellPerimeters
+        fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),       # cellOrientedAreas
+        zeros(nCells),                                        # cellAreas
+        zeros(nCells),                                        # cellTensions
+        zeros(nCells),                                        # cellPressures
         cellAges,
-        edgeLengths,
-        edgeTangents,
-        edgeMidpoints,
-        timeSinceT1,
-        F,
-        externalF,
-        totalF,
-        ϵ,
+        zeros(nEdges),                                        # edgeLengths
+        fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
+        fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
+        zeros(nEdges),                                        # timeSinceT1
+        fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
+        fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
+        fill(SVector{2,Float64}(zeros(2)), nVerts),           # totalF
+        SMatrix{2, 2, Float64}([                              # ϵ Clockwise rotation matrix setting orientation of cell faces
+        0.0 1.0
+        -1.0 0.0
+        ])
     )
 
     # Pack parameters into a struct for convenience
-    params = ParametersContainer(initialSystem,
-        nVerts,
+    params = ParametersContainer(
+        initialSystem,
         nCells,
         nEdges,
+        nVerts,
         γ,
         λ,
         L₀,
