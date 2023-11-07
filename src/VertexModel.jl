@@ -45,15 +45,15 @@ function vertexModel(;
     viscousTimeScale=20.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
-    t1Threshold=0.05,
+    t1Threshold=0.05,    
+    solver=Tsit5(),
+    subFolder="",
     outputTotal=100,
     outputToggle=1,
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,
-    subFolder="",
-    solver=Tsit5(),
+    videoToggle=1,    
     nBlasThreads=1,
     plotCells = 1,
     scatterEdges = 0,
@@ -85,7 +85,6 @@ function vertexModel(;
     while integrator.t<params.tMax
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
-  
         # Output data to file 
         if integrator.t%params.outputInterval<integrator.dt
             # Update progress on command line 
@@ -138,21 +137,17 @@ function vertexModel(;
     if outputToggle==1
         # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
-
         printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
-
         # Save final data file regardless of whether other timepoint data files are saved
         # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
         R = @view integrator.u[:]
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
-
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
             visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
         end
         # Save still image of this time step 
         frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
-
         # Save movie of simulation if videoToggle==1
         videoToggle==1 ? save(datadir("sims",subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end

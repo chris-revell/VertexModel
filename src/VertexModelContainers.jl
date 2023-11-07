@@ -11,12 +11,14 @@ module VertexModelContainers
 
 using SparseArrays
 using StaticArrays
+using Random
+using Distributions
 
 mutable struct ParametersContainer
-    initialSystem      ::String   # System used for initialising simulations
-    nVerts             ::Int64    # Number of cells
-    nCells             ::Int64    # Number of edges
-    nEdges             ::Int64    # Number of vertices
+    initialSystem      ::String   # System used for initialising simulations    
+    nCells             ::Int64    # Number of cells
+    nEdges             ::Int64    # Number of edges
+    nVerts             ::Int64    # Number of vertices
     γ                  ::Float64  # Parameter in energy relaxation
     λ                  ::Float64  # Parameter in energy relaxation
     L₀                 ::Float64  # Cell preferred perimeter length L₀ = -λ/(2*γ)
@@ -31,7 +33,10 @@ mutable struct ParametersContainer
     nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
     peripheralTension  ::Float64  # Tension at system periphery
-    δL                 ::Float64  # perterbation of L₀
+    δL                 ::Float64  # Perturbation of L₀
+    seed               ::Int64              # Random number seed 
+    rng                ::MersenneTwister    # Random number generator
+    distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end
 
 mutable struct MatricesContainer
