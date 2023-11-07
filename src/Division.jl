@@ -26,7 +26,7 @@ using Random
 
 function division!(integrator,params,matrices)
 
-    @unpack nonDimCycleTime = params
+    @unpack nonDimCycleTime, rng, distLogNormal = params
     @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ = matrices
 
     divisionCount = 0
@@ -36,10 +36,8 @@ function division!(integrator,params,matrices)
     nEdgesOld = params.nEdges # Local copy of initial edge count
     nVertsOld = params.nVerts # Local copy of initial vertex count
 
-    distLogNormal=LogNormal(log(nonDimCycleTime), 0.1)
-
     for i=1:nCellsOld
-        if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if cellAges[i]>rand(rng,distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
             
@@ -164,21 +162,21 @@ function division!(integrator,params,matrices)
 
             # Add 1 component to vectors for new cell
             append!(cellEdgeCount,zeros(Int64,divisionCount))
-            append!(cellPositions,Array{SVector{2,Float64}}(undef,divisionCount))
+            append!(cellPositions,fill(SVector{2,Float64}(zeros(2)), divisionCount))
             append!(cellPerimeters,zeros(Float64,divisionCount))
-            append!(cellOrientedAreas,Array{SMatrix{2,2,Float64}}(undef,divisionCount))
+            append!(cellOrientedAreas,fill(SMatrix{2,2,Float64}(zeros(2,2)), divisionCount))
             append!(cellAreas,zeros(Float64,divisionCount))
             append!(cellTensions,zeros(Float64,divisionCount))
             append!(cellPressures,zeros(Float64,divisionCount))
-            append!(cellAges,zeros(Float64,divisionCount))#nonDimCycleTime*0.5.*rand(Float64,divisionCount))
+            append!(cellAges,zeros(Float64,divisionCount))
             append!(boundaryVertices,zeros(Int64,2*divisionCount))
             append!(boundaryEdges,zeros(Int64,3*divisionCount))
-            append!(externalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
-            append!(totalF,Vector{SVector{2,Float64}}(undef,2*divisionCount))
+            append!(externalF,fill(SVector{2,Float64}(zeros(2)), 2*divisionCount))
+            append!(totalF,fill(SVector{2,Float64}(zeros(2)), 2*divisionCount))
             append!(edgeLengths,zeros(Float64,3*divisionCount))
             append!(timeSinceT1,zeros(Float64,3*divisionCount))
-            append!(edgeTangents,Vector{SVector{2,Float64}}(undef,3*divisionCount))
-            append!(edgeMidpoints,Vector{SVector{2,Float64}}(undef,3*divisionCount))
+            append!(edgeTangents,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
+            append!(edgeMidpoints,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
 
             matrices.A = Atmp
             matrices.B = Btmp
@@ -189,7 +187,7 @@ function division!(integrator,params,matrices)
             matrices.B̄  = spzeros(Int64,nCellsOld+1,nEdgesOld+3)
             matrices.B̄ᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
             matrices.C  = spzeros(Int64,nCellsOld+1,nVertsOld+2)
-            matrices.F  = Matrix{SVector{2,Float64}}(undef,nVertsOld+2,nCellsOld+1)
+            matrices.F  = fill(SVector{2,Float64}(zeros(2)), (nVertsOld+2,nCellsOld+1))            
 
             break
 
