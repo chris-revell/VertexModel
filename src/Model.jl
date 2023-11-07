@@ -24,7 +24,7 @@ using DrWatson
 function model!(du, u, p, t)
 
     params, matrices = p
-    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges = matrices
+    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges,vertexAreas = matrices
     @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
 
     spatialData!(u,params,matrices)
@@ -49,7 +49,11 @@ function model!(du, u, p, t)
         end
     end
 
-    du .= sum.(eachrow(matrices.F)).+externalF
+    if minimum(vertexAreas)<0.0001
+        throw()
+    end
+    du .= (sum.(eachrow(matrices.F)).+externalF)./(1000.0.*vertexAreas)
+    
 
 end
 

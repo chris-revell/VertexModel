@@ -18,8 +18,8 @@ using SparseArrays
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
-    @unpack nCells,γ,L₀,A₀ = params
+    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas = matrices
+    @unpack nCells,nEdges,nVerts,γ,L₀,A₀ = params
 
     # cellPositions  .= C*R./cellEdgeCount
     mul!(cellPositions,C,R)
@@ -33,6 +33,20 @@ function spatialData!(R,params,matrices)
     # edgeMidpoints  .= 0.5.*Ā*R
     mul!(edgeMidpoints,Ā,R)
     @.. thread=false edgeMidpoints .*= 0.5
+
+    fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
+    nzC = findnz(C)
+    ikPairs = tuple.(nzC[1],nzC[2])
+    for (i,k) in ikPairs
+        for j=1:nEdges
+            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
+        end
+    end
+    
+    for k=1:nVerts
+        k_is = findall(x->x!=0, C[:,k])
+        vertexAreas[k] = 0.5*norm([edgeMidpointLinks[k_is[1], k]...,0.0]×[edgeMidpointLinks[k_is[2],k]...,0.0])        
+    end
 
     # cellPerimeters .= B̄*edgeLengths
     mul!(cellPerimeters,B̄,edgeLengths)
