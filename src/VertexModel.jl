@@ -40,7 +40,6 @@ function vertexModel(;
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,
-    δL=0.1,
     A₀=1.0,
     viscousTimeScale=20.0,
     pressureExternal=0.0,

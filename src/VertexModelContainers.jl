@@ -31,7 +31,6 @@ mutable struct ParametersContainer
     nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
     t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
     peripheralTension  ::Float64  # Tension at system periphery
-    δL                 ::Float64  # perterbation of L₀
 end
 
 mutable struct MatricesContainer
@@ -62,7 +61,6 @@ mutable struct MatricesContainer
     externalF        ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}      # Antisymmetric rotation matrix
-    prefPerimeters   ::Vector{Float64}                # L₀ for each cell, first cell has L₀ + δL
 end
 
 export ParametersContainer,MatricesContainer

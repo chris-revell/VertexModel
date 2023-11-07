@@ -25,7 +25,7 @@ using Random
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -148,8 +148,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal
         realCycleTime,
         nonDimCycleTime,
         t1Threshold,
-        peripheralTension, 
-        δL
+        peripheralTension
     )
 
     # Initial evaluation of matrices based on system topology

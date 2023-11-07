@@ -18,7 +18,7 @@ using SparseArrays
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,prefPerimeters,edgeLengths,edgeTangents,edgeMidpoints = matrices
+    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints = matrices
     @unpack nCells,γ,L₀,A₀ = params
 
     # cellPositions  .= C*R./cellEdgeCount
@@ -38,7 +38,7 @@ function spatialData!(R,params,matrices)
     mul!(cellPerimeters,B̄,edgeLengths)
 
     # Calculate cell boundary tensions
-    @.. thread=false cellTensions   .= γ.*(prefPerimeters - cellPerimeters)
+    @.. thread=false cellTensions   .= γ.*(L₀ .- cellPerimeters)
 
     # Calculate oriented cell areas
     fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
