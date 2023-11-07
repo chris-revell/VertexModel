@@ -46,7 +46,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem/dataFinal.jld2")
+        importedArrays = load("$initialSystem")
         @unpack A,B,cellAges = importedArrays["matrices"]
         R = importedArrays["R"]
     end
