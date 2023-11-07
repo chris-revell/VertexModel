@@ -49,12 +49,8 @@ function model!(du, u, p, t)
         end
     end
 
-    if minimum(vertexAreas)<0.0001
-        throw()
-    end
-    du .= (sum.(eachrow(matrices.F)).+externalF)./(1000.0.*vertexAreas)
+    du .= (sum.(eachrow(matrices.F)).+externalF)./vertexAreas
     
-
 end
 
 export model!
