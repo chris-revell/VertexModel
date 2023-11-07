@@ -29,26 +29,20 @@ using DrWatson
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices)
-
-    plotCells       = 1
-    scatterEdges    = 0
-    scatterVertices = 0
-    scatterCells    = 0
-    plotForces      = 1
+function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
 
     @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ = matrices
     @unpack nEdges, nVerts, nCells = params
 
     empty!(ax1)
 
-    # ax1.title = "t = $(@sprintf("%.2f", t))"
+    ax1.title = "t = $(@sprintf("%.2f", t))"
 
     # Plot cells
     if plotCells == 1
-        for i = 1:nCells
-            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-            poly!(ax1, Point2f.(R[orderedVertices]), color=(getRandomColor(i), 0.5))
+        cellPolygons = makeCellPolygons(R,params,matrices)
+        for i=1:nCells
+            poly!(ax1,cellPolygons[i],color=(getRandomColor(i), 0.5),strokecolor=(:black,1.0),strokewidth=2)
         end
     end
 
