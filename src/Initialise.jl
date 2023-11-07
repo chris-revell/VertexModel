@@ -17,6 +17,8 @@ using UnPack
 using FromFile
 using DrWatson
 using Random
+using Distributions
+using Dates
 
 # Local modules
 @from "InitialHexagons.jl" using InitialHexagons
@@ -34,16 +36,17 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     nonDimCycleTime = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
     # Use this line if you want to force an identical random number sequences
-    # rng = MersenneTwister(1234)
+    seed = floor(Int64,datetime2unix(now())) # 1234
+    rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
     if initialSystem in ["one","three","seven"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
-        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(rng,size(B,1)).*nonDimCycleTime  # Random initial cell ages
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
-        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(rng,size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/dataFinal.jld2")
@@ -110,7 +113,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realCycleTime,
         nonDimCycleTime,
         t1Threshold,
-        peripheralTension
+        peripheralTension,
+        seed,
+        rng,
+        LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
     )
 
     # Initial evaluation of matrices based on system topology

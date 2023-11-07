@@ -26,9 +26,9 @@ using Random
 
 function division!(integrator,params,matrices)
 
-    @unpack nonDimCycleTime = params
+    @unpack nonDimCycleTime, rng, distLogNormal = params
     @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas = matrices
-
+    
     divisionCount = 0
 
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
@@ -36,10 +36,8 @@ function division!(integrator,params,matrices)
     nEdgesOld = params.nEdges # Local copy of initial edge count
     nVertsOld = params.nVerts # Local copy of initial vertex count
 
-    distLogNormal=LogNormal(log(nonDimCycleTime), 0.1)
-
     for i=1:nCellsOld
-        if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if cellAges[i]>rand(rng,distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
             

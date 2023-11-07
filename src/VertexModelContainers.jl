@@ -11,26 +11,31 @@ module VertexModelContainers
 
 using SparseArrays
 using StaticArrays
+using Random
+using Distributions
 
 mutable struct ParametersContainer
-    initialSystem      ::String   # System used for initialising simulations
-    nCells             ::Int64    # Number of cells
-    nEdges             ::Int64    # Number of edges
-    nVerts             ::Int64    # Number of vertices
-    γ                  ::Float64  # Parameter in energy relaxation
-    λ                  ::Float64  # Parameter in energy relaxation
-    L₀                 ::Float64  # Cell preferred perimeter length L₀ = -λ/(2*γ)
-    A₀                 ::Float64  # Cell preferred area
-    pressureExternal   ::Float64  # External pressure applied uniformly to system
-    outputTotal        ::Int64    # Total number of data outputs
-    outputInterval     ::Float64  # Non dimensionalised data output interval
-    viscousTimeScale   ::Float64  # Relaxation rate, approx from Sarah's data.
-    realTimetMax       ::Float64  # Dimensionalised run time in seconds
-    tMax               ::Float64  # Non dimensionalised run time
-    realCycleTime      ::Float64  # Cell cycle time in seconds
-    nonDimCycleTime    ::Float64  # Non dimensionalised cell cycle time
-    t1Threshold        ::Float64  # Length of edge below which a T1 transition occurs
-    peripheralTension  ::Float64  # Tension at system periphery
+    initialSystem      ::String             # System used for initialising simulations
+    nCells             ::Int64              # Number of cells
+    nEdges             ::Int64              # Number of edges
+    nVerts             ::Int64              # Number of vertices
+    γ                  ::Float64            # Parameter in energy relaxation
+    λ                  ::Float64            # Parameter in energy relaxation
+    L₀                 ::Float64            # Cell preferred perimeter length L₀ = -λ/(2*γ)
+    A₀                 ::Float64            # Cell preferred area
+    pressureExternal   ::Float64            # External pressure applied uniformly to system
+    outputTotal        ::Int64              # Total number of data outputs
+    outputInterval     ::Float64            # Non dimensionalised data output interval
+    viscousTimeScale   ::Float64            # Relaxation rate, approx from Sarah's data.
+    realTimetMax       ::Float64            # Dimensionalised run time in seconds
+    tMax               ::Float64            # Non dimensionalised run time
+    realCycleTime      ::Float64            # Cell cycle time in seconds
+    nonDimCycleTime    ::Float64            # Non dimensionalised cell cycle time
+    t1Threshold        ::Float64            # Length of edge below which a T1 transition occurs
+    peripheralTension  ::Float64            # Tension at system periphery
+    seed               ::Int64              # Random number seed 
+    rng                ::MersenneTwister    # Random number generator
+    distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end
 
 mutable struct MatricesContainer
