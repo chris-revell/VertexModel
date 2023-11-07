@@ -25,7 +25,7 @@ using Random
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Calculate derived parameters
     tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -37,7 +37,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # rng = MersenneTwister(1234)
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","seven", "three_uneq", "three_neq2"]
+    if initialSystem in ["one","three","four","seven", "three_uneq", "three_neq2", "seven_eq"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
@@ -76,7 +76,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     cellAreas         = zeros(nCells)
     cellTensions      = zeros(nCells)
     cellPressures     = zeros(nCells)
-    initialSystem in ["one","three","seven", "three_uneq", "three_neq2", "large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
+    initialSystem in ["one","three", "four","seven", "three_uneq", "three_neq2", "seven_eq","large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
     edgeLengths       = zeros(nEdges)
     edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
     fill!(edgeTangents,@SVector zeros(2))
@@ -93,6 +93,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         0.0 1.0
         -1.0 0.0
     ]
+    prefPerimeters = fill(L₀,nCells)
+    prefPerimeters[1]=L₀+δL
+    #prefPerimeters[2]=L₀+δL
+    #print(prefPerimeters)
 
     # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
@@ -123,6 +127,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         externalF,
         totalF,
         ϵ,
+        prefPerimeters
     )
 
     # Pack parameters into a struct for convenience
@@ -143,7 +148,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realCycleTime,
         nonDimCycleTime,
         t1Threshold,
-        peripheralTension
+        peripheralTension, 
+        δL
     )
 
     # Initial evaluation of matrices based on system topology
