@@ -93,10 +93,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         0.0 1.0
         -1.0 0.0
     ]
-    prefPerimeters = fill(L₀,nCells)
-    prefPerimeters[1]=L₀+δL
-    #prefPerimeters[2]=L₀+δL
-    #print(prefPerimeters)
+
 
     # Pack matrices into a struct for convenience
     matrices = MatricesContainer(
@@ -126,8 +123,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         F,
         externalF,
         totalF,
-        ϵ,
-        prefPerimeters
+        ϵ
     )
 
     # Pack parameters into a struct for convenience

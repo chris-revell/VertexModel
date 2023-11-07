@@ -55,11 +55,11 @@ function vertexModel(;
     solver=Tsit5(),
     nBlasThreads=1
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
-
+   
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀, δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -88,7 +88,8 @@ function vertexModel(;
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
                 R = @view integrator.u[:]
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
-                CSV.write(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R)
+                writedlm(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R, ',')
+
                 e_tot=energy(params,matrices)
             # CSV.write(datadir(subFolder,folderName,"EnergyTotal.csv"), e_tot, append=true)
                 csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
