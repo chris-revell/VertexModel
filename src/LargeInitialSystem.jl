@@ -18,11 +18,12 @@ using FromFile
 using DelaunayTriangulation
 using StaticArrays
 using FromFile
+using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
 function largeInitialSystem()
-
+    
     cellPoints = [SVector(x, 0.0) for x=1:9]
     for j=1:4
         for i=1:9-j

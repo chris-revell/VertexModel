@@ -22,10 +22,7 @@ using Colors
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 
-function getRandomColor(seed)
-    Random.seed!(seed)
-    rand(RGB{})
-end
+getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 
 function makeCellPolygons(R,params,matrices)
     cellPolygons = Vector{Point2f}[]

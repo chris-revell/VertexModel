@@ -27,7 +27,7 @@ using Dates
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Calculate derived parameters
     tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -35,18 +35,21 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     λ               = -2.0*L₀*γ
     nonDimCycleTime = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
-    # Use this line if you want to force an identical random number sequences
-    seed = floor(Int64,datetime2unix(now())) # 1234
-    rng = MersenneTwister(seed)
+    # Set random seed value and allocate random number generator
+    # Random seed set from current unix time, 
+    # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
+    seed = (setRandomSeed==0 ? floor(Int64,datetime2unix(now())) : setRandomSeed)
+    # rng = Xoshiro(seed)
+    Random.seed!(seed)
 
     # Initialise system matrices from function or file
     if initialSystem in ["one","three","seven"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
-        cellAges = rand(rng,size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
-        cellAges = rand(rng,size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedArrays = load("$initialSystem/dataFinal.jld2")
@@ -115,7 +118,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        rng,
+        # rng,
         LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
     )
 
