@@ -36,7 +36,7 @@ using CSV
 
 function vertexModel(;
     initialSystem="large",
-    realTimetMax=1.5*86400.0,
+    realTimetMax=2.0*86400.0,
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,
@@ -47,6 +47,7 @@ function vertexModel(;
     peripheralTension=0.0,
     t1Threshold=0.05,    
     solver=Tsit5(),
+    nBlasThreads=1,
     subFolder="",
     outputTotal=100,
     outputToggle=1,
@@ -54,18 +55,18 @@ function vertexModel(;
     frameImageToggle=1,
     printToggle=1,
     videoToggle=1,    
-    nBlasThreads=1,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
     scatterCells = 0,
     plotForces = 0,
+    setRandomSeed = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀, δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀, δL,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1

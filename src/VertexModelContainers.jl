@@ -35,7 +35,7 @@ mutable struct ParametersContainer
     peripheralTension  ::Float64  # Tension at system periphery
     δL                 ::Float64  # Perturbation of L₀
     seed               ::Int64              # Random number seed 
-    rng                ::MersenneTwister    # Random number generator
+    # rng                ::Vector{Xoshiro}    # Random number generator
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end
 
