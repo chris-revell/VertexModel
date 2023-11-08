@@ -14,6 +14,7 @@ using LinearAlgebra
 using SparseArrays
 using StaticArrays
 using FromFile
+using BlockArrays
 
 # Local modules
 @from "AnalysisFunctions.jl" using AnalysisFunctions
@@ -132,11 +133,15 @@ end
 
 
 
-function makeQ(params,matrices,X, M)
+function makeD(params,matrices,X, Lvevals, Lvevec, q)
+    #assuming LAPACK.syev used to find eigenvectors of Lv
+    #q is number of non zero eigen vectors, generally 2*nCells -1
+
+    #Cell tensions are negative due to previous sign conventions in code.
     
     @unpack cellTensions, cellPressures = matrices
     @unpack nCells, nVerts = params
-    g=vcat(cellPressures, cellTensions)
+    g=vcat(cellPressures, -cellTensions)
 
     gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
     fill!(gX,@SMatrix zeros(2,2))
@@ -144,12 +149,16 @@ function makeQ(params,matrices,X, M)
         gX+=g[α]X[α, :,:]
     end
 
-    Q=[m' for m in M]*(sparse(gX)*[m' for m in M'])
+    D=zeros(q,q)
+    qeval=Lvevals[2*nVerts+1-q: 2*nVerts]
+    qevec=Lvevec[:, 2*nVerts+1-q:2*nVerts]
+    
+    D=qevec'*Matrix(mortar(gX))*qevec+ Diagonal(qeval)
 
-    return Q
+    return D
 
 end
 
-export makeLf, makeLc, makeLv, makeLt, makeG, makeM, makeEvLc, makeEvLv, makeX, makeQ
+export makeLf, makeLc, makeLv, makeLt, makeG, makeM, makeEvLc, makeEvLv, makeX, makeD
 
 end #end module 
