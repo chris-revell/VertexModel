@@ -34,7 +34,7 @@ mutable struct ParametersContainer
     t1Threshold        ::Float64            # Length of edge below which a T1 transition occurs
     peripheralTension  ::Float64            # Tension at system periphery
     seed               ::Int64              # Random number seed 
-    rng                ::MersenneTwister    # Random number generator
+    # rng                ::Vector{Xoshiro}    # Random number generator
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end
 

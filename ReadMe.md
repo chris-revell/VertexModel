@@ -19,30 +19,31 @@ Input parameters are optional; use different values other than defaults by runni
 Possible input parameters:
 |Variable name:     | Default value:| Explanation:                                                               |
 |:------------------|:--------------|:---------------------------------------------------------------------------|
-|initialSystem      | `"seven"`     | String specifying initial system state                                     |
-|realTimetMax       | `6.0*86400.0` | Real time maximum system run time /seconds                                 |
+|initialSystem      | `"large"`     | String specifying initial system state                                     |
+|realTimetMax       | `2.0*86400.0` | Real time maximum system run time /seconds                                 |
 |realCycleTime      | `86400.0`     | Cell cycle time in seconds                                                 |
 |γ                  | `0.2`         | Parameter in energy relaxation                                             |
 |L₀                 | `0.75`        | Preferred cell perimeter length                                            |
 |A₀                 | `1.0`         | Cell preferred area                                                        |
 |viscousTimeScale   | `20.0`        | Relaxation rate, approx from Sarah's data.                                 |
-|pressureExternal   | `0.1`         | External pressure applied isotropically to system boundary                 |
+|pressureExternal   | `0.0`         | External pressure applied isotropically to system boundary                 |
 |peripheralTension  | `0.0`         | Tension applied to system boundary                                         |
-|t1Threshold        | `0.01`        | Edge length at which a T1 transition is triggered                          |
+|t1Threshold        | `0.05`        | Edge length at which a T1 transition is triggered                          |
+|solver             | `Tsit5()`     | Name of integration algorithm to use                                       |
+|nBlasThreads       | `1`           | Number of threads used by calls to BLAS functions                          |
+|subFolder          | `""`          | Name of subfolder within data directory in which to store results          |
 |outputTotal        | `100`         | Number of data output instances per simulation                             |
 |outputToggle       | `1`           | Controls whether data are saved from simulation                            |
 |frameDataToggle    | `1`           | Controls whether system data are produced at intermediate time points      |
 |frameImageToggle   | `1`           | Controls whether images are produced at intermediate time points           |
 |printToggle        | `1`           | Controls whether updates are printed to command line during runs           |
 |videoToggle        | `1`           | Controls whether a movie of the simulation is produced at the end          |
-|subFolder          | `""`          | Name of subfolder within data directory in which to store results          |
-|solver             | `Tsit5()`     | Name of integration algorithm to use                                       |
-|nBlasThreads       | `1`           | Number of threads used by calls to BLAS functions                          |
-|plotCells          | 1             | Plot cell polygons in visualisation                                        |
-|scatterEdges       | 0             | Plot scatter points showing cell edge midpoints in visualisation           |
-|scatterVertices    | 0             | Plot scatter points showing vertex locations in visualisation              |
-|scatterCells       | 0             | Plot scatter points showing cell centroids in visualisation                |
-|plotForces         | 0             | Plot arrows showing resultant internal forces on vertices in visualisation |
+|plotCells          | `1`           | Plot cell polygons in visualisation                                        |
+|scatterEdges       | `0`           | Plot scatter points showing cell edge midpoints in visualisation           |
+|scatterVertices    | `0`           | Plot scatter points showing vertex locations in visualisation              |
+|scatterCells       | `0`           | Plot scatter points showing cell centroids in visualisation                |
+|plotForces         | `0`           | Plot arrows showing resultant internal forces on vertices in visualisation |
+|setRandomSeed      | `0`           | If non-zero, use this value to set random seed for simulation              |
 
 
 TODO:
