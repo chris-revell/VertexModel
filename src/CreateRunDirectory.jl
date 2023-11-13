@@ -50,12 +50,6 @@ function createRunDirectory(R,params,matrices,subFolder)
     #     println(conditionsFile, "nonDimCycleTime,   $nonDimCycleTime")
     # end
 
-    # Store system parameters
-    jldsave(datadir("sims",subFolder,folderName,"params.jld2");params)
-
-    # Store initial system characteristic matrices
-    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");A,B,R)
-
     return folderName
 
 end
