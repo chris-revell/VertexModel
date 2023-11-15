@@ -159,6 +159,30 @@ function makeD(params,matrices,X, Lvevals, Lvevec, q)
 
 end
 
+function makeFullD(params,matrices,X, Lvevals, Lvevec, q)
+    @unpack cellTensions, cellPressures = matrices
+    @unpack nCells, nVerts = params
+    #q=2*nCells-1
+
+    g=vcat(cellPressures, -cellTensions)
+
+    gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
+    fill!(gX,@SMatrix zeros(2,2))
+    for α=1:2*nCells
+        gX+=g[α]X[α, :,:]
+    end
+
+    D=zeros(2*nVerts, 2*nVerts)
+    qeval=Lvevals[2*nVerts+1-q: 2*nVerts]
+
+    D=Lvevec'*Matrix(mortar(gX))*Lvevec
+    for i=1:q
+        D[(2*nVerts-q)+i,(2*nVerts-q)+i]+=qeval[i]
+    end
+
+end    
+
+
 export makeLf, makeLc, makeLv, makeLt, makeG, makeM, makeEvLc, makeEvLv, makeX, makeD
 
 end #end module 
