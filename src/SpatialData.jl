@@ -43,9 +43,13 @@ function spatialData!(R,params,matrices)
         end
     end
     
+    # Find vertex areas, with special consideration of peripheral vertices with 1 or 2 adjacent cells
     for k=1:nVerts
         k_is = findall(x->x!=0, C[:,k])
-        if length(k_is) == 2
+        if length(k_is) == 1
+            k_js = findall(x->x!=0, A[:,k])
+            vertexAreas[k] = 0.5^3*norm([edgeTangents[k_js[1]]...,0.0]×[edgeTangents[k_js[2]]...,0.0])
+        elseif length(k_is) == 2
             edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
             vertexAreas[k] = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
             edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
