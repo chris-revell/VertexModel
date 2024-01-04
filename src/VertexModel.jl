@@ -57,6 +57,7 @@ function vertexModel(;
     scatterVertices = 0,
     scatterCells = 0,
     plotForces = 0,
+    plotEdgeMidpointLinks = 1,
     setRandomSeed = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -94,7 +95,7 @@ function vertexModel(;
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
-                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
+                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
             end
             # Save still image of this time step 
             frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
@@ -116,6 +117,7 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u,params,matrices) # Update spatial data after division 
         end
+
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
@@ -132,7 +134,7 @@ function vertexModel(;
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
-            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces)
+            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
         end
         # Save still image of this time step 
         frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing

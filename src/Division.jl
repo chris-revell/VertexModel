@@ -27,7 +27,7 @@ using Random
 function division!(integrator,params,matrices)
 
     @unpack nonDimCycleTime, distLogNormal = params
-    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ = matrices
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas = matrices
 
     divisionCount = 0
 
@@ -177,6 +177,7 @@ function division!(integrator,params,matrices)
             append!(timeSinceT1,zeros(Float64,3*divisionCount))
             append!(edgeTangents,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
             append!(edgeMidpoints,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
+            append!(vertexAreas, zeros(2))
 
             matrices.A = Atmp
             matrices.B = Btmp
@@ -187,7 +188,8 @@ function division!(integrator,params,matrices)
             matrices.B̄  = spzeros(Int64,nCellsOld+1,nEdgesOld+3)
             matrices.B̄ᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
             matrices.C  = spzeros(Int64,nCellsOld+1,nVertsOld+2)
-            matrices.F  = fill(SVector{2,Float64}(zeros(2)), (nVertsOld+2,nCellsOld+1))            
+            matrices.F  = fill(SVector{2,Float64}(zeros(2)), (nVertsOld+2,nCellsOld+1))
+            matrices.edgeMidpointLinks = fill(SVector{2, Float64}(zeros(2)), (nCellsOld+1, nVertsOld+2))
 
             break
 
