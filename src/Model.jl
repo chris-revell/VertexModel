@@ -49,7 +49,7 @@ function model!(du, u, p, t)
         end
     end
 
-    du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0*vertexAreas)
+    du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)
     
 end
 

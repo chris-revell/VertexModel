@@ -87,7 +87,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
         fill(SVector{2, Float64}(zeros(2)), (nCells, nVerts)),# edgeMidpointLinks
         zeros(nEdges),                                        # timeSinceT1
-        zeros(nVerts),                                        # vertexAreas
+        ones(nVerts),                                         # vertexAreas
         fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # totalF

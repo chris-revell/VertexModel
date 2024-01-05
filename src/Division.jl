@@ -177,7 +177,7 @@ function division!(integrator,params,matrices)
             append!(timeSinceT1,zeros(Float64,3*divisionCount))
             append!(edgeTangents,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
             append!(edgeMidpoints,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
-            append!(vertexAreas, zeros(2))
+            append!(vertexAreas, ones(2))
 
             matrices.A = Atmp
             matrices.B = Btmp
