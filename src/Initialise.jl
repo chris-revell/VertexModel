@@ -21,6 +21,7 @@ using Random
 # Local modules
 @from "InitialHexagons.jl" using InitialHexagons
 @from "largeInitialSystem.jl" using LargeInitialSystem
+@from "randomInitialSystem.jl" using RandomInitialSystem
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
@@ -43,6 +44,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+    elseif initialSystem=="random"
+        A,B,R = randomInitialSystem()
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
