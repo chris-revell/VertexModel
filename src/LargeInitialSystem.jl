@@ -23,9 +23,9 @@ using FromFile
 
 function largeInitialSystem()
 
-    cellPoints = [SVector(x, 0.0) for x=1:9]
-    for j=1:4
-        for i=1:9-j
+    cellPoints = [SVector(x, 0.0) for x=1:15]
+    for j=1:7
+        for i=1:15-j
             # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
             push!(cellPoints,SVector(i+0.5*j+rand()*0.001-0.0005, j*sqrt(1-0.5^2)+rand()*0.001-0.0005))
             push!(cellPoints,SVector(i+0.5*j+rand()*0.001-0.0005, -j*sqrt(1-0.5^2)+rand()*0.001-0.0005))
@@ -93,7 +93,7 @@ function largeInitialSystem()
         end
     end
 
-
+#=
 
     # Prune peripheral vertices with 2 edges that both belong to the same cell
     # Making the assumption that there will never be two such vertices adjacent to each other
@@ -116,9 +116,30 @@ function largeInitialSystem()
         A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
         A[edges[1], otherVertexOnEdge1] = 0
     end
-    A = A[setdiff(1:size(A,1),edgesToRemove), setdiff(1:size(A,2),verticesToRemove)]
-    B = B[:, setdiff(1:size(B,2),edgesToRemove)]
-    R = R[setdiff(1:size(R,1),verticesToRemove)]
+
+    =#
+
+    #remove external cells
+
+    peripheralEdges=findall(x->x!=0,(ones(nCells)'*B)')
+    borderEdges=findall(x->x!=0,vec(A*(ones(nVerts)'-abs.(ones(nCells)'*B)*abs.(A))'))
+
+    verticesToRemove = [x[2] for x in findall(x->x!=0,abs.(ones(nCells)'*B)*abs.(A))]
+    edgesToRemove = vcat(peripheralEdges, borderEdges)
+
+    cellsToRemove=[]
+    for j in peripheralEdges
+        cells=findall(x->x!=0,B[:,j])
+        push!(cellsToRemove,cells[1])
+    end
+    
+    unique!(cellsToRemove)
+    
+
+
+ A = A[setdiff(1:size(A,1),edgesToRemove), setdiff(1:size(A,2),verticesToRemove)]
+ B = B[setdiff(1:size(B,1),cellsToRemove), setdiff(1:size(B,2),edgesToRemove)]
+ R = R[setdiff(1:size(R,1),verticesToRemove)]
 
     senseCheck(A, B; marker="Removing peropheral vertices")
 
