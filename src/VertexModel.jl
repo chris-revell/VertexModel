@@ -57,7 +57,7 @@ function vertexModel(;
     scatterVertices = 0,
     scatterCells = 0,
     plotForces = 0,
-    plotEdgeMidpointLinks = 1,
+    plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -145,9 +145,9 @@ function vertexModel(;
 end
 
 # Ensure code is precompiled
-@compile_workload begin
-    vertexModel(realTimetMax=1000.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
-end
+# @compile_workload begin
+#     vertexModel(realTimetMax=1000.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
+# end
 
 export vertexModel
 

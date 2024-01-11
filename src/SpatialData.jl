@@ -23,7 +23,7 @@ using GeometryBasics
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas = matrices
+    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas,μ,Γ = matrices
     @unpack nCells,nEdges,nVerts,γ,L₀,A₀ = params
 
     # cellPositions  .= C*R./cellEdgeCount
@@ -43,8 +43,9 @@ function spatialData!(R,params,matrices)
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1],nzC[2])
     for (i,k) in ikPairs
-        for j=1:nEdges
-            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
+        k_js = findall(x->x!=0, A[:,k])
+        for j in k_js
+            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j].*edgeTangents[j].*Ā[j,k]
         end
     end
     
@@ -68,10 +69,11 @@ function spatialData!(R,params,matrices)
     mul!(cellPerimeters,B̄,edgeLengths)
 
     # Calculate cell boundary tensions
-    @.. thread=false cellTensions   .= γ*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
+    # @.. thread=false cellTensions   .= γ*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
+    cellTensions   .= Γ.*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
 
     # Calculate oriented cell areas
-    fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
+    # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
     # for i=1:nCells
     #     for j in nzrange(Bᵀ,i)
     #         cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
@@ -86,7 +88,8 @@ function spatialData!(R,params,matrices)
     # cellAreas .= abs.(area.(makeCellPolygons(R,params,matrices)))
 
     # Calculate cell internal pressures
-    @.. thread=false cellPressures  .= A₀.*log.(cellAreas./A₀) #cellAreas .- A₀
+    # @.. thread=false cellPressures  .= ones(nCells).*log.(cellAreas./A₀) #cellAreas .- A₀
+    cellPressures  .= A₀.*μ.*log.(cellAreas./A₀) #cellAreas .- A₀
 
     return nothing
 
@@ -95,3 +98,5 @@ end
 export spatialData!
 
 end
+
+#47, 83

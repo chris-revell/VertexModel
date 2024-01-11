@@ -26,8 +26,8 @@ using Random
 
 function division!(integrator,params,matrices)
 
-    @unpack nonDimCycleTime, distLogNormal = params
-    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas = matrices
+    @unpack nonDimCycleTime, distLogNormal, γ = params
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas, μ, Γ = matrices
 
     divisionCount = 0
 
@@ -169,6 +169,8 @@ function division!(integrator,params,matrices)
             append!(cellTensions,zeros(Float64,divisionCount))
             append!(cellPressures,zeros(Float64,divisionCount))
             append!(cellAges,zeros(Float64,divisionCount))
+            append!(μ,ones(Float64,divisionCount))
+            append!(Γ,γ.*ones(Float64,divisionCount))
             append!(boundaryVertices,zeros(Int64,2*divisionCount))
             append!(boundaryEdges,zeros(Int64,3*divisionCount))
             append!(externalF,fill(SVector{2,Float64}(zeros(2)), 2*divisionCount))

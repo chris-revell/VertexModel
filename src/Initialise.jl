@@ -52,16 +52,16 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem/dataFinal.jld2")
-        @unpack A,B,cellAges = importedArrays["matrices"]
-        R = importedArrays["R"]
+        importedData = load("$initialSystem")
+        @unpack A,B,cellAges = importedData["matrices"]
+        R = importedData["R"]
     end
 
     nCells = size(B,1)
     nEdges = size(A,1)
     nVerts = size(A,2)
 
-    # Pack preallocated matrices into a struct for convenience
+    # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A,
         B,
@@ -81,7 +81,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         zeros(nCells),                                        # cellAreas
         zeros(nCells),                                        # cellTensions
         zeros(nCells),                                        # cellPressures
-        cellAges,
+        cellAges,                                             # cellAges
+        ones(nCells),                                         # μ
+        γ.*ones(nCells),                                      # Γ
         zeros(nEdges),                                        # edgeLengths
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
@@ -96,6 +98,12 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         -1.0 0.0
         ])
     )
+
+################################################################################   
+    # inds = rand(collect(1:nCells),5)
+    # matrices.μ[inds] .= 5.0 # Double stiffness of 10 random cells
+    # matrices.Γ[inds] .*= 2.0 # Double stiffness of 10 random cells
+################################################################################   
 
     # Pack parameters into a struct for convenience
     params = ParametersContainer(
@@ -118,7 +126,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        # rng,
         LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
     )
 
