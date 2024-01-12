@@ -99,12 +99,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         ])
     )
 
-################################################################################   
-    # inds = rand(collect(1:nCells),5)
-    # matrices.μ[inds] .= 5.0 # Double stiffness of 10 random cells
-    # matrices.Γ[inds] .*= 2.0 # Double stiffness of 10 random cells
-################################################################################   
-
     # Pack parameters into a struct for convenience
     params = ParametersContainer(
         initialSystem,
