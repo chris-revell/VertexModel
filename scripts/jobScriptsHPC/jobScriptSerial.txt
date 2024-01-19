@@ -1,8 +1,0 @@
-#!/bin/bash --login
-#$ -cwd              # Job will run in the current directory (where you ran qsub)
-                     # Nothing specified to request more cores = default 1 core
-#$ -N juliaVertex        # Name given to batch job (optional)
-#$ -m bea
-#$ -M christopher.revell@manchester.ac.uk
-
-/mnt/iusers01/maths01/x85521cr/julia-1.7.2/bin/julia scripts/runBatchCSF.jl
