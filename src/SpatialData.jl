@@ -69,7 +69,7 @@ function spatialData!(R,params,matrices)
     mul!(cellPerimeters,B̄,edgeLengths)
 
     # Calculate cell boundary tensions
-    cellTensions   .= Γ.*log.(prefPerimeters./cellPerimeters) 
+    cellTensions   .= Γ.*prefPerimeters.*log.(prefPerimeters./cellPerimeters) 
 
     # Calculate oriented cell areas
     # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
