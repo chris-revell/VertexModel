@@ -359,9 +359,6 @@ function initialHexagons(n)
             0 0 1 0 0 0 0 0 0 1 -1 -1 -1 -1 0 -1
             0 0 0 0 0 -1 -1 -1 -1 -1 0 0 0 0 1 0]
         B=sparse(Btmp)
-
-    elseif n=="seven_eq"
-
         
     elseif n=="seven_original"
         A = spzeros(Int64,30,24)

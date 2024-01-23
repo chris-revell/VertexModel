@@ -43,7 +43,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,δL,A₀,pressureExternal
     Random.seed!(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","four","seven", "three_uneq", "three_neq2", "seven_eq", "seven_original"]
+    if initialSystem in ["one","three","four","seven", "three_uneq", "three_neq2", "seven_original"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
