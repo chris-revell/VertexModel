@@ -24,7 +24,7 @@ folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2
 @unpack B, Bᵀ, C, cellPositions = matrices
 @unpack nCells,nVerts = params
 
-fig = CairoMakie.Figure(resolution=(1000,1000))
+fig = CairoMakie.Figure(size=(1000,1000))
 ax = Axis(fig[1,1][1,1],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)

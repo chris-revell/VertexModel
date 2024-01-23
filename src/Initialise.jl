@@ -43,7 +43,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     Random.seed!(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","seven", "three_uneq", "three_neq2"]
+    if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_original"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
@@ -52,16 +52,16 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem")
-        @unpack A,B,cellAges = importedArrays["matrices"]
-        R = importedArrays["R"]
+        importedData = load("$initialSystem")
+        @unpack A,B,cellAges = importedData["matrices"]
+        R = importedData["R"]
     end
 
     nCells = size(B,1)
     nEdges = size(A,1)
     nVerts = size(A,2)
 
-    # Pack preallocated matrices into a struct for convenience
+    # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A,
         B,
@@ -81,11 +81,15 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         zeros(nCells),                                        # cellAreas
         zeros(nCells),                                        # cellTensions
         zeros(nCells),                                        # cellPressures
-        cellAges,
+        cellAges,                                             # cellAges
+        ones(nCells),                                         # μ
+        γ.*ones(nCells),                                      # Γ
         zeros(nEdges),                                        # edgeLengths
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
+        fill(SVector{2, Float64}(zeros(2)), (nCells, nVerts)),# edgeMidpointLinks
         zeros(nEdges),                                        # timeSinceT1
+        ones(nVerts),                                         # vertexAreas
         fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # totalF
@@ -116,7 +120,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        # rng,
         LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
     )
 

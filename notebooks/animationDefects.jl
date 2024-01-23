@@ -46,7 +46,7 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
 
     folderName = "sims/examples/$f"
 
-    fig = CairoMakie.Figure(resolution=(1000,1000))
+    fig = CairoMakie.Figure(size=(1000,1000))
     ax = Axis(fig[1,1],aspect=DataAspect())
     hidedecorations!(ax)
     hidespines!(ax)
