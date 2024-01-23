@@ -281,8 +281,6 @@ function initialHexagons(n)
         # Adjust intial cell areas
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
-    
-
     elseif n=="three_uneq"
         R = Array{SVector{2,Float64}}(undef,13)
         R[1]  = SVector{2}([-0.2771, -0.497659])
@@ -363,6 +361,9 @@ function initialHexagons(n)
         B=sparse(Btmp)
 
     elseif n=="seven_eq"
+
+        
+    elseif n=="seven_original"
         A = spzeros(Int64,30,24)
         B = spzeros(Int64,7, 30)
         R = Array{SVector{2,Float64}}(undef,24)
@@ -474,6 +475,7 @@ function initialHexagons(n)
         for k=1:6
             R[k] = SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
         end
+
         edgeLength1 = 1.0
         edgeLength2 = 2.0*sin(π/3.0)
 
@@ -505,6 +507,9 @@ function initialHexagons(n)
 
         # Set initial cell areas to 1.0
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        # Set initial cell areas to 1.0
+        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+
     end
 
 

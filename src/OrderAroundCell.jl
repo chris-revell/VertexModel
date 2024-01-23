@@ -32,7 +32,7 @@ function orderAroundCell(matrices, i)
     
     for _ = 1:length(cellEdges)
         allNeighbouringEdges = findall(j->j!=0,A[:,nextVertex[end]]) # Find all neighbouring edges around vertex (could be up to 3)                
-        iNeighbourEdges = allNeighbouringEdges∩findall(k->k!=0,B[i,:])    # Find the intersection of all neighbours with edges of cell i to give 2 relevant edges
+        iNeighbourEdges = [j for j in allNeighbouringEdges if B[i,j]!=0] # Find the intersection of all neighbours with edges of cell i to give 2 relevant edges
         # Testing both edges in iNeighbourEdges
         # Downstream clockwise if B[i,j]>0 and A[j,k]<0 or B[i,j]<0 and A[j,k]>0
         if B[i,iNeighbourEdges[1]] > 0 && A[iNeighbourEdges[1],nextVertex[end]] < 0 
