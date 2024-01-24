@@ -20,6 +20,7 @@ using Random
 using DifferentialEquations
 
 @from "SenseCheck.jl" using SenseCheck
+@from "ResizeMatrices.jl" using ResizeMatrices
 
 function edgeAblation(j, params, matrices, integrator)
     
@@ -53,9 +54,11 @@ function edgeAblation(j, params, matrices, integrator)
         A[edges[2], i] = 0
         # Add edge to list of edges to remove 
         push!(edgesToRemove,edges[1])
-        # Unlink the same edge from its other adjacent cell 
-        otherCellToRemoveEdgeFrom = [ii for ii in findall(x->x!=0,B[:,edges[1]]) if ii∉cells][1]
-        B[otherCellToRemoveEdgeFrom,edges[1]] = 0
+        # Unlink the same edge from its other adjacent cell, unless the ablated edge is adjacent to a peripheral edge 
+        if matrices.boundaryVertices[otherVertexOnEdge1] != 0
+            otherCellToRemoveEdgeFrom = [ii for ii in findall(x->x!=0,B[:,edges[1]]) if ii∉cells][1]
+            B[otherCellToRemoveEdgeFrom,edges[1]] = 0
+        end
     end
     
     sort!(edgesToRemove)
@@ -84,46 +87,17 @@ function edgeAblation(j, params, matrices, integrator)
     # Update stored incidence matrices in container object 
     matrices.A = newA
     matrices.B = newB
-    # Resize other multidimentional matrices in container 
-    matrices.Aᵀ                = spzeros(Int64,nVerts-2,nEdges-3)
-    matrices.Ā                 = spzeros(Int64,nEdges-3,nVerts-2)
-    matrices.Āᵀ                = spzeros(Int64,nVerts-2,nEdges-3)
-    matrices.Bᵀ                = spzeros(Int64,nEdges-3,nCells-1)
-    matrices.B̄                 = spzeros(Int64,nCells-1,nEdges-3)
-    matrices.B̄ᵀ                = spzeros(Int64,nEdges-3,nCells-1)
-    matrices.C                 = spzeros(Int64,nCells-1,nVerts-2)
-    matrices.F                 = fill(SVector{2,Float64}(zeros(2)), (nVerts-2,nCells-1))
-    matrices.externalF         = fill(SVector{2,Float64}(zeros(2)), nVerts-2)
-    matrices.totalF            = fill(SVector{2,Float64}(zeros(2)), nVerts-2)
-    matrices.edgeMidpointLinks = fill(SVector{2, Float64}(zeros(2)), (nCells-1, nVerts-2))    
-    # Remove components from stored vectors  
-    deleteat!(matrices.cellEdgeCount,cells[2])
-    deleteat!(matrices.cellPositions,cells[2])
-    deleteat!(matrices.cellPerimeters,cells[2])
-    deleteat!(matrices.cellOrientedAreas,cells[2])
-    deleteat!(matrices.cellAreas,cells[2])
-    deleteat!(matrices.cellTensions,cells[2])
-    deleteat!(matrices.cellPressures,cells[2])
-    deleteat!(matrices.cellAges,cells[2])
-    deleteat!(matrices.μ,cells[2])
-    deleteat!(matrices.Γ,cells[2])
-    deleteat!(matrices.edgeLengths,edgesToRemove)
-    deleteat!(matrices.edgeTangents,edgesToRemove)
-    deleteat!(matrices.edgeMidpoints,edgesToRemove)
-    deleteat!(matrices.boundaryEdges, edgesToRemove)
-    deleteat!(matrices.timeSinceT1,edgesToRemove)
-    deleteat!(matrices.boundaryVertices, verticesToRemove)
-    deleteat!(matrices.vertexAreas, verticesToRemove)      
+    
+    resizeMatrices!(params, matrices, nVerts-2, nEdges-3, nCells-1)
+    # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to delete specific values
+    deleteat!(matrices.cellAges, cells[2])
+    deleteat!(matrices.μ, cells[2])
+    deleteat!(matrices.Γ, cells[2])
 
     # Reduce size of domain in integrator 
     deleteat!(integrator,verticesToRemove)
     u_modified!(integrator,true)
         
-    # Update stored number of cells, edges, and vertices
-    params.nVerts = nVerts-2
-    params.nEdges = nEdges-3
-    params.nCells = nCells-1
-    
     return nothing 
 
 end

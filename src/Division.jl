@@ -23,20 +23,21 @@ using Random
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
+@from "ResizeMatrices.jl" using ResizeMatrices
 
 function division!(integrator,params,matrices)
 
-    @unpack nonDimCycleTime, distLogNormal, γ = params
+    @unpack nCells, nEdges, nVerts, nonDimCycleTime, distLogNormal, γ = params
     @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas, μ, Γ = matrices
 
     divisionCount = 0
 
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
-    nCellsOld = params.nCells # Local copy of initial cell count
-    nEdgesOld = params.nEdges # Local copy of initial edge count
-    nVertsOld = params.nVerts # Local copy of initial vertex count
+    # nCellsOld = params.nCells # Local copy of initial cell count
+    # nEdgesOld = params.nEdges # Local copy of initial edge count
+    # nVertsOld = params.nVerts # Local copy of initial vertex count
 
-    for i=1:nCellsOld
+    for i=1:nCells
         if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
@@ -79,13 +80,13 @@ function division!(integrator,params,matrices)
             oldCellEdges = setdiff(orderedEdges, newCellEdges) # Not including new edge to be added later
 
             # Labels of new edges, cell, and vertices 
-            newEdges = nEdgesOld.+collect(1:3)
-            newCell = nCellsOld+1
-            newVertices = nVertsOld.+collect(1:2)
+            newEdges = nEdges.+collect(1:3)
+            newCell = nCells +1
+            newVertices = nVerts.+collect(1:2)
 
             # Add 1 new row and 3 new columns to B matrix for new cell and 3 new edges
             Btmp = spzeros(Int64,newCell,newEdges[end])
-            Btmp[1:nCellsOld,1:nEdgesOld] .= B            
+            Btmp[1:nCells ,1:nEdges] .= B            
 
             # Add edges to new cell with clockwise orientations
             Btmp[newCell,newCellEdges] .= 1
@@ -118,7 +119,7 @@ function division!(integrator,params,matrices)
 
             # Add 3 new rows and 2 new columns to A matrix for new vertices and edges
             Atmp = spzeros(Int64,newEdges[end],newVertices[end])
-            Atmp[1:nEdgesOld,1:nVertsOld] .= A
+            Atmp[1:nEdges,1:nVerts] .= A
             
             # First intersected old edge (which remains in the old cell) loses downstream vertex and gains the new vertex
             Atmp[intersectedEdges[1],orderedVertices[intersectedIndex[1]]] = 0
@@ -150,49 +151,19 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            # u_modified!(integrator,true)
-
-            cellAges[i] = 0.0
-
-            divisionCount = 1
-
-            params.nCells = nCellsOld+1
-            params.nVerts = nVertsOld+2
-            params.nEdges = nEdgesOld+3
-
-            # Add 1 component to vectors for new cell
-            append!(cellEdgeCount,zeros(Int64,divisionCount))
-            append!(cellPositions,fill(SVector{2,Float64}(zeros(2)), divisionCount))
-            append!(cellPerimeters,zeros(Float64,divisionCount))
-            append!(cellOrientedAreas,fill(SMatrix{2,2,Float64}(zeros(2,2)), divisionCount))
-            append!(cellAreas,zeros(Float64,divisionCount))
-            append!(cellTensions,zeros(Float64,divisionCount))
-            append!(cellPressures,zeros(Float64,divisionCount))
-            append!(cellAges,zeros(Float64,divisionCount))
-            append!(μ,ones(Float64,divisionCount))
-            append!(Γ,γ.*ones(Float64,divisionCount))
-            append!(boundaryVertices,zeros(Int64,2*divisionCount))
-            append!(boundaryEdges,zeros(Int64,3*divisionCount))
-            append!(externalF,fill(SVector{2,Float64}(zeros(2)), 2*divisionCount))
-            append!(totalF,fill(SVector{2,Float64}(zeros(2)), 2*divisionCount))
-            append!(edgeLengths,zeros(Float64,3*divisionCount))
-            append!(timeSinceT1,zeros(Float64,3*divisionCount))
-            append!(edgeTangents,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
-            append!(edgeMidpoints,fill(SVector{2,Float64}(zeros(2)), 3*divisionCount))
-            append!(vertexAreas, ones(2))
 
             matrices.A = Atmp
             matrices.B = Btmp
-            matrices.Aᵀ = spzeros(Int64,nVertsOld+2,nEdgesOld+3)
-            matrices.Ā  = spzeros(Int64,nEdgesOld+3,nVertsOld+2)
-            matrices.Āᵀ = spzeros(Int64,nVertsOld+2,nEdgesOld+3)
-            matrices.Bᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
-            matrices.B̄  = spzeros(Int64,nCellsOld+1,nEdgesOld+3)
-            matrices.B̄ᵀ = spzeros(Int64,nEdgesOld+3,nCellsOld+1)
-            matrices.C  = spzeros(Int64,nCellsOld+1,nVertsOld+2)
-            matrices.F  = fill(SVector{2,Float64}(zeros(2)), (nVertsOld+2,nCellsOld+1))
-            matrices.edgeMidpointLinks = fill(SVector{2, Float64}(zeros(2)), (nCellsOld+1, nVertsOld+2))
+            resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells +1)
+            # Matrices not handled in resizeMatrices
+            cellAges[i] = 0.0
+            push!(cellAges,0.0)
+            push!(matrices.μ, 1.0)
+            push!(matrices.Γ, params.γ)
+            # append!(cellAges,zeros(Float64,1))
 
+            divisionCount = 1
+            
             break
 
         end 
