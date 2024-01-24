@@ -108,11 +108,11 @@ function vertexModel(;
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
-        if integrator.t > params.tMax/2.0 && !ablated
+        if integrator.t > params.tMax/10.0 && !ablated
             edgeAblated = rand(findall(x->x!=0,matrices.boundaryEdges),1)[1]
-            edgeAblation(10,params,matrices)
+            edgeAblation(10,params,matrices, integrator)
             topologyChange!(matrices) # Update system matrices after T1 transition  
-            # senseCheck(matrices.A, matrices.B; marker="Ablation")
+            senseCheck(matrices.A, matrices.B; marker="Ablation")
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
             ablated = true
         end

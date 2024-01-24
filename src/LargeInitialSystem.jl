@@ -73,7 +73,6 @@ function largeInitialSystem()
         A[edgeIndex, vertices[2]] = -1
     end
 
-
     # NB get_polygon(tessellation_constrained,x) or tessellation_constrained.polygons[x] return indices of vertices around cell x ordered anti-clockwise, with first and last element the same
 
     # Construct B matrix mapping voronoi cell around each fibril to surrounding edges between vertices in tessellation
@@ -93,8 +92,6 @@ function largeInitialSystem()
         end
     end
 
-
-
     # Prune peripheral vertices with 2 edges that both belong to the same cell
     # Making the assumption that there will never be two such vertices adjacent to each other
     verticesToRemove = Int64[]
@@ -111,7 +108,6 @@ function largeInitialSystem()
     end
     for i in verticesToRemove
         edges = findall(x->x!=0,A[:,i])
-        vertices = findall(x->x!=0, A[edges[1],:])
         otherVertexOnEdge1 = setdiff(findall(x->x!=0, A[edges[1],:]), [i])[1]      
         A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
         A[edges[1], otherVertexOnEdge1] = 0

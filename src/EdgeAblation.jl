@@ -17,65 +17,111 @@ using DrWatson
 using FromFile
 using FromFile
 using Random
+using DifferentialEquations
 
 @from "SenseCheck.jl" using SenseCheck
 
-function edgeAblation(j, params, matrices)
+function edgeAblation(j, params, matrices, integrator)
     
-    @unpack A, B, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, cellAges, boundaryEdges, edgeLengths, timeSinceT1, edgeTangents, edgeMidpoints, edgeMidpointLinks, Aᵀ, Ā, Āᵀ, Bᵀ, B̄, B̄ᵀ, C, F, μ, Γ = matrices 
+    @unpack A, B = matrices 
     @unpack nVerts, nEdges, nCells = params
 
+    # Find cells adjacent to edge j 
     cells = sort(findall(x->x!=0, B[:,j]))
 
+    # cells[1] will be a hole; cells[2] will be deleted
+    # Set stiffness of cells[1] to 0
     matrices.μ[cells[1]] = 0.0
-    cell2EdgesTransferredToCell1 = sort([jj for jj in findall(x->x!=0, B[cells[2],:]) if jj!=j])
-    cell2EdgesTransferredToCell1Adjusted = Int64[]
+    matrices.Γ[cells[1]] = 0.0
 
+    # Find edges in cell 2 that will be transferred to cell 1
+    # No need to consider vertices transfered to cell 1 because these come free with adjustment to A matrix
+    cell2EdgesTransferredToCell1 = sort([jj for jj in findall(x->x!=0, B[cells[2],:]) if jj!=j])
+
+    # Find trailing vertices adjacent to edge j left behind after edge ablation. These vertices will be pruned 
+    verticesToRemove = findall(x->x!=0,A[j,:])
+    # Also find both other edges adjacent to pruned vertices, one of which will be removed for each vertex
+    edgesToRemove = [j]
+    for i in verticesToRemove
+        # Edges around i excluding j
+        edges = [jj for jj in findall(x->x!=0,A[:,i]) if jj!=j] 
+        # Select first edge from edges around i, then find its other adjacent vertex, otherVertexOnEdge1
+        otherVertexOnEdge1 = [kk for kk in findall(x->x!=0, A[edges[1],:]) if kk!=i][1] 
+        # Attach the second edge from edges around i to the other vertex on first edge; preserve orientation of second edge        
+        A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
+        # Unlink second edge from vertex otherVertexOnEdge1
+        A[edges[2], i] = 0
+        # Add edge to list of edges to remove 
+        push!(edgesToRemove,edges[1])
+        # Unlink the same edge from its other adjacent cell 
+        otherCellToRemoveEdgeFrom = [ii for ii in findall(x->x!=0,B[:,edges[1]]) if ii∉cells][1]
+        B[otherCellToRemoveEdgeFrom,edges[1]] = 0
+    end
+    
+    sort!(edgesToRemove)
+    filter!(x->x∉edgesToRemove,cell2EdgesTransferredToCell1)
+
+    # Adjust the indices of edges transferred to cell 1 to accommodate reduced size of new matrices. 
+    # The same edge might have a lower index in the new A or B matrices than in the original matrices due to other deleted edges with lower indices.
+    cell2EdgesTransferredToCell1Adjusted = Int64[]
     for x=1:length(cell2EdgesTransferredToCell1)
-        if cell2EdgesTransferredToCell1[x]>j
-            push!(cell2EdgesTransferredToCell1Adjusted,cell2EdgesTransferredToCell1[x]-1)
-        else 
+        if cell2EdgesTransferredToCell1[x] < edgesToRemove[1]
             push!(cell2EdgesTransferredToCell1Adjusted,cell2EdgesTransferredToCell1[x])
+        elseif cell2EdgesTransferredToCell1[x] < edgesToRemove[2]
+            push!(cell2EdgesTransferredToCell1Adjusted,cell2EdgesTransferredToCell1[x]-1)
+        elseif cell2EdgesTransferredToCell1[x] < edgesToRemove[3]
+            push!(cell2EdgesTransferredToCell1Adjusted,cell2EdgesTransferredToCell1[x]-2)
+        else 
+            push!(cell2EdgesTransferredToCell1Adjusted,cell2EdgesTransferredToCell1[x]-3)
         end
     end
 
-    newB = B[[ii for ii=1:nCells if ii!=cells[2]],[jj for jj=1:nEdges if jj!=j]]
-
+    # Remove edges, vertices, and one cell from matrices to create new A and B matrices 
+    newB = B[[ii for ii=1:nCells if ii!=cells[2]],[jj for jj=1:nEdges if jj∉edgesToRemove]]
     newB[cells[1],cell2EdgesTransferredToCell1Adjusted] .= B[cells[2],cell2EdgesTransferredToCell1]
-
+    newA = A[[jj for jj=1:nEdges if jj∉edgesToRemove],[ii for ii=1:nVerts if ii∉verticesToRemove]]
     
-    newA = A[[x for x=1:nEdges if x!=j],:]
-    
+    # Update stored incidence matrices in container object 
     matrices.A = newA
     matrices.B = newB
-            
-    deleteat!(cellEdgeCount,cells[2])
-    deleteat!(boundaryEdges,cells[2])
-    deleteat!(cellPositions,cells[2])
-    deleteat!(cellPerimeters,cells[2])
-    deleteat!(cellOrientedAreas,cells[2])
-    deleteat!(cellAreas,cells[2])
-    deleteat!(cellTensions,cells[2])
-    deleteat!(cellPressures,cells[2])
-    deleteat!(cellAges,cells[2])
-    deleteat!(μ,cells[2])
-    deleteat!(Γ,j)
-    deleteat!(edgeLengths,j)
-    deleteat!(edgeTangents,j)
-    deleteat!(edgeMidpoints,j)
-    deleteat!(timeSinceT1,j)
+    # Resize other multidimentional matrices in container 
+    matrices.Aᵀ                = spzeros(Int64,nVerts-2,nEdges-3)
+    matrices.Ā                 = spzeros(Int64,nEdges-3,nVerts-2)
+    matrices.Āᵀ                = spzeros(Int64,nVerts-2,nEdges-3)
+    matrices.Bᵀ                = spzeros(Int64,nEdges-3,nCells-1)
+    matrices.B̄                 = spzeros(Int64,nCells-1,nEdges-3)
+    matrices.B̄ᵀ                = spzeros(Int64,nEdges-3,nCells-1)
+    matrices.C                 = spzeros(Int64,nCells-1,nVerts-2)
+    matrices.F                 = fill(SVector{2,Float64}(zeros(2)), (nVerts-2,nCells-1))
+    matrices.externalF         = fill(SVector{2,Float64}(zeros(2)), nVerts-2)
+    matrices.totalF            = fill(SVector{2,Float64}(zeros(2)), nVerts-2)
+    matrices.edgeMidpointLinks = fill(SVector{2, Float64}(zeros(2)), (nCells-1, nVerts-2))    
+    # Remove components from stored vectors  
+    deleteat!(matrices.cellEdgeCount,cells[2])
+    deleteat!(matrices.cellPositions,cells[2])
+    deleteat!(matrices.cellPerimeters,cells[2])
+    deleteat!(matrices.cellOrientedAreas,cells[2])
+    deleteat!(matrices.cellAreas,cells[2])
+    deleteat!(matrices.cellTensions,cells[2])
+    deleteat!(matrices.cellPressures,cells[2])
+    deleteat!(matrices.cellAges,cells[2])
+    deleteat!(matrices.μ,cells[2])
+    deleteat!(matrices.Γ,cells[2])
+    deleteat!(matrices.edgeLengths,edgesToRemove)
+    deleteat!(matrices.edgeTangents,edgesToRemove)
+    deleteat!(matrices.edgeMidpoints,edgesToRemove)
+    deleteat!(matrices.boundaryEdges, edgesToRemove)
+    deleteat!(matrices.timeSinceT1,edgesToRemove)
+    deleteat!(matrices.boundaryVertices, verticesToRemove)
+    deleteat!(matrices.vertexAreas, verticesToRemove)      
 
-    matrices.Aᵀ = spzeros(Int64,nVerts,nEdges-1)
-    matrices.Ā  = spzeros(Int64,nEdges-1,nVerts)
-    matrices.Āᵀ = spzeros(Int64,nVerts,nEdges-1)
-    matrices.Bᵀ = spzeros(Int64,nEdges-1,nCells-1)
-    matrices.B̄  = spzeros(Int64,nCells-1,nEdges-1)
-    matrices.B̄ᵀ = spzeros(Int64,nEdges-1,nCells-1)
-    matrices.C  = spzeros(Int64,nCells-1,nVerts)
-    matrices.F  = fill(SVector{2,Float64}(zeros(2)), (nVerts,nCells-1))
-    matrices.edgeMidpointLinks = fill(SVector{2, Float64}(zeros(2)), (nCells-1, nVerts))
-
-    params.nEdges = nEdges-1
+    # Reduce size of domain in integrator 
+    deleteat!(integrator,verticesToRemove)
+    u_modified!(integrator,true)
+        
+    # Update stored number of cells, edges, and vertices
+    params.nVerts = nVerts-2
+    params.nEdges = nEdges-3
     params.nCells = nCells-1
     
     return nothing 
