@@ -82,8 +82,6 @@ function vertexModel(;
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
-    ablated = false
-
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
         # Update spatial data (edge lengths, cell areas, etc.)
@@ -107,15 +105,6 @@ function vertexModel(;
 
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
-
-        if integrator.t > params.tMax/10.0 && !ablated
-            edgeAblated = rand(findall(x->x!=0,matrices.boundaryEdges),1)[1]
-            edgeAblation(10,params,matrices, integrator)
-            topologyChange!(matrices) # Update system matrices after T1 transition  
-            senseCheck(matrices.A, matrices.B; marker="Ablation")
-            spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
-            ablated = true
-        end
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u,params,matrices)>0
