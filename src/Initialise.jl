@@ -17,6 +17,8 @@ using UnPack
 using FromFile
 using DrWatson
 using Random
+using Distributions
+using Dates
 
 # Local modules
 @from "InitialHexagons.jl" using InitialHexagons
@@ -26,19 +28,23 @@ using Random
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Calculate derived parameters
-    tMax               = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
-    outputInterval     = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
-    λ = -2.0*L₀*γ
-    nonDimCycleTime    = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
+    tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
+    outputInterval  = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
+    λ               = -2.0*L₀*γ
+    nonDimCycleTime = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
 
-    # Use this line if you want to force an identical random number sequences
-    # rng = MersenneTwister(1234)
+    # Set random seed value and allocate random number generator
+    # Random seed set from current unix time, 
+    # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
+    seed = (setRandomSeed==0 ? floor(Int64,datetime2unix(now())) : setRandomSeed)
+    # rng = Xoshiro(seed)
+    Random.seed!(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem in ["one","three","four","seven", "three_uneq", "three_neq2", "seven_eq"]
+    if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_original"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
@@ -50,91 +56,59 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
-        importedArrays = load("$initialSystem")
-        @unpack A,B,cellAges = importedArrays["matrices"]
-        R = importedArrays["R"]
+        importedData = load("$initialSystem")
+        @unpack A,B,cellAges = importedData["matrices"]
+        R = importedData["R"]
     end
 
-    # Infer system information from matrices
-    nCells            = size(B)[1]
-    nEdges            = size(A)[1]
-    nVerts            = size(A)[2]
+    nCells = size(B,1)
+    nEdges = size(A,1)
+    nVerts = size(A,2)
 
-    # Preallocate empty arrays for additional system matrices.
-    # See VertexModelContainers for explanations.
-    Aᵀ                = spzeros(Int64,nVerts,nEdges)
-    Ā                 = spzeros(Int64,nEdges,nVerts)
-    Āᵀ                = spzeros(Int64,nVerts,nEdges)
-    Bᵀ                = spzeros(Int64,nEdges,nCells)
-    B̄                 = spzeros(Int64,nCells,nEdges)
-    B̄ᵀ                = spzeros(Int64,nEdges,nCells)
-    C                 = spzeros(Int64,nCells,nVerts)
-    cellEdgeCount     = zeros(Int64,nCells)
-    boundaryVertices  = zeros(Int64,nVerts)
-    boundaryEdges     = zeros(Int64,nEdges)
-    cellPositions     = Array{SVector{2,Float64}}(undef,nCells)
-    fill!(cellPositions,@SVector zeros(2))
-    cellPerimeters    = zeros(nCells)
-    cellOrientedAreas = Array{SMatrix{2,2,Float64}}(undef,nCells)
-    fill!(cellOrientedAreas,@SMatrix zeros(2,2))
-    cellAreas         = zeros(nCells)
-    cellTensions      = zeros(nCells)
-    cellPressures     = zeros(nCells)
-    initialSystem in ["one","three", "four","seven", "three_uneq", "three_neq2", "seven_eq","large"] ? cellAges = rand(nCells).*nonDimCycleTime : nothing  # Random initial cell ages
-    edgeLengths       = zeros(nEdges)
-    edgeTangents      = Vector{SVector{2,Float64}}(undef,nEdges)
-    fill!(edgeTangents,@SVector zeros(2))
-    edgeMidpoints     = Vector{SVector{2,Float64}}(undef,nEdges)
-    fill!(edgeMidpoints,@SVector zeros(2))
-    timeSinceT1       = zeros(nEdges)
-    F                 = Matrix{SVector{2,Float64}}(undef,nVerts,nCells)
-    fill!(F,@SVector zeros(2))
-    externalF         = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(externalF,@SVector zeros(2))
-    totalF         = Array{SVector{2,Float64}}(undef,nVerts)
-    fill!(totalF,@SVector zeros(2))    
-    ϵ                 = @SMatrix [  # Clockwise rotation matrix setting orientation of cell faces
-        0.0 1.0
-        -1.0 0.0
-    ]
-
-
-    # Pack matrices into a struct for convenience
+    # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A,
         B,
-        Aᵀ,
-        Ā,
-        Āᵀ,
-        Bᵀ,
-        B̄,
-        B̄ᵀ,
-        C,
-        cellEdgeCount,
-        boundaryVertices,
-        boundaryEdges,
-        cellPositions,
-        cellPerimeters,
-        cellOrientedAreas,
-        cellAreas,
-        cellTensions,
-        cellPressures,
-        cellAges,
-        edgeLengths,
-        edgeTangents,
-        edgeMidpoints,
-        timeSinceT1,
-        F,
-        externalF,
-        totalF,
-        ϵ
+        spzeros(Int64,nVerts,nEdges),                         # Aᵀ
+        spzeros(Int64,nEdges,nVerts),                         # Ā
+        spzeros(Int64,nVerts,nEdges),                         # Āᵀ
+        spzeros(Int64,nEdges,nCells),                         # Bᵀ
+        spzeros(Int64,nCells,nEdges),                         # B̄
+        spzeros(Int64,nEdges,nCells),                         # B̄ᵀ
+        spzeros(Int64,nCells,nVerts),                         # C
+        zeros(Int64,nCells),                                  # cellEdgeCount
+        zeros(Int64,nVerts),                                  # boundaryVertices
+        zeros(Int64,nEdges),                                  # boundaryEdges
+        fill(SVector{2,Float64}(zeros(2)), nCells),           # cellPositions
+        zeros(nCells),                                        # cellPerimeters
+        fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),       # cellOrientedAreas
+        zeros(nCells),                                        # cellAreas
+        zeros(nCells),                                        # cellTensions
+        zeros(nCells),                                        # cellPressures
+        cellAges,                                             # cellAges
+        ones(nCells),                                         # μ
+        γ.*ones(nCells),                                      # Γ
+        zeros(nEdges),                                        # edgeLengths
+        fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
+        fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
+        fill(SVector{2, Float64}(zeros(2)), (nCells, nVerts)),# edgeMidpointLinks
+        zeros(nEdges),                                        # timeSinceT1
+        ones(nVerts),                                         # vertexAreas
+        fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
+        fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
+        fill(SVector{2,Float64}(zeros(2)), nVerts),           # totalF
+        SMatrix{2, 2, Float64}([                              # ϵ Clockwise rotation matrix setting orientation of cell faces
+        0.0 1.0
+        -1.0 0.0
+        ])
     )
 
     # Pack parameters into a struct for convenience
-    params = ParametersContainer(initialSystem,
-        nVerts,
+    params = ParametersContainer(
+        initialSystem,
         nCells,
         nEdges,
+        nVerts,
         γ,
         λ,
         L₀,
@@ -148,7 +122,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realCycleTime,
         nonDimCycleTime,
         t1Threshold,
-        peripheralTension
+        peripheralTension,
+        seed,
+        LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
     )
 
     # Initial evaluation of matrices based on system topology

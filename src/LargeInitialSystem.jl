@@ -16,8 +16,8 @@ using StaticArrays
 using DrWatson
 using FromFile
 using DelaunayTriangulation
-using StaticArrays
 using FromFile
+using Random
 
 @from "SenseCheck.jl" using SenseCheck
 

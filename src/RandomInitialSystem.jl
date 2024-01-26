@@ -18,17 +18,20 @@ using FromFile
 using DelaunayTriangulation
 using StaticArrays
 using FromFile
+using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
 function randomInitialSystem()
 
+    rng=MersenneTwister(1240)
+
     cellPoints = [SVector(x, 0.0) for x=1:15]
     for j=1:7
         for i=1:15-j
             # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
-            push!(cellPoints,SVector(i+0.5*j+(rand()-0.5)*0.5, j*sqrt(1-0.5^2)+(rand()-0.5)*0.5))
-            push!(cellPoints,SVector(i+0.5*j+(rand()-0.5)*0.5, -j*sqrt(1-0.5^2)+(rand()-0.5)*0.5))
+            push!(cellPoints,SVector(i+0.5*j+(rand(rng)-0.5)*0.5, j*sqrt(1-0.5^2)+(rand(rng)-0.5)*0.5))
+            push!(cellPoints,SVector(i+0.5*j+(rand(rng)-0.5)*0.5, -j*sqrt(1-0.5^2)+(rand(rng)-0.5)*0.5))
         end
     end
     xs = [x[1] for x in cellPoints]
@@ -127,13 +130,14 @@ function randomInitialSystem()
 tangents=A*R
 e_len=norm.(tangents)
 
-for _=1:5
+for _=1:1
     peripheralEdges=findall(x->x!=0,(ones(nCells)'*B)')
     borderEdges=findall(x->x!=0,vec(A*(ones(nVerts)'-abs.(ones(nCells)'*B)*abs.(A))'))
     interiorEdges=setdiff(1:nEdges, vcat(peripheralEdges, borderEdges))
     shortEdges=intersect(findall(x->x<0.35,e_len), interiorEdges)
-            
-    for j in shortEdges
+    
+    randomEdges=randsubseq(rng, interiorEdges, 0.05)    
+    for j in randomEdges
             
             a,b=findall(x->x!=0,A[j, :])
 

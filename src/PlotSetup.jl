@@ -27,7 +27,7 @@ function plotSetup(R,params,matrices,subFolder,folderName)
 
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    fig = Figure(resolution=(1000,1000))
+    fig = Figure(size=(1000,1000))
     grid = fig[1,1] = GridLayout()
     ax1 = Axis(grid[1,1],aspect=DataAspect())
     hidedecorations!(ax1)
