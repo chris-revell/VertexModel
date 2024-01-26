@@ -42,38 +42,43 @@ function getPeff(params, matrices)
     @unpack cellAreas, cellPerimeters= matrices
     @unpack nCells, γ, L₀= params
 
-    Peff=zeros(ncells)
+    Peff=zeros(nCells)
     Peff=(cellAreas.-1)+(γ.*(cellPerimeters.-L₀).*cellPerimeters)./(2*cellAreas)
     return Peff
 end
 
 
 function makeCellQandJ(params, matrices)
-    @unpack B, edgeTangents, edgeLengths= matrices
+    @unpack B, edgeTangents, edgeLengths,  cellPerimeters= matrices
     @unpack nCells= params
 
-    cellQ= Array{SMatrix{2,2,Float64}}(undef,nCells)
-    fill!(cellQ,@SMatrix zeros(2,2))
+    cellQ= fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
+    cellJ= fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
+
+    
+
 
     for c=1:nCells
         cellEdges = findall(x->x!=0,B[c,:])
         cellUnitTangents=edgeTangents[cellEdges]./edgeLengths[cellEdges]
         cellQ[c]=tr(edgeTangents[cellEdges]*cellUnitTangents')./cellPerimeters[c]
-        cellJ[c]=cellQ-0.5*I
+        cellJ[c]=cellQ[c]-0.5*I
     end
 
     return cellQ, cellJ
 end
 
-function getShearStrain(params, matrices, cellJ)
+function getShearStress(params, matrices, cellJ)
     @unpack cellAreas, cellTensions, cellPerimeters= matrices
     @unpack nCells= params
 
     detJ=det.(cellJ)
-    cellShearStrain=((cellPerimeters.*cellTensions)./cellAreas).*sqrt.(-detJ)
+    cellShearStress=((cellPerimeters.*cellTensions)./cellAreas).*sqrt.(-detJ)
 
-    return cellShearStrain
+    return cellShearStress
 end
+
+
 
 function getCircularity(params, cellShapeTensors)
 @unpack nCells = params
@@ -115,6 +120,6 @@ end
 
 
 
-export makeShapeTensors, getPeff, makeCellQandJ, getCircularity, getShapeStressAngle
+export makeShapeTensors, getPeff, makeCellQandJ, getCircularity, getShapeStressAngle, getShearStress
 
 end
