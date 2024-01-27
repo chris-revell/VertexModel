@@ -20,6 +20,7 @@ using DrWatson
 
 # Local modules
 @from "SpatialData.jl" using SpatialData
+@from "Laplacians.jl" using Laplacians
 
 function model!(du, u, p, t)
 
@@ -53,6 +54,19 @@ function model!(du, u, p, t)
     
 end
 
-export model!
+function modeltest!(du, u, p, t)
+
+    params, matrices = p
+    @unpack vertexAreas, g_vec = matrices
+    #@unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
+
+    spatialData!(u,params,matrices)
+
+    M=makeM(matrices)
+
+    du .= -(M'*g_vec)./(100.0.*vertexAreas)
+end
+
+export model!, modeltest!
 
 end

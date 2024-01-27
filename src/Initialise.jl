@@ -100,8 +100,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         SMatrix{2, 2, Float64}([                              # ϵ Clockwise rotation matrix setting orientation of cell faces
         0.0 1.0
         -1.0 0.0
-        ])
-    )
+        ]),
+        zeros(2*nCells),                                      # g
+        )
 
     # Pack parameters into a struct for convenience
     params = ParametersContainer(

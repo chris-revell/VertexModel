@@ -13,6 +13,7 @@ using PrecompileTools
 using DrWatson
 using FromFile
 using DifferentialEquations
+using DiffEqCallbacks
 using DelimitedFiles
 using LinearAlgebra
 using JLD2
@@ -46,7 +47,7 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,    
-    solver=Tsit5(),
+    solver= Vern7(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -59,7 +60,7 @@ function vertexModel(;
     scatterEdges = 0,
     scatterVertices = 0,
     scatterCells = 0,
-    plotForces = 0,
+    plotForces = 1,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
@@ -79,9 +80,41 @@ function vertexModel(;
         end
     end
 
+    # function allPass(integrator, abstol, reltol, min_t)
+    #     if DiffEqBase.isinplace(integrator.sol.prob)
+    #         testval = first(get_tmp_cache(integrator))
+    #         DiffEqBase.get_du!(testval, integrator)
+    #         if integrator.sol.prob isa DiffEqBase.DiscreteProblem
+    #             @. testval = testval - integrator.u
+    #         end
+    #     else
+    #         testval = get_du(integrator)
+    #         if integrator.sol.prob isa DiffEqBase.DiscreteProblem
+    #             testval = testval - integrator.u
+    #         end
+    #     end
+    
+    #     if integrator.u isa Array
+    #         any((abs.(d) .> abstol) .& ( abs.(d) .> reltol .* abs.(u))
+    #             for (d, abstol, reltol, u) in zip(testval, Iterators.cycle(abstol),
+    #             Iterators.cycle(reltol), integrator.u)) &&
+    #             (return false)
+    #     else
+    #         any((abs.(testval) .> abstol) .& (abs.(testval) .> reltol .* abs.(integrator.u))) &&
+    #             (return false)
+    #     end
+    
+    #     if min_t === nothing
+    #         return true
+    #     else
+    #         return integrator.t >= min_t
+    #     end
+    # end
+
     # Set up ODE integrator 
-    prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
-    integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    #cb=TerminateSteadyState(1e-8, 1e-6, allPass)
+    prob = ODEProblem(modeltest!,R,(0.0,Inf),(params,matrices))
+    integrator = init(prob,solver,abstol=1e-10,reltol=1e-8) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
@@ -102,7 +135,7 @@ function vertexModel(;
                 csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
                 println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
                 close(csvfile)
-                #print(e_tot)
+                print(e_tot)
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
@@ -116,13 +149,14 @@ function vertexModel(;
         step!(integrator)
 
         # Check system for T1 transitions 
-        #=
+        
         if t1Transitions!(integrator.u,params,matrices)>0
             u_modified!(integrator,true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
+        #=
         if division!(integrator,params,matrices)>0
             u_modified!(integrator,true)
             # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
