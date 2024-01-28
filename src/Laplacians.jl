@@ -73,12 +73,19 @@ function makeG(params)
     return G
 end
 
+function makeGnew(params, matrices)
+    @unpack nCells, γ, L₀ = params
+    @unpack cellAreas, cellPerimeters = matrices
+    G=Diagonal(vcat(1 ./cellAreas, (γ*L₀)./cellPerimeters))
+    return G
+end
+
 function makeM(matrices)
     @unpack A, Ā, B, B̄, edgeTangents, ϵ = matrices
     #dAdr= - 1/2 Sum j ϵᵢ . Bᵢⱼ Āⱼₖ tⱼ = 1/2 Sum j Ānᵢⱼ = 1/2 B diag(ϵ.t) Ā
-    dAdr=-1/2*(B*Diagonal(eachcol((ϵ*reduce(vcat,transpose(edgeTangents))')))*Ā)
+    dAdr=-1/2*B*Diagonal([(ϵ*T)' for T in edgeTangents])*Ā
     #dLdr=Sum j B̄ᵢⱼ Aⱼₖ t̂ⱼ   = B̄ diag(t̂) A
-    dLdr= B̄*Diagonal(edgeTangents./norm.(edgeTangents))*A
+    dLdr= B̄*Diagonal((edgeTangents)'./norm.(edgeTangents))*A
     
     M=vcat(dAdr,dLdr)
     dropzeros!(M)
@@ -93,11 +100,25 @@ function makeEvLc(M)
     return EvLc
 end
 
+
+function makeEvLcnew(M, G, vertexAreas)
+    EvLc=((M*inv(Diagonal(vertexAreas)))*M')*G
+    dropzeros!(EvLc)
+    return EvLc
+end
+
 function makeEvLv(M,G)
     EvLv=sparse([x' for x in M']*[x' for x in (G*M)])
     dropzeros!(EvLv)
     return EvLv
 end
+
+function makeEvLvnew(M,G, vertexAreas)
+    EvLv=inv(Diagonal(vertexAreas))*(M'*(G*M))
+    dropzeros!(EvLv)
+    return EvLv
+end
+
 
 function makeX(params,matrices)
    
@@ -109,7 +130,7 @@ function makeX(params,matrices)
     dLdrr = Array{SMatrix{2,2,Float64}}(undef,nCells,nVerts,nVerts)
     fill!(dLdrr,@SMatrix zeros(2,2))
 
-    n=eachcol((ϵ*reduce(vcat,transpose(edgeTangents))'))
+    n=[(ϵ*T) for T in edgeTangents]
 
     for k=1:nVerts 
         for m=1:nVerts
@@ -183,6 +204,6 @@ function makeFullD(params,matrices,X, Lvevals, Lvevec, q)
 end    
 
 
-export makeLf, makeLc, makeLv, makeLt, makeG, makeM, makeEvLc, makeEvLv, makeX, makeD
+export makeLf, makeLc, makeLv, makeLt, makeG, makeM, makeEvLc, makeEvLv, makeX, makeD, makeGnew, makeEvLcnew, makeEvLvnew
 
 end #end module 
