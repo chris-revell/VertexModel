@@ -31,8 +31,34 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-
 @from "EdgeAblation.jl" using EdgeAblation
+
+function conditionSteadyState(u, t, integrator)
+    # if maximum(norm.(get_du(integrator))) < 1e-3
+    #     @show maximum(norm.(get_du(integrator)))
+    #     return true
+    # else 
+    #     @show maximum(norm.(get_du(integrator)))
+    #     return false
+    # end
+    # @show maximum(norm.(get_du(integrator)))
+    
+    # get_du calculates all gradients as SVectors; 
+    # norm.() calculates magnitudes of all gradients as Floats; 
+    # maximum() finds biggest gradient
+    # Return true if biggest gradient is below threshold 
+    maximum(norm.(get_du(integrator))) < 1e-3 ? true : false
+    # Use integrator.opts.abstol as threshold?
+end
+
+function affectTerminate!(integrator)
+    # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+    println("Terminate at steady state")
+    terminate!(integrator, ReturnCode.Success)    
+end
+# Create callback using two user-defined functions above
+cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
+
 
 function vertexModel(;
     initialSystem="large",
@@ -80,10 +106,11 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
-    integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-7,reltol=1e-4,callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t<params.tMax
+    while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success # Check for steady state termination in while loop
+        # @show integrator.sol.retcode
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 
@@ -113,13 +140,14 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator,params,matrices)>0
-            u_modified!(integrator,true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+        if integrator.t < 1000.0
+            if division!(integrator,params,matrices)>0
+                u_modified!(integrator,true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+            end
         end
-
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
