@@ -52,8 +52,8 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
     hidespines!(ax)
     mov = VideoStream(fig, framerate=5)
 
-    for t=1:99
-        @unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", t)).jld2"))
+    for t=0:100
+        @unpack R, matrices, params = load(datadir(folderName,"frameData","systemData$(@sprintf("%03d", t)).jld2"))
         @unpack B, Bᵀ, C, cellPositions = matrices
         @unpack nCells, nVerts = params
 

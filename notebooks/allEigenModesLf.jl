@@ -20,7 +20,7 @@ frame = 100
 
 folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
 
-@unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", frame)).jld2"))
+@unpack R, matrices, params = load(datadir(folderName,"frameData","systemData$(@sprintf("%03d", frame)).jld2"))
 @unpack B, Bᵀ, C, cellPositions = matrices
 @unpack nCells,nVerts = params
 
@@ -40,7 +40,7 @@ for mode=1:nCells
     empty!(ax)
     lims = (-maximum(abs.(decomposition[:,mode])),maximum(abs.(decomposition[:,mode])))
     for i=1:nCells
-        poly!(ax,cellPolygons[i],color=[decomposition[i,mode]],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
+        poly!(ax,cellPolygons[i],color=decomposition[i,mode],colorrange=lims,colormap=:bwr,strokecolor=(:black,1.0),strokewidth=1) #:bwr
     end
     save(datadir(folderName,"eigenmodesLf","frame$(@sprintf("%03d", frame))","mode$(@sprintf("%03d", mode)).png"),fig)
 end
