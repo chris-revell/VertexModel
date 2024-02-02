@@ -50,7 +50,7 @@ using Colors
         empty!(ax)
         # ax.title = "t = $(@sprintf("%.2f", t))"
         for i=1:nCells
-            poly!(ax,cellPolygons[i],color=[potentials[t+1][i]],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
+            poly!(ax,cellPolygons[i],color=potentials[t+1][i],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
         end
         reset_limits!(ax)
         recordframe!(mov)
