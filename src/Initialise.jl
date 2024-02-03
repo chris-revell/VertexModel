@@ -51,6 +51,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+    elseif initialSystem=="cells_100"
+        A,B,R = cellInitialSystem()
+        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
     elseif initialSystem=="random"
         A,B,R = randomInitialSystem()
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
@@ -102,6 +105,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         -1.0 0.0
         ]),
         zeros(2*nCells),                                      # g
+        sparse(fill(SVector{2, Float64}(zeros(2))', (2*nCells, nVerts)))        #M
         )
 
     # Pack parameters into a struct for convenience
