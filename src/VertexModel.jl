@@ -82,8 +82,32 @@ function vertexModel(;
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
+    stiffened = false 
+
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
+        
+        if  integrator.t>params.tMax/10.0 && !stiffened
+            cellNeighbourMatrix = matrices.B*matrices.B'
+            cellsToStiffen = Int64[]
+            neighbourCells = Int64[]
+            for i=1:50              
+                cellToUpdate = rand([x for x in 1:params.nCells if x∉cellsToStiffen && x∉neighbourCells])
+                neighbours = findall(x->x!=0,cellNeighbourMatrix[cellToUpdate,:])
+                neighboursOfNeighbours = Int64[]
+                for n in neighbours
+                    append!(neighboursOfNeighbours,findall(x->x!=0,cellNeighbourMatrix[n,:]))
+                end
+                unique!(neighboursOfNeighbours)
+                push!(cellsToStiffen,cellToUpdate)
+                append!(neighbourCells,neighboursOfNeighbours)
+            end
+            # randCells = rand(collect(1:params.nCells),100)
+            matrices.μ[cellsToStiffen] .*= 10.0
+            matrices.Γ[cellsToStiffen] .*= 10.0
+            stiffened = true
+        end
+
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 
@@ -113,12 +137,12 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator,params,matrices)>0
-            u_modified!(integrator,true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
-        end
+        # if division!(integrator,params,matrices)>0
+        #     u_modified!(integrator,true)
+        #     # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+        #     topologyChange!(matrices) # Update system matrices after division 
+        #     spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+        # end
 
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
