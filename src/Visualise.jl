@@ -31,7 +31,7 @@ using DrWatson
 
 function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
 
-    @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ, edgeMidpointLinks, μ = matrices
+    @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellAreas, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ, edgeMidpointLinks, μ = matrices
     @unpack nEdges, nVerts, nCells = params
 
     empty!(ax1)
@@ -42,7 +42,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            poly!(ax1,cellPolygons[i],color=(getRandomColor(i), 0.5),strokecolor=(:black,1.0),strokewidth=2)
+            poly!(ax1,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas), maximum(cellAreas)),strokecolor=(:black,1.0),strokewidth=1)
         end
     end
 
@@ -67,7 +67,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     # Plot resultant forces on vertices (excluding external pressure)
     # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
     if plotForces == 1
-        arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:green)
+        arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:red)
     end
 
     if plotEdgeMidpointLinks == 1
