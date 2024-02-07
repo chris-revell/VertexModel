@@ -64,7 +64,6 @@ end
 # Create callback using two user-defined functions above
 cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
 
-#cb=TerminateSteadyState(1e-10, 1e-6)
 
 function vertexModel(;
     initialSystem="large",
@@ -110,45 +109,7 @@ function vertexModel(;
         end
     end
 
-    # function allPass(integrator, abstol, reltol, min_t)
-    #     if DiffEqBase.isinplace(integrator.sol.prob)
-    #         testval = first(get_tmp_cache(integrator))
-    #         DiffEqBase.get_du!(testval, integrator)
-    #         if integrator.sol.prob isa DiffEqBase.DiscreteProblem
-    #             @. testval = testval - integrator.u
-    #         end
-    #     else
-    #         testval = get_du(integrator)
-    #         if integrator.sol.prob isa DiffEqBase.DiscreteProblem
-    #             testval = testval - integrator.u
-    #         end
-    #     end
-    
-    #     if integrator.u isa Array
-    #         any((abs.(d) .> abstol) .& ( abs.(d) .> reltol .* abs.(u))
-    #             for (d, abstol, reltol, u) in zip(testval, Iterators.cycle(abstol),
-    #             Iterators.cycle(reltol), integrator.u)) &&
-    #             (return false)
-    #     else
-    #         any((abs.(testval) .> abstol) .& (abs.(testval) .> reltol .* abs.(integrator.u))) &&
-    #             (return false)
-    #     end
-    
-    #     if min_t === nothing
-    #         return true
-    #     else
-    #         return integrator.t >= min_t
-    #     end
-    # end
 
-    # Set up ODE integrator 
-   # cb=TerminateSteadyState(1e-8, 1e-6)
-
-    #Rtest=reinterpret(Float64,R)
-    #Rtest2=reshape(Rtest, (2, params.nVerts))
-    #Rtest3=reshape(R, (1,294))
-    #prob = ODEProblem(flatmodel!,Rtest,(0.0,Inf),(params,matrices))
-    #prob = ODEProblem(vecmodel!,Rtest2,(0.0,Inf),(params,matrices))
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
     integrator = init(prob,solver,abstol=1e-9, reltol=1e-7, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
@@ -156,7 +117,7 @@ function vertexModel(;
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success
         # Update spatial data (edge lengths, cell areas, etc.)
-        #spatialData!(reinterpret(SVector{2,Float64},integrator.u),params,matrices)
+
         spatialData!(integrator.u,params,matrices)
 
         # Output data to file 
@@ -166,14 +127,12 @@ function vertexModel(;
             if frameDataToggle==1
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
 
-                #R = @view reinterpret(SVector{2,Float64},integrator.u)[:]
                 R = @view integrator.u[:]
 
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
                 writedlm(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R, ',')
 
                 e_tot=energy(params,matrices)
-            # CSV.write(datadir(subFolder,folderName,"EnergyTotal.csv"), e_tot, append=true)
                 csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
                 println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
                 close(csvfile)
@@ -181,7 +140,6 @@ function vertexModel(;
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
-                #visualise(reinterpret(SVector{2,Float64},integrator.u), integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
 
             end
@@ -217,7 +175,6 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     if outputToggle==1
         # Update spatial data after final integration step
-        #spatialData!(reinterpret(SVector{2,Float64},integrator.u),params,matrices)
         spatialData!(integrator.u,params,matrices)
 
         printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
