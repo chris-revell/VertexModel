@@ -25,8 +25,8 @@ using ColorSchemes
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/CellProperties.jl" using CellProperties
 
-folder="C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims/new_energy/100_cells/relaxed"
-files=Glob.glob("new_energy/100_cells/relaxed/systemData*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")
+folder="C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims/new_energy/Hex_relax/relaxed"
+files=Glob.glob("new_energy/Hex_relax/relaxed/systemData*Gamma_0.05*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")
 mkpath(datadir(folder,"cell_plots"))
 mkpath(datadir(folder,"spectra"))
 mkpath(datadir(folder,"cell_modes"))
