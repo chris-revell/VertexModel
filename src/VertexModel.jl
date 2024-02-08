@@ -66,6 +66,8 @@ end
 cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
 
 
+@from "EdgeAblation.jl" using EdgeAblation
+
 function vertexModel(;
     initialSystem="large",
     realTimetMax=2.0*86400.0,
