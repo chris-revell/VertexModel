@@ -64,7 +64,7 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
         # ax.title = "t = $(@sprintf("%.2f", t))"
         for i = 1:nCells
             orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-            poly!(ax, Point2f.(R[orderedVertices]), color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
+            poly!(ax, Point{2,Float64}.(R[orderedVertices]), color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
         end
         reset_limits!(ax)
         recordframe!(mov)
