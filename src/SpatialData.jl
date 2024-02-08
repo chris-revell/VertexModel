@@ -35,6 +35,8 @@ function spatialData!(R,params,matrices)
 
     @.. thread=false edgeLengths .= norm.(edgeTangents)
 
+    @show minimum(edgeLengths)
+
     # edgeMidpoints  .= 0.5.*Ā*R
     mul!(edgeMidpoints,Ā,R)
     @.. thread=false edgeMidpoints .*= 0.5
@@ -83,7 +85,7 @@ function spatialData!(R,params,matrices)
 
     for i=1:nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        cellAreas[i] = abs(area(Point2f.(R[orderedVertices])))
+        cellAreas[i] = abs(area(Point.(R[orderedVertices])))
     end
     # cellAreas .= abs.(area.(makeCellPolygons(R,params,matrices)))
 
