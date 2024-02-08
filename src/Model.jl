@@ -24,9 +24,9 @@ using DrWatson
 
 function model!(du, u, p, t)
 
-    params, matrices = p
+    R_i, params, matrices = p
     @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges,vertexAreas = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
+    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension, tMax = params
 
     spatialData!(u,params,matrices)
 
@@ -34,6 +34,20 @@ function model!(du, u, p, t)
     fill!(externalF,@SVector zeros(2))
 
     peripheryLength = sum(boundaryEdges.*edgeLengths)
+
+    #stretch monolayer, map R_x->(1 + \lambda)R_x, Ry->R-y/(1+\lambda)
+    λ=0.2
+    Λ=@SMatrix[
+        1+λ 0.0
+        0.0 (1+λ)
+    ]
+
+    # Λ=@SMatrix[
+    #    1/(1+λ) 0.0
+    #     0.0 (1+λ)
+    # ]
+
+    stretch=Λ-I(2)
     
     for k=1:nVerts
         for j in nzrange(A,k)
@@ -50,7 +64,7 @@ function model!(du, u, p, t)
         end
     end
 
-    du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)
+    du .=((sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)) .+  ([stretch*x for x in R_i] )./(tMax)
     
 end
 

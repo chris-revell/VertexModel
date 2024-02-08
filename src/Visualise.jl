@@ -29,7 +29,7 @@ using DrWatson
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks, initialCellAreas)
 
     @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellAreas, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ, edgeMidpointLinks, μ = matrices
     @unpack nEdges, nVerts, nCells = params
@@ -42,7 +42,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            poly!(ax1,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas), maximum(cellAreas)),strokecolor=(:black,1.0),strokewidth=1)
+            poly!(ax1,cellPolygons[i],color=((cellAreas./initialCellAreas).-1)[i],colormap=:bwr,colorrange=(-0.01, 0.01),strokecolor=(:black,1.0),strokewidth=1)
         end
     end
 
@@ -80,7 +80,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     end
 
     # Set limits
-    reset_limits!(ax1)
+    #reset_limits!(ax1)
 
     recordframe!(mov)
     

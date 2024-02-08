@@ -22,6 +22,7 @@ using StaticArrays
 using CairoMakie
 using Printf
 using CSV
+using Statistics
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -76,8 +77,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,    
-    #solver= Vern7(lazy=false),
-    solver= Tsit5(),
+    solver= Vern7(lazy=false),
+    #solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -99,6 +100,10 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+    R.=R.-mean(R, dims=1)
+    R_initial=R
+    initialCellAreas=matrices.cellAreas
+    @show initialCellAreas
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
@@ -110,9 +115,10 @@ function vertexModel(;
     end
 
 
-    prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-9, reltol=1e-7, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    prob=ODEProblem(model!,R,(0.0,Inf),(R_initial,params,matrices))
+
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-7, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success
@@ -130,7 +136,7 @@ function vertexModel(;
                 R = @view integrator.u[:]
 
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
-                writedlm(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R, ',')
+                #writedlm(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R, ',')
 
                 e_tot=energy(params,matrices)
                 csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
@@ -140,7 +146,7 @@ function vertexModel(;
             end
             if frameImageToggle==1 || videoToggle==1
                 # Render visualisation of system and add frame to movie
-                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
+                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)
 
             end
             # Save still image of this time step 
@@ -184,7 +190,7 @@ function vertexModel(;
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
-            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
+            visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)
         end
         # Save still image of this time step 
         frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
