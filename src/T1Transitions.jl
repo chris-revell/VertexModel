@@ -21,7 +21,7 @@ function t1Transitions!(R,params,matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold #&& timeSinceT1[j] > 1000.0
+        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > 1000.0
 
             timeSinceT1[j] = 0
 
