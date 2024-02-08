@@ -85,7 +85,7 @@ function spatialData!(R,params,matrices)
 
     for i=1:nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        cellAreas[i] = abs(area(Point.(R[orderedVertices])))
+        cellAreas[i] = abs(area(Point{2,Float64}.(R[orderedVertices])))
     end
     # cellAreas .= abs.(area.(makeCellPolygons(R,params,matrices)))
 
