@@ -12,7 +12,6 @@ using Printf
 using Colors
 
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
-@from "$(projectdir())/src/OrderAroundCell.jl" using OrderAroundCell
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Laplacians.jl" using Laplacians
 @from "$(projectdir())/src/Potentials.jl" using Potentials

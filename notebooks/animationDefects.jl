@@ -12,7 +12,7 @@ using Printf
 using Colors
 
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
-@from "$(projectdir())/src/OrderAroundCell.jl" using OrderAroundCell
+@from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
 function neighbourColours(x)
 
@@ -61,10 +61,9 @@ for f in [f for f in readdir(datadir("sims/examples")) if occursin("γ",f)]
         neighbourCounts = [cellNeighbourMatrix[i,i] for i in 1:nCells]
 
         empty!(ax)
-        # ax.title = "t = $(@sprintf("%.2f", t))"
+        cellPolygons = makeCellPolygons(R,params,matrices)
         for i = 1:nCells
-            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-            poly!(ax, Point{2,Float64}.(R[orderedVertices]), color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
+            poly!(ax, cellPolygons[i], color=neighbourColours(neighbourCounts[i]) , strokecolor=(:black,1.0), strokewidth=1)
         end
         reset_limits!(ax)
         recordframe!(mov)
