@@ -43,8 +43,8 @@ function spatialData!(R,params,matrices)
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1],nzC[2])
     for (i,k) in ikPairs
-        k_js = findall(x->x!=0, A[:,k])
-        for j in k_js
+        # k_js = findall(x->x!=0, A[:,k])
+        for j in findall(x->x!=0, A[:,k]) #k_js
             edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j].*edgeTangents[j].*Ā[j,k]
         end
     end
@@ -56,9 +56,11 @@ function spatialData!(R,params,matrices)
             k_js = findall(x->x!=0, A[:,k])
             vertexAreas[k] = 0.5^3*norm([edgeTangents[k_js[1]]...,0.0]×[edgeTangents[k_js[2]]...,0.0])
         elseif length(k_is) == 2
-            edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
+            # edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
+            edgesSharedBy_i1_And_k = findall(x->x!=0,B[k_is[1],:].*A[:,k]) # This line does the same as the commented out line above but seems to allocate less memory
             vertexAreas[k] = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
-            edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
+            # edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
+            edgesSharedBy_i2_And_k = findall(x->x!=0,B[k_is[2],:].*A[:,k]) # This line does the same as the commented out line above but seems to allocate less memory
             vertexAreas[k] += 0.5^3*norm([edgeTangents[edgesSharedBy_i2_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i2_And_k[2]]...,0.0])
         else
             vertexAreas[k] = 0.5*norm([edgeMidpointLinks[k_is[1], k]...,0.0]×[edgeMidpointLinks[k_is[2],k]...,0.0])
