@@ -28,14 +28,14 @@ using Dates
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, λs, tStretchRealTime)
 
     # Calculate derived parameters
     tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval  = tMax/outputTotal               # Time interval for storing system data (non dimensionalised)
     λ               = -2.0*L₀*γ
     nonDimCycleTime = realCycleTime/viscousTimeScale # Non dimensionalised cell cycle time
-
+    tStretch        = tStretchRealTime/viscousTimeScale  # Non dimensionalised stretch time
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
     # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
@@ -95,7 +95,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
         fill(SVector{2, Float64}(zeros(2)), (nCells, nVerts)),# edgeMidpointLinks
-        zeros(nEdges),                                        # timeSinceT1
+        1000.0.*ones(nEdges),                                        # timeSinceT1
         ones(nVerts),                                         # vertexAreas
         fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
@@ -128,7 +128,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
+        LogNormal(log(nonDimCycleTime), 0.1), # distLogNormal,
+        λs,
+        tStretchRealTime,
+        tStretch
     )
 
     # Initial evaluation of matrices based on system topology

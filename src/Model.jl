@@ -23,10 +23,9 @@ using DrWatson
 @from "Laplacians.jl" using Laplacians
 
 function model!(du, u, p, t)
-
-    R_i, params, matrices = p
+    R_i,params, matrices = p
     @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges,vertexAreas = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension, tMax = params
+    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension, tMax, λs, tStretch = params
 
     spatialData!(u,params,matrices)
 
@@ -36,10 +35,10 @@ function model!(du, u, p, t)
     peripheryLength = sum(boundaryEdges.*edgeLengths)
 
     #stretch monolayer, map R_x->(1 + \lambda)R_x, Ry->R-y/(1+\lambda)
-    λ=0.2
+
     Λ=@SMatrix[
-        1+λ 0.0
-        0.0 (1+λ)
+        1+λs 0.0
+        0.0 1/(1+λs)
     ]
 
     # Λ=@SMatrix[
@@ -48,7 +47,7 @@ function model!(du, u, p, t)
     # ]
 
     stretch=Λ-I(2)
-    
+
     for k=1:nVerts
         for j in nzrange(A,k)
             for i in nzrange(B,rowvals(A)[j])
@@ -64,7 +63,7 @@ function model!(du, u, p, t)
         end
     end
 
-    du .=((sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)) .+  ([stretch*x for x in R_i] )./(tMax)
+    du .=((sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)) .+  ([stretch*x for x in R_i] )./(tStretch)
     
 end
 

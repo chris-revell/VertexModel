@@ -37,6 +37,7 @@ using Statistics
 @from "SenseCheck.jl" using SenseCheck
 @from "Energy.jl" using Energy
 @from "Laplacians.jl" using Laplacians
+@from "EdgeAblation.jl" using EdgeAblation
 
 function conditionSteadyState(u, t, integrator)
     # if maximum(norm.(get_du(integrator))) < 1e-3
@@ -53,20 +54,32 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-6 ? true : false
+    maximum(norm.(get_du(integrator))) < 2e-7 ? true : false
     # Use integrator.opts.abstol as threshold?
 end
+
+function conditionStretch(u,t,integrator)
+    t==integrator.p[2].tStretch
+end
+
 
 function affectTerminate!(integrator)
     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
     println("Terminate at steady state")
     terminate!(integrator, ReturnCode.Success)    
 end
+
+function affectStopStretch!(integrator)
+    # change stretch parameter λ to zero.
+    integrator.p[2].λs=0
+       
+    println("Stop Stretching")
+end
 # Create callback using two user-defined functions above
-cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
 
 
-@from "EdgeAblation.jl" using EdgeAblation
+
+
 
 function vertexModel(;
     initialSystem="large",
@@ -88,7 +101,7 @@ function vertexModel(;
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,    
+    videoToggle=0,    
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -96,16 +109,27 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
+    λs = 0.01,
+    tStretchRealTime=1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
    
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, λs, tStretchRealTime)
     R.=R.-mean(R, dims=1)
     R_initial=R
-    initialCellAreas=matrices.cellAreas
-    @show initialCellAreas
+    initialCellAreas= SVector{params.nCells, Float64}(matrices.cellAreas)
+    #tStretch=1/params.viscousTimeScale 
+    
+    #cb1 = DiscreteCallback(conditionStretch, affectStopStretch!)
+
+    cb1 = PresetTimeCallback(params.tStretch, affectStopStretch!)
+    cb2 = DiscreteCallback(conditionSteadyState, affectTerminate!)
+    cbs=CallbackSet(cb1, cb2)
+      
+
+    #@show initialCellAreas
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
@@ -120,7 +144,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(R_initial,params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-7, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-7,callback=cbs, tstops=[params.tStretch]) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success
@@ -155,6 +179,13 @@ function vertexModel(;
             frameImageToggle==1 ? save(datadir("sims",subFolder,folderName,"frameImages","frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"),fig) : nothing
         end
 
+        if integrator.t==params.tStretch
+            # Update progress on command line 
+
+                R = @view integrator.u[:]
+
+                jldsave(datadir("sims",subFolder,folderName,"frameData","systemDataFullStretch.jld2");matrices,params,R)        
+        end
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 

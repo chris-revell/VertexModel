@@ -35,6 +35,9 @@ mutable struct ParametersContainer
     peripheralTension  ::Float64            # Tension at system periphery
     seed               ::Int64              # Random number seed 
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
+    λs                 ::Float64            # stretch factor
+    tStretchRealTime   ::Float64            # real stretch time
+    tStretch           ::Float64            # non-dimensionalised stretch time
 end
 
 mutable struct MatricesContainer
