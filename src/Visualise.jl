@@ -42,7 +42,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            poly!(ax1,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas),maximum(cellAreas) ),strokecolor=(:black,1.0),strokewidth=1)
+            poly!(ax1,cellPolygons[i],color=((cellAreas./initialCellAreas.-1))[i],colormap=:bwr,colorrange=(-maximum(abs.(cellAreas./initialCellAreas.-1))-1e-6,maximum(abs.(cellAreas./initialCellAreas.-1))+1e-6),strokecolor=(:black,1.0),strokewidth=1)
         end
     end
 
