@@ -26,7 +26,7 @@ using ColorSchemes
 @from "$(projectdir())/src/CellProperties.jl" using CellProperties
 
 folder="C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims/new_energy/Hex_relax/relaxed"
-files=Glob.glob("new_energy/Hex_relax/relaxed/systemData*Gamma_0.05*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")
+files=Glob.glob("new_energy/Hex_relax/full/*L₀=1.0*/systemData*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")[3:end]
 mkpath(datadir(folder,"cell_plots"))
 mkpath(datadir(folder,"spectra"))
 mkpath(datadir(folder,"cell_modes"))
@@ -200,8 +200,8 @@ for f in files
         #display(fig)
     end
 
-    Aevlims=(minimum(abs.(cellAreas[1:nCells])), maximum(abs.(cellAreas[1:nCells])))
-    Levlims=(minimum(abs.(cellPerimeters[1:nCells])), maximum(abs.(cellPerimeters[1:nCells])))
+    Aevlims=(minimum(abs.(cellAreas[1:nCells]))-1e-6, maximum(abs.(cellAreas[1:nCells]))+1e-6)
+    Levlims=(minimum(abs.(cellPerimeters[1:nCells]))-1e-6, maximum(abs.(cellPerimeters[1:nCells]))+1e-6)
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
     fig = Figure(resolution=(1500,500))
 
@@ -223,8 +223,8 @@ for f in files
     colsize!(fig.layout,1,Aspect(1,1.0))
 
 
-    Colorbar(fig[1,2],limits=colorrange=Aevlims,colormap=:viridis,flipaxis=true)
-    Colorbar(fig[2,2],limits=colorrange=Levlims,colormap=:viridis,flipaxis=true)
+    Colorbar(fig[1,2],limits=Aevlims,colormap=:viridis,flipaxis=true)
+    Colorbar(fig[2,2],limits=Levlims,colormap=:viridis,flipaxis=true)
 
 
     Label(fig[1,1,Bottom()],string(L"Area"),fontsize = 32, rotation=0)
@@ -237,47 +237,47 @@ for f in files
     circularity=getCircularity(params, cellShapeTensors)
     shapeParameter=cellPerimeters./sqrt.(cellAreas)
 
-    Aevlims=(minimum(shapeParameter[1:nCells]), maximum(shapeParameter[1:nCells]))
-    Levlims=(minimum(circularity[1:nCells]), maximum(circularity[1:nCells]))
-    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
-    fig = Figure(resolution=(1500,500))
+    # Aevlims=(minimum(shapeParameter[1:nCells]), maximum(shapeParameter[1:nCells]))
+    # Levlims=(minimum(circularity[1:nCells]), maximum(circularity[1:nCells]))
+    # set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
+    # fig = Figure(resolution=(1500,500))
 
-    a1=Axis(fig[1,1],aspect=DataAspect())
-    a2=Axis(fig[2,1],aspect=DataAspect())
-    hidedecorations!(a1)
-    hidespines!(a1)
-    hidedecorations!(a2)
-    hidespines!(a2)
-    for i=1:nCells
-        poly!(a1,cellPolygons[i],color=circularity[i],colormap=:viridis,colorrange=Levlims, strokecolor=(:black,1.0),strokewidth=1)
-        poly!(a2,cellPolygons[i],color=shapeParameter[i],colormap=:cividis,colorrange=Aevlims, strokecolor=(:black,1.0),strokewidth=1)
-    end
-    #Label(fig[2,1,Bottom()],"λ_"*string(n)*" = "*@sprintf("%.5E", evals[n]),fontsize = 32)
+    # a1=Axis(fig[1,1],aspect=DataAspect())
+    # a2=Axis(fig[2,1],aspect=DataAspect())
+    # hidedecorations!(a1)
+    # hidespines!(a1)
+    # hidedecorations!(a2)
+    # hidespines!(a2)
+    # for i=1:nCells
+    #     poly!(a1,cellPolygons[i],color=circularity[i],colormap=:viridis,colorrange=Levlims, strokecolor=(:black,1.0),strokewidth=1)
+    #     poly!(a2,cellPolygons[i],color=shapeParameter[i],colormap=:cividis,colorrange=Aevlims, strokecolor=(:black,1.0),strokewidth=1)
+    # end
+    # #Label(fig[2,1,Bottom()],"λ_"*string(n)*" = "*@sprintf("%.5E", evals[n]),fontsize = 32)
 
-    #hidedecorations!(ax22)
-    #hidespines!(ax22)
+    # #hidedecorations!(ax22)
+    # #hidespines!(ax22)
 
-    colsize!(fig.layout,1,Aspect(1,1.0))
-
-
-    Colorbar(fig[1,2],limits=colorrange=Levlims,colormap=:viridis,flipaxis=true)
-    Colorbar(fig[2,2],limits=colorrange=Aevlims,colormap=:cividis,flipaxis=true)
+    # colsize!(fig.layout,1,Aspect(1,1.0))
 
 
-    Label(fig[1,1,Bottom()],"Circularity",fontsize = 26, rotation=0)
-    Label(fig[2,1,Bottom()],"Shape parameter",fontsize = 26, rotation=0)
-    #Label( fig[0,:],"Γ = "*string(params.γ)*", L₀ = "*string(params.L₀)*", δL = "*string(params.δL),fontsize = 32, color = (:black, 1))
-    resize_to_layout!(fig)
-    save(datadir(folder,"cell_plots","circularity_shape_Γ_"*string(params.γ)*"_L0_"*string(params.L₀)*".png"),fig)
+    # Colorbar(fig[1,2],limits=colorrange=Levlims,colormap=:viridis,flipaxis=true)
+    # Colorbar(fig[2,2],limits=colorrange=Aevlims,colormap=:cividis,flipaxis=true)
+
+
+    # Label(fig[1,1,Bottom()],"Circularity",fontsize = 26, rotation=0)
+    # Label(fig[2,1,Bottom()],"Shape parameter",fontsize = 26, rotation=0)
+    # #Label( fig[0,:],"Γ = "*string(params.γ)*", L₀ = "*string(params.L₀)*", δL = "*string(params.δL),fontsize = 32, color = (:black, 1))
+    # resize_to_layout!(fig)
+    # save(datadir(folder,"cell_plots","circularity_shape_Γ_"*string(params.γ)*"_L0_"*string(params.L₀)*".png"),fig)
 
     Peff=getPeff(params, matrices)
     cellQ, cellJ=makeCellQandJ(params, matrices)
     cellShearStress=getShearStress(params, matrices, cellJ)
 
-    Plims=(minimum(cellPressures[1:nCells]), maximum(cellPressures[1:nCells]))
-    Tlims=(minimum(-cellTensions[1:nCells]), maximum(-cellTensions[1:nCells]))
+    Plims=(minimum(cellPressures[1:nCells])-1e-6, maximum(cellPressures[1:nCells])+1e-6)
+    Tlims=(minimum(-cellTensions[1:nCells])-1e-6, maximum(-cellTensions[1:nCells])+1e-6)
     Pefflims=(-maximum(abs.(Peff)), maximum(abs.(Peff)))
-    ShStlims=(minimum(cellShearStress[1:nCells]), maximum(cellShearStress[1:nCells]))
+    ShStlims=(minimum(cellShearStress[1:nCells])-5e-8, maximum(cellShearStress[1:nCells])+5e-8)
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
     fig = Figure(resolution=(1500,500))
 
@@ -309,10 +309,10 @@ for f in files
     colsize!(fig.layout,3,Aspect(1,1.0))
 
 
-    Colorbar(fig[1,2],limits=colorrange=Plims,colormap=cgrad(:Blues_9, rev=true),flipaxis=true)
-    Colorbar(fig[2,2],limits=colorrange=Tlims,colormap=:plasma,flipaxis=true)
-    Colorbar(fig[1,4],limits=colorrange=Pefflims,colormap=:bwr,flipaxis=true)
-    Colorbar(fig[2,4],limits=colorrange=ShStlims,colormap=:plasma,flipaxis=true)
+    Colorbar(fig[1,2],limits=Plims,colormap=cgrad(:Blues_9, rev=true),flipaxis=true)
+    Colorbar(fig[2,2],limits=Tlims,colormap=:plasma,flipaxis=true)
+    Colorbar(fig[1,4],limits=Pefflims,colormap=:bwr,flipaxis=true)
+    Colorbar(fig[2,4],limits=ShStlims,colormap=:plasma,flipaxis=true)
 
     Label(fig[1,1,Bottom()],"Pressure",fontsize = 32, rotation=0)
     Label(fig[2,1,Bottom()],"Tension",fontsize = 32, rotation=0)
