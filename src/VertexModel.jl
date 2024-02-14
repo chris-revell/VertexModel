@@ -52,7 +52,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-6 ? true : false
+    maximum(norm.(get_du(integrator))) < 1e-10 ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -76,8 +76,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,    
-    #solver= Vern7(lazy=false),
-    solver= Tsit5(),
+    solver= Vern7(lazy=false),
+    #solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -85,7 +85,7 @@ function vertexModel(;
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,    
+    videoToggle=0,    
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -112,7 +112,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-9, reltol=1e-7, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-10, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success
@@ -130,7 +130,6 @@ function vertexModel(;
                 R = @view integrator.u[:]
 
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
-                writedlm(datadir("sims",subFolder,folderName,"R_$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).csv"), R, ',')
 
                 e_tot=energy(params,matrices)
                 csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
@@ -181,7 +180,10 @@ function vertexModel(;
         # Save final data file regardless of whether other timepoint data files are saved
         # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
         R = @view integrator.u[:]
+        fname=@savename L₀ γ
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
+        jldsave(datadir("sims",subFolder,folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
+
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
             visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
