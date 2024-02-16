@@ -36,7 +36,7 @@ using Printf
 
 function vertexModel(;
     initialSystem="large",
-    realTimetMax=2.0*86400.0,
+    realTimetMax=1.0*86400.0,
     realCycleTime=86400.0,
     γ=0.2,
     L₀=0.75,
@@ -44,7 +44,7 @@ function vertexModel(;
     viscousTimeScale=20.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
-    t1Threshold=0.05,    
+    t1Threshold=0.05,
     solver=Tsit5(),
     nBlasThreads=1,
     subFolder="",
@@ -53,7 +53,7 @@ function vertexModel(;
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,    
+    videoToggle=1,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -87,22 +87,21 @@ function vertexModel(;
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax
         
-        if  integrator.t>params.tMax/10.0 && !stiffened
+        if !stiffened #integrator.t>params.tMax/100.0 && !stiffened
             cellNeighbourMatrix = matrices.B*matrices.B'
             cellsToStiffen = Int64[]
-            neighbourCells = Int64[]
-            for i=1:50              
-                cellToUpdate = rand([x for x in 1:params.nCells if x∉cellsToStiffen && x∉neighbourCells])
-                neighbours = findall(x->x!=0,cellNeighbourMatrix[cellToUpdate,:])
+            excludedCells = Int64[]
+            while length(excludedCells) < params.nCells
+                cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
+                neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
                 neighboursOfNeighbours = Int64[]
                 for n in neighbours
                     append!(neighboursOfNeighbours,findall(x->x!=0,cellNeighbourMatrix[n,:]))
-                end
-                unique!(neighboursOfNeighbours)
+                end                
                 push!(cellsToStiffen,cellToUpdate)
-                append!(neighbourCells,neighboursOfNeighbours)
+                append!(excludedCells,neighboursOfNeighbours)
+                unique!(excludedCells)
             end
-            # randCells = rand(collect(1:params.nCells),100)
             matrices.μ[cellsToStiffen] .*= 10.0
             matrices.Γ[cellsToStiffen] .*= 10.0
             stiffened = true
@@ -137,12 +136,12 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        # if division!(integrator,params,matrices)>0
-        #     u_modified!(integrator,true)
-        #     # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-        #     topologyChange!(matrices) # Update system matrices after division 
-        #     spatialData!(integrator.u,params,matrices) # Update spatial data after division 
-        # end
+        if division!(integrator,params,matrices)>0
+            u_modified!(integrator,true)
+            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+            topologyChange!(matrices) # Update system matrices after division 
+            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+        end
 
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt

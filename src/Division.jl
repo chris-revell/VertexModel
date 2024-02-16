@@ -38,7 +38,7 @@ function division!(integrator,params,matrices)
     # nVertsOld = params.nVerts # Local copy of initial vertex count
 
     for i=1:nCells
-        if cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if Γ[i]<1.5 && cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             orderedVertices, orderedEdges = orderAroundCell(matrices,i)
             
