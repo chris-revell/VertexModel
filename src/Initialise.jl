@@ -74,8 +74,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         spzeros(Int64,nEdges,nCells),                         # B̄ᵀ
         spzeros(Int64,nCells,nVerts),                         # C
         zeros(Int64,nCells),                                  # cellEdgeCount
-        fill(CircularVector(Int64[]),nCells),                                 # cellVertexOrders
-        fill(CircularVector(Int64[]),nCells),                                 # cellEdgeOrders
+        fill(CircularVector(Int64[]),nCells),                 # cellVertexOrders
+        fill(CircularVector(Int64[]),nCells),                 # cellEdgeOrders
         zeros(Int64,nVerts),                                  # boundaryVertices
         zeros(Int64,nEdges),                                  # boundaryEdges
         fill(SVector{2,Float64}(zeros(2)), nCells),           # cellPositions
@@ -90,7 +90,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         zeros(nEdges),                                        # edgeLengths
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
-        fill(SVector{2, Float64}(zeros(2)), (nCells, nVerts)),# edgeMidpointLinks
+        spzeros(SVector{2,Float64}, nCells, nVerts),          # edgeMidpointLinks
         zeros(nEdges),                                        # timeSinceT1
         ones(nVerts),                                         # vertexAreas
         fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F

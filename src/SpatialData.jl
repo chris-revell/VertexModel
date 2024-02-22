@@ -23,7 +23,7 @@ using GeometryBasics
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellVertexOrders,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas,μ,Γ = matrices
+    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellVertexOrders,cellEdgeOrders,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas,μ,Γ = matrices
     @unpack nCells,nEdges,nVerts,γ,L₀,A₀ = params
 
     # cellPositions  .= C*R./cellEdgeCount
@@ -40,11 +40,12 @@ function spatialData!(R,params,matrices)
     @.. thread=false edgeMidpoints .*= 0.5
 
     fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
+    dropzeros!(edgeMidpointLinks)
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1],nzC[2])
     for (i,k) in ikPairs
-        # k_js = findall(x->x!=0, A[:,k])
-        for j in findall(x->x!=0, A[:,k]) #k_js
+        # for j in findnz(A[:,k])[1]
+        for j in cellEdgeOrders[i]
             edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j].*edgeTangents[j].*Ā[j,k]
         end
     end
