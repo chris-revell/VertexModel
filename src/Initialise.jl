@@ -128,11 +128,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
-    for i=1:length(nCells)
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        matrices.cellVertexOrders[i] = orderedVertices
-        matrices.cellEdgeOrders[i] = orderedEdges
-    end
     spatialData!(R,params,matrices)
 
     return R, params, matrices

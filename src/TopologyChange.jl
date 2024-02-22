@@ -64,9 +64,7 @@ function topologyChange!(matrices)
     boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
 
     for i=1:length(cellVertexOrders)
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        cellVertexOrders[i] = orderedVertices
-        cellEdgeOrders[i] = orderedEdges
+        cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(matrices,i)
     end
 
     return nothing

@@ -153,7 +153,6 @@ function division!(integrator,params,matrices)
             push!(cellAges,0.0)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
-            # append!(cellAges,zeros(Float64,1))
 
             divisionCount = 1
             
