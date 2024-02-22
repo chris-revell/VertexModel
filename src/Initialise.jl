@@ -19,6 +19,7 @@ using DrWatson
 using Random
 using Distributions
 using Dates
+using CircularArrays
 
 # Local modules
 @from "InitialHexagons.jl" using InitialHexagons
@@ -73,6 +74,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         spzeros(Int64,nEdges,nCells),                         # B̄ᵀ
         spzeros(Int64,nCells,nVerts),                         # C
         zeros(Int64,nCells),                                  # cellEdgeCount
+        fill(CircularVector(Int64[]),nCells),                                 # cellVertexOrders
+        fill(CircularVector(Int64[]),nCells),                                 # cellEdgeOrders
         zeros(Int64,nVerts),                                  # boundaryVertices
         zeros(Int64,nEdges),                                  # boundaryEdges
         fill(SVector{2,Float64}(zeros(2)), nCells),           # cellPositions
@@ -125,6 +128,11 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
+    for i=1:length(nCells)
+        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
+        matrices.cellVertexOrders[i] = orderedVertices
+        matrices.cellEdgeOrders[i] = orderedEdges
+    end
     spatialData!(R,params,matrices)
 
     return R, params, matrices

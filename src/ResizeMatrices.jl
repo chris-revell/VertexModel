@@ -36,6 +36,8 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     
     # Remove components from stored vectors
     resize!(matrices.cellEdgeCount, nCellsNew)
+    resize!(matrices.cellVertexOrders, nCellsNew)
+    resize!(matrices.cellEdgeOrders, nCellsNew)
     resize!(matrices.cellPositions, nCellsNew)
     resize!(matrices.cellPerimeters, nCellsNew)
     resize!(matrices.cellOrientedAreas, nCellsNew)

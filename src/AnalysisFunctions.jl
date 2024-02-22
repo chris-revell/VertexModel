@@ -18,6 +18,7 @@ using GeometryBasics
 using Random
 using FromFile
 using Colors
+using CircularArrays
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -27,8 +28,7 @@ getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 function makeCellPolygons(R,params,matrices)
     cellPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(cellPolygons,Point{2,Float64}.(R[orderedVertices]))
+        push!(cellPolygons,Point{2,Float64}.(R[matrices.cellVertexOrders[i]]))
     end
     return cellPolygons
 end
@@ -100,8 +100,7 @@ end
 function makeEdgeMidpointPolygons(params,matrices)
     edgeMidpointPolygons = Vector{Point}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[orderedEdges]))
+        push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[matrices.cellEdgeOrders[i]]))
     end
     return edgeMidpointPolygons
 end
@@ -308,9 +307,8 @@ function calculateCellMidpointDivs(params,matrices,intersections,q)
     @unpack nCells = params
     cellMidpointDivs = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)       
         divSum = 0
-        for j in orderedEdges
+        for j in matrices.cellEdgeOrders[i]
             divSum -= B[i,j]*(intersections[j]⋅(ϵ*edgeTangents[j]))/cellAreas[i]
         end        
         push!(cellMidpointDivs,divSum)
@@ -323,9 +321,8 @@ function calculateCellMidpointCurls(params,matrices,intersections,q)
     @unpack nCells = params
     cellMidpointCurls = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
         curlSum = 0
-        for j in orderedEdges
+        for j in cellEdgeOrders[i]
             curlSum += B[i,j]*(intersections[j]⋅edgeTangents[j])/cellAreas[i]
         end
         push!(cellMidpointCurls,curlSum)

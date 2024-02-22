@@ -13,6 +13,7 @@ using SparseArrays
 using StaticArrays
 using Random
 using Distributions
+using CircularArrays
 
 mutable struct ParametersContainer
     initialSystem      ::String             # System used for initialising simulations
@@ -48,6 +49,8 @@ mutable struct MatricesContainer
     B̄ᵀ               ::SparseMatrixCSC{Int64, Int64}  # Transpose of adjacency matric B̄
     C                ::SparseMatrixCSC{Int64, Int64}  # Adjacency matrix mapping cells to vertices. Rows => cells; Columns => vertices. (C=0.5*B̄*Ā)
     cellEdgeCount    ::Vector{Int64}                  # Vector of number of edges around each cell
+    cellVertexOrders ::Vector{CircularVector{Int64, Vector{Int64}}}          # Storing the ordering of vertices around the cell
+    cellEdgeOrders   ::Vector{CircularVector{Int64, Vector{Int64}}}          # Storing the ordering of edges around the cell
     boundaryVertices ::Vector{Int64}                  # Vector of 1s and 0s denoting vertices that lie on the system boundary
     boundaryEdges    ::Vector{Int64}                  # Vector of 1s and 0s denoting edges that lie on the system boundary
     cellPositions    ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors for each cell centre of mass
@@ -64,7 +67,7 @@ mutable struct MatricesContainer
     edgeMidpoints    ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing edge midpoints as (x,y) positions
     edgeMidpointLinks::Matrix{SVector{2, Float64}}
     timeSinceT1      ::Vector{Float64}                # Vector of times since each edge last underwent a T1 transition
-    vertexAreas      ::Vector{Float64}                # Vector of areas of triangles surrounding vertices
+    vertexAreas      ::Vector{Float64}                # Vector of areas of triangles surrounding vertices    
     F                ::Matrix{SVector{2, Float64}}    # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
     externalF        ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{2, Float64}}    # Vector of 2D static vectors containing resultant force vectors acting on each vertex

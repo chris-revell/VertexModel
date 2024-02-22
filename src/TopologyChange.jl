@@ -19,10 +19,11 @@ using DrWatson
 
 # Local modules
 @from "SenseCheck.jl" using SenseCheck
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 function topologyChange!(matrices)
 
-    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,boundaryVertices,boundaryEdges = matrices
+    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,cellVertexOrders,cellEdgeOrders,boundaryVertices,boundaryEdges = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
@@ -61,6 +62,12 @@ function topologyChange!(matrices)
 
     # Find list of edges at system periphery
     boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
+
+    for i=1:length(cellVertexOrders)
+        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
+        cellVertexOrders[i] = orderedVertices
+        cellEdgeOrders[i] = orderedEdges
+    end
 
     return nothing
 
