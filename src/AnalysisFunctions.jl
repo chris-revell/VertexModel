@@ -18,6 +18,7 @@ using GeometryBasics
 using Random
 using FromFile
 using Colors
+using CircularArrays
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -25,10 +26,9 @@ using Colors
 getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 
 function makeCellPolygons(R,params,matrices)
-    cellPolygons = Vector{Point2f}[]
+    cellPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(cellPolygons,Point2f.(R[orderedVertices]))
+        push!(cellPolygons,Point{2,Float64}.(R[matrices.cellVertexOrders[i]]))
     end
     return cellPolygons
 end
@@ -54,13 +54,13 @@ function makeLinkTriangles(R,params,matrices)
     @unpack A,B,C,boundaryVertices,cellPositions,edgeMidpoints = matrices
     @unpack nCells,nVerts = params
     onesVec = ones(1,nCells)
-    linkTriangles = Vector{Point2f}[]
+    linkTriangles = Vector{Point}[]
     boundaryEdges = abs.(onesVec*B)
     for k=1:nVerts
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
             vertexCells = findall(x->x!=0,C[:,k])
-            push!(linkTriangles, Point2f.(cellPositions[vertexCells]))
+            push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
             vertexCells = findall(x->x!=0,C[:,k])
@@ -75,7 +75,7 @@ function makeLinkTriangles(R,params,matrices)
                 push!(angles,angle)
             end
             kiteVertices .= kiteVertices[sortperm(angles)]
-            push!(linkTriangles,Point2f.(kiteVertices))
+            push!(linkTriangles,Point{2,Float64}.(kiteVertices))
         end
     end
     return linkTriangles
@@ -84,24 +84,23 @@ end
 function makeEdgeTrapezia(R,params,matrices)
     @unpack A,B,cellPositions = matrices
     @unpack nEdges = params
-    edgeTrapezia = Vector{Point2f}[]
+    edgeTrapezia = Vector{Point}[]
     for j=1:nEdges
         edgeCells = findall(x->x!=0,B[:,j])
         edgeVertices = findall(x->x!=0,A[j,:])
         if length(edgeCells) > 1
-            push!(edgeTrapezia,Point2f.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
+            push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
         else
-            push!(edgeTrapezia,Point2f.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]]]))
+            push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]]]))
         end
     end
     return edgeTrapezia
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
-    edgeMidpointPolygons = Vector{Point2f}[]
+    edgeMidpointPolygons = Vector{Point}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(edgeMidpointPolygons,Point2f.(matrices.edgeMidpoints[orderedEdges]))
+        push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[matrices.cellEdgeOrders[i]]))
     end
     return edgeMidpointPolygons
 end
@@ -308,9 +307,8 @@ function calculateCellMidpointDivs(params,matrices,intersections,q)
     @unpack nCells = params
     cellMidpointDivs = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)       
         divSum = 0
-        for j in orderedEdges
+        for j in matrices.cellEdgeOrders[i]
             divSum -= B[i,j]*(intersections[j]⋅(ϵ*edgeTangents[j]))/cellAreas[i]
         end        
         push!(cellMidpointDivs,divSum)
@@ -323,9 +321,8 @@ function calculateCellMidpointCurls(params,matrices,intersections,q)
     @unpack nCells = params
     cellMidpointCurls = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
         curlSum = 0
-        for j in orderedEdges
+        for j in cellEdgeOrders[i]
             curlSum += B[i,j]*(intersections[j]⋅edgeTangents[j])/cellAreas[i]
         end
         push!(cellMidpointCurls,curlSum)

@@ -28,31 +28,24 @@ using Random
 function division!(integrator,params,matrices)
 
     @unpack nCells, nEdges, nVerts, nonDimCycleTime, distLogNormal, γ = params
-    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas, μ, Γ = matrices
+    @unpack A, B, C, cellAges, cellPositions, edgeMidpoints, cellEdgeCount, cellVertexOrders, cellEdgeOrders, cellPositions, cellPerimeters, cellOrientedAreas, cellAreas, cellTensions, cellPressures, boundaryVertices, boundaryEdges, F, externalF, totalF, edgeLengths, timeSinceT1, edgeTangents, ϵ, vertexAreas, μ, Γ = matrices
 
     divisionCount = 0
 
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
-    # nCellsOld = params.nCells # Local copy of initial cell count
-    # nEdgesOld = params.nEdges # Local copy of initial edge count
-    # nVertsOld = params.nVerts # Local copy of initial vertex count
 
     for i=1:nCells
         if Γ[i]<1.5 && cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
-            orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-            
-            n = length(orderedVertices)
-            
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)
             longPair = [1,3]
             # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]] 
-            for j=1:n-1
-                for k=j+1:n
-                    tmpDist = norm(integrator.u[orderedVertices[j]].-integrator.u[orderedVertices[k]])
+            for j=1:cellEdgeCount[i]-1
+                for k=j+1:cellEdgeCount[i]
+                    tmpDist = norm(integrator.u[cellVertexOrders[i][j]].-integrator.u[cellVertexOrders[i][k]])
                     if tmpDist>maximum(distances)
-                        longPair .= [orderedVertices[j],orderedVertices[k]]
+                        longPair .= [cellVertexOrders[i][j],cellVertexOrders[i][k]]
                     end
                     push!(distances,tmpDist)
                 end
@@ -62,22 +55,22 @@ function division!(integrator,params,matrices)
             # Find short axis perpendicular to long axis
             shortAxis = ϵ*longAxis
             shortAngle1 = (atan(shortAxis...)+2π)%2π
-            # Find the indices within orderedEdges of the edges intersected by the short axis
+            # Find the indices within cellEdgeOrders[i] of the edges intersected by the short axis
             intersectedIndex = [0,0]
-            minAngle = atan((edgeMidpoints[orderedEdges[1]].-cellPositions[i])...)
-            for ind = 1:n
-                if shortAngle1 <= atan((integrator.u[orderedVertices[ind]].-cellPositions[i])...)-minAngle
+            minAngle = atan((edgeMidpoints[cellEdgeOrders[i][1]].-cellPositions[i])...)
+            for ind = 1:cellEdgeCount[i]
+                if shortAngle1 <= atan((integrator.u[cellVertexOrders[i][ind]].-cellPositions[i])...)-minAngle
                     intersectedIndex[1] = ind
                     break
                 end
             end
-            intersectedIndex[2] = intersectedIndex[1]+n÷2
-            intersectedEdges = orderedEdges[intersectedIndex]
+            intersectedIndex[2] = intersectedIndex[1]+cellEdgeCount[i]÷2
+            intersectedEdges = cellEdgeOrders[i][intersectedIndex]
 
-            newCellVertices = orderedVertices[intersectedIndex[1]:intersectedIndex[2]-1] # Not including new vertices to be added later
-            oldCellVertices = setdiff(orderedVertices, newCellVertices) # Not including new vertices to be added later
-            newCellEdges = orderedEdges[intersectedIndex[1]+1:intersectedIndex[2]-1] # IntersectedEdges allocated to old cell, not including new edge to be added later
-            oldCellEdges = setdiff(orderedEdges, newCellEdges) # Not including new edge to be added later
+            newCellVertices = cellVertexOrders[i][intersectedIndex[1]:intersectedIndex[2]-1] # Not including new vertices to be added later
+            oldCellVertices = setdiff(cellVertexOrders[i], newCellVertices) # Not including new vertices to be added later
+            newCellEdges = cellEdgeOrders[i][intersectedIndex[1]+1:intersectedIndex[2]-1] # IntersectedEdges allocated to old cell, not including new edge to be added later
+            oldCellEdges = setdiff(cellEdgeOrders[i], newCellEdges) # Not including new edge to be added later
 
             # Labels of new edges, cell, and vertices 
             newEdges = nEdges.+collect(1:3)
@@ -122,12 +115,12 @@ function division!(integrator,params,matrices)
             Atmp[1:nEdges,1:nVerts] .= A
             
             # First intersected old edge (which remains in the old cell) loses downstream vertex and gains the new vertex
-            Atmp[intersectedEdges[1],orderedVertices[intersectedIndex[1]]] = 0
-            Atmp[intersectedEdges[1],newVertices[1]] = A[intersectedEdges[1],orderedVertices[intersectedIndex[1]]]
+            Atmp[intersectedEdges[1],cellVertexOrders[i][intersectedIndex[1]]] = 0
+            Atmp[intersectedEdges[1],newVertices[1]] = A[intersectedEdges[1],cellVertexOrders[i][intersectedIndex[1]]]
 
             # Second intersected old edge (which remains in the old cell) loses upstream vertex and gains the new vertex             
-            Atmp[intersectedEdges[2],orderedVertices[intersectedIndex[2]-1]] = 0
-            Atmp[intersectedEdges[2],newVertices[2]] = A[intersectedEdges[2],orderedVertices[intersectedIndex[2]-1]]
+            Atmp[intersectedEdges[2],cellVertexOrders[i][intersectedIndex[2]-1]] = 0
+            Atmp[intersectedEdges[2],newVertices[2]] = A[intersectedEdges[2],cellVertexOrders[i][intersectedIndex[2]-1]]
 
             # First new edge gains both new vertices
             # Clockwise orientation of new edge with respect to new cell means the new edge leaves the second new vertex and enters the first new vertex
@@ -136,10 +129,10 @@ function division!(integrator,params,matrices)
 
             # Second new edge gains first new vertex upstream (-1) and downstream vertex of old first intersected edge downstream (1)
             Atmp[newEdges[2],newVertices[1]] = -1
-            Atmp[newEdges[2],orderedVertices[intersectedIndex[1]]] = 1
+            Atmp[newEdges[2],cellVertexOrders[i][intersectedIndex[1]]] = 1
             
             # Third new edge gains second new vertex downstream (1) and upstream vertex of second old intersected edge upstream (-1)
-            Atmp[newEdges[3],orderedVertices[intersectedIndex[2]-1]] = -1
+            Atmp[newEdges[3],cellVertexOrders[i][intersectedIndex[2]-1]] = -1
             Atmp[newEdges[3],newVertices[2]] = 1
 
             # Check orientation of old vertices in new cell with respect to old edges allocated to new cell now that those old edges have been made clockwise with respect to new cell
@@ -160,7 +153,6 @@ function division!(integrator,params,matrices)
             push!(cellAges,0.0)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
-            # append!(cellAges,zeros(Float64,1))
 
             divisionCount = 1
             
