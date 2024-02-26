@@ -23,7 +23,7 @@ using FromFile
 
 function orderAroundCell2(matrices, i)
 
-    @unpack A, B, C = matrices
+    @unpack A, B = matrices
 
     # Find all edges and vertices for cell i
     cellEdges, edgeOrientations = findnz(B[i,:])
@@ -59,7 +59,7 @@ end
 
 function orderAroundCell(matrices, i)
 
-    @unpack A, B, C = matrices
+    @unpack A, B = matrices
 
     # Find all edges and vertices for cell i
     cellEdges, edgeOrientations = findnz(B[i,:])
