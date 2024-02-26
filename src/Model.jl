@@ -29,8 +29,8 @@ function model!(du, u, p, t)
 
     spatialData!(u,params,matrices)
 
-    fill!(F,@SVector zeros(2))
-    fill!(externalF,@SVector zeros(2))
+    fill!(F, @SVector zeros(2))
+    fill!(externalF, @SVector zeros(2))
 
     peripheryLength = sum(boundaryEdges.*edgeLengths)
     
@@ -47,10 +47,13 @@ function model!(du, u, p, t)
             # Force on vertex from peripheral tension
             externalF[k] -= boundaryEdges[rowvals(A)[j]]*peripheralTension*(peripheryLength-sqrt(π*nCells))*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
         end
+
+        du[k] = (sum(@view F[k,:]).+externalF[k])./vertexAreas[k]
     end
 
-    du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)
+    # du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)
     
+    return du
 end
 
 export model!

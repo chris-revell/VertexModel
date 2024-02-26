@@ -30,8 +30,7 @@ function topologyChange!(matrices)
     @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
-    mul!(C,B̄,Ā)
-    @.. thread=false C .÷= 2
+    C .= B̄*Ā./2
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))
@@ -44,7 +43,6 @@ function topologyChange!(matrices)
     dropzeros!(C)
     dropzeros!(Ā)
     dropzeros!(B̄)
-    dropzeros!(C)
     dropzeros!(Aᵀ)
     dropzeros!(Āᵀ)
     dropzeros!(Bᵀ)
