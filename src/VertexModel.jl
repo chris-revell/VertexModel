@@ -41,7 +41,7 @@ function vertexModel(;
     γ=0.2,
     L₀=0.75,
     A₀=1.0,
-    viscousTimeScale=20.0,
+    viscousTimeScale=1000.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
@@ -85,7 +85,7 @@ function vertexModel(;
     stiffened = false 
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t<params.tMax
+    while integrator.t<params.tMax && integrator.sol.retcode == ReturnCode.Default
         
         if !stiffened #integrator.t>params.tMax/100.0 && !stiffened
             cellNeighbourMatrix = matrices.B*matrices.B'
@@ -152,7 +152,7 @@ function vertexModel(;
     if outputToggle==1
         # Update spatial data after final integration step
         spatialData!(integrator.u,params,matrices)
-        printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
+        printToggle==1 ? println("$(@sprintf("%.3f", integrator.t))/$(@sprintf("%.3f", params.tMax)), $(integrator.t*outputTotal÷params.tMax)/$outputTotal") : nothing 
         # Save final data file regardless of whether other timepoint data files are saved
         # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
         R = @view integrator.u[:]
@@ -170,9 +170,9 @@ function vertexModel(;
 end
 
 # Ensure code is precompiled
-# @compile_workload begin
-#     vertexModel(realTimetMax=1000.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
-# end
+@compile_workload begin
+    vertexModel(realTimetMax=250.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
+end
 
 export vertexModel
 
