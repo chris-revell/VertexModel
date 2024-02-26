@@ -68,15 +68,6 @@ function spatialData!(R,params,matrices)
     # Calculate cell boundary tensions
     @.. thread=false cellTensions   .= Γ.*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
 
-    # Calculate oriented cell areas
-    # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
-    # for i=1:nCells
-    #     for j in nzrange(Bᵀ,i)
-    #         cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
-    #     end
-    #     cellAreas[i] = cellOrientedAreas[i][1,2]
-    # end
-
     for i=1:nCells
         cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
     end
@@ -92,4 +83,12 @@ export spatialData!
 
 end
 
-#47, 83
+
+# Calculate oriented cell areas
+# fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
+# for i=1:nCells
+#     for j in nzrange(Bᵀ,i)
+#         cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
+#     end
+#     cellAreas[i] = cellOrientedAreas[i][1,2]
+# end

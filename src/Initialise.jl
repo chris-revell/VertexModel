@@ -28,7 +28,7 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+function initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Calculate derived parameters
     tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -47,14 +47,19 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     if initialSystem in ["one","three","seven","seven_original"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
-        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
-        cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem")
-        @unpack A,B,cellAges = importedData["matrices"]
+        @unpack A,B = importedData["matrices"]
+        if reInitAges
+            cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
+        else
+            @unpack cellAges = importedData["matrices"]
+        end
         R = importedData["R"]
     end
 
@@ -123,7 +128,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        LogNormal(log(nonDimCycleTime), 0.1) # distLogNormal
+        LogNormal(0.0, 0.2)
     )
 
     # Initial evaluation of matrices based on system topology

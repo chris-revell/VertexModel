@@ -35,7 +35,7 @@ function division!(integrator,params,matrices)
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
 
     for i=1:nCells
-        if Γ[i]<1.5 && cellAges[i]>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if μ[i]<1.5 && (cellAges[i]/nonDimCycleTime)>rand(distLogNormal) && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)

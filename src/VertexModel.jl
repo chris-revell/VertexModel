@@ -36,6 +36,7 @@ using Printf
 
 function vertexModel(;
     initialSystem="large",
+    reInitAges=true,
     realTimetMax=1.0*86400.0,
     realCycleTime=86400.0,
     γ=0.2,
@@ -66,7 +67,7 @@ function vertexModel(;
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+    R,params,matrices = initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -102,8 +103,8 @@ function vertexModel(;
                 append!(excludedCells,neighboursOfNeighbours)
                 unique!(excludedCells)
             end
-            matrices.μ[cellsToStiffen] .*= 10.0
-            matrices.Γ[cellsToStiffen] .*= 10.0
+            matrices.μ[cellsToStiffen] .*= 2.0
+            matrices.Γ[cellsToStiffen] .*= 2.0
             stiffened = true
         end
 
