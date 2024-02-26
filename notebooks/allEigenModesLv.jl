@@ -31,7 +31,7 @@ hidespines!(ax)
 
 mkpath(datadir(folderName,"eigenmodesLv","frame$(@sprintf("%03d", frame))"))
 
-cellPolygons = makeCellPolygons(R,params,matrices)
+cellPolygons = makeCellPolygonsOld(R,params,matrices)
 linkTriangles = makeLinkTriangles(R,params,matrices)
 
 decomposition = eigenmodesLv(R,matrices,params)

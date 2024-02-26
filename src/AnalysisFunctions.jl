@@ -25,10 +25,44 @@ using CircularArrays
 
 getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 
+effectiveCellPressure(cellPressures,cellTensions,cellPerimeters,cellAreas) = cellPressures .+ cellTensions.*cellPerimeters./(2.0.*cellAreas)
+
+function cellQs(cellPerimeters,edgeTangents,B̄) 
+    Q = Matrix{Float64}[]
+    for i=1:length(cellPerimeters)
+        sum_j = zeros(2,2)
+        for j=1:length(edgeTangents)
+            sum_j += B̄[i,j].*edgeTangents[j]*normalize(edgeTangents[j]')
+        end
+        Qᵢ = sum_j./cellPerimeters[i] 
+        push!(Q,Qᵢ)
+    end
+    return Q
+end
+
+function cellShears(cellTensions, cellPerimeters, cellAreas, cellQs)
+    shears = Float64[]
+    for i=1:length(cellTensions)
+        determinantComponent = -det(cellQs[i]-(I./2))
+        shear = (cellTensions[i]*cellPerimeters[i]/cellAreas[i])*sqrt(determinantComponent)
+        push!(shears, shear)
+    end
+    return shears
+end
+
 function makeCellPolygons(R,params,matrices)
     cellPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
         push!(cellPolygons,Point{2,Float64}.(R[matrices.cellVertexOrders[i]]))
+    end
+    return cellPolygons
+end
+
+function makeCellPolygonsOld(R,params,matrices)
+    cellPolygons = Vector{Point{2,Float64}}[]
+    for i=1:params.nCells
+        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
+        push!(cellPolygons,Point{2,Float64}.(R[orderedVertices]))
     end
     return cellPolygons
 end
@@ -54,7 +88,7 @@ function makeLinkTriangles(R,params,matrices)
     @unpack A,B,C,boundaryVertices,cellPositions,edgeMidpoints = matrices
     @unpack nCells,nVerts = params
     onesVec = ones(1,nCells)
-    linkTriangles = Vector{Point}[]
+    linkTriangles = Vector{Point{2,Float64}}[]
     boundaryEdges = abs.(onesVec*B)
     for k=1:nVerts
         if boundaryVertices[k] == 0
@@ -84,7 +118,7 @@ end
 function makeEdgeTrapezia(R,params,matrices)
     @unpack A,B,cellPositions = matrices
     @unpack nEdges = params
-    edgeTrapezia = Vector{Point}[]
+    edgeTrapezia = Vector{Point{2,Float64}}[]
     for j=1:nEdges
         edgeCells = findall(x->x!=0,B[:,j])
         edgeVertices = findall(x->x!=0,A[j,:])
@@ -98,7 +132,7 @@ function makeEdgeTrapezia(R,params,matrices)
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
-    edgeMidpointPolygons = Vector{Point}[]
+    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
         push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[matrices.cellEdgeOrders[i]]))
     end
@@ -332,6 +366,7 @@ end
 
 export getRandomColor
 export makeCellPolygons
+export makeCellPolygonsOld
 export makeCellLinks
 export makeLinkTriangles
 export makeEdgeTrapezia
@@ -347,5 +382,8 @@ export calculateVertexMidpointCurls
 export calculateVertexMidpointDivs
 export calculateCellMidpointDivs
 export calculateCellMidpointCurls
+export effectiveCellPressure
+export cellQs
+export cellShears
 
 end #end module 
