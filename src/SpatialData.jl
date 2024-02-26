@@ -26,19 +26,14 @@ function spatialData!(R,params,matrices)
     @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellVertexOrders,cellEdgeOrders,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas,μ,Γ = matrices
     @unpack nCells,nEdges,nVerts,γ,L₀,A₀ = params
 
-    # cellPositions  .= C*R./cellEdgeCount
-    mul!(cellPositions,C,R)
-    @.. thread=false cellPositions ./= cellEdgeCount
-
-    # edgeTangents   .= A*R
-    mul!(edgeTangents,A,R)
-
+    cellPositions  .= C*R./cellEdgeCount
+    
+    edgeTangents   .= A*R
+    
     @.. thread=false edgeLengths .= norm.(edgeTangents)
 
-    # edgeMidpoints  .= 0.5.*Ā*R
-    mul!(edgeMidpoints,Ā,R)
-    @.. thread=false edgeMidpoints .*= 0.5
-
+    edgeMidpoints  .= 0.5.*Ā*R
+    
     fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
     dropzeros!(edgeMidpointLinks)
     nzC = findnz(C)
@@ -68,12 +63,10 @@ function spatialData!(R,params,matrices)
         end
     end
 
-    # cellPerimeters .= B̄*edgeLengths
-    mul!(cellPerimeters,B̄,edgeLengths)
+    cellPerimeters .= B̄*edgeLengths
 
     # Calculate cell boundary tensions
-    # @.. thread=false cellTensions   .= γ*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
-    cellTensions   .= Γ.*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
+    @.. thread=false cellTensions   .= Γ.*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
 
     # Calculate oriented cell areas
     # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
@@ -89,8 +82,7 @@ function spatialData!(R,params,matrices)
     end
 
     # Calculate cell internal pressures
-    # @.. thread=false cellPressures  .= ones(nCells).*log.(cellAreas./A₀) #cellAreas .- A₀
-    cellPressures  .= A₀.*μ.*log.(cellAreas./A₀) #cellAreas .- A₀
+    @.. thread=false cellPressures  .= A₀.*μ.*log.(cellAreas./A₀) #cellAreas .- A₀
 
     return nothing
 
