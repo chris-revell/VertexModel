@@ -27,15 +27,31 @@ using Random
 
 function division!(integrator,params,matrices)
 
-    @unpack nCells, nEdges, nVerts, nonDimCycleTime, distLogNormal, γ = params
-    @unpack A, B, cellTimeToDivide, cellPositions, edgeMidpoints, cellEdgeCount, cellVertexOrders, cellEdgeOrders, boundaryEdges, ϵ, μ, Γ = matrices
+    @unpack nCells,
+        nEdges,
+        nVerts,
+        nonDimCycleTime,
+        distLogNormal,
+        γ = params
+    @unpack A, 
+        B, 
+        cellTimeToDivide, 
+        cellPositions, 
+        edgeMidpoints, 
+        cellEdgeCount, 
+        cellVertexOrders, 
+        cellEdgeOrders, 
+        boundaryEdges, 
+        ϵ, 
+        μ, 
+        Γ = matrices
 
     divisionCount = 0
 
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
 
     for i=1:nCells
-        if μ[i]<1.5 && cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)

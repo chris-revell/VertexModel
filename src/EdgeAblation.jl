@@ -24,8 +24,11 @@ using DifferentialEquations
 
 function edgeAblation(j, params, matrices, integrator)
     
-    @unpack A, B = matrices 
-    @unpack nVerts, nEdges, nCells = params
+    @unpack A,
+        B = matrices 
+    @unpack nVerts, 
+        nEdges, 
+        nCells = params
 
     # Find cells adjacent to edge j 
     cells = sort(findall(x->x!=0, B[:,j]))

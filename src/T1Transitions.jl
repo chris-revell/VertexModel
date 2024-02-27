@@ -15,8 +15,14 @@ using UnPack
 
 function t1Transitions!(R,params,matrices)
 
-    @unpack A,B,C,edgeLengths,timeSinceT1,boundaryEdges = matrices
-    @unpack nEdges,t1Threshold = params
+    @unpack A,
+        B,
+        C,
+        edgeLengths,
+        timeSinceT1,
+        boundaryEdges = matrices
+    @unpack nEdges,
+        t1Threshold = params
 
     transitionCount = 0
 

@@ -84,31 +84,9 @@ function vertexModel(;
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
-    stiffened = false 
-
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode == ReturnCode.Default
         
-        if !stiffened #integrator.t>params.tMax/100.0 && !stiffened
-            cellNeighbourMatrix = matrices.B*matrices.B'
-            cellsToStiffen = Int64[]
-            excludedCells = Int64[]
-            while length(excludedCells) < params.nCells
-                cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
-                neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
-                neighboursOfNeighbours = Int64[]
-                for n in neighbours
-                    append!(neighboursOfNeighbours,findall(x->x!=0,cellNeighbourMatrix[n,:]))
-                end                
-                push!(cellsToStiffen,cellToUpdate)
-                append!(excludedCells,neighboursOfNeighbours)
-                unique!(excludedCells)
-            end
-            matrices.μ[cellsToStiffen] .*= 2.0
-            matrices.Γ[cellsToStiffen] .*= 2.0
-            stiffened = true
-        end
-
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 

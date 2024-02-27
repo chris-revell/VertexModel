@@ -19,7 +19,23 @@ using DrWatson
 
 function createRunDirectory(R,params,matrices,subFolder)
 
-    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
+    @unpack initialSystem,
+        realTimetMax,
+        γ,
+        λ,
+        A₀,
+        pressureExternal,
+        viscousTimeScale,
+        outputTotal,
+        t1Threshold,
+        realCycleTime,
+        nVerts,
+        nCells,
+        nEdges,
+        L₀,
+        outputInterval,
+        tMax,
+        nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax

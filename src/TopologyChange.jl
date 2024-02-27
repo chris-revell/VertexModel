@@ -23,7 +23,20 @@ using DrWatson
 
 function topologyChange!(matrices)
 
-    @unpack A,B,Aᵀ,Ā,Āᵀ,Bᵀ,B̄,B̄ᵀ,C,cellEdgeCount,cellVertexOrders,cellEdgeOrders,boundaryVertices,boundaryEdges = matrices
+    @unpack A,
+        B,
+        Aᵀ,
+        Ā,
+        Āᵀ,
+        Bᵀ,
+        B̄,
+        B̄ᵀ,
+        C,
+        cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        boundaryVertices,
+        boundaryEdges = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
