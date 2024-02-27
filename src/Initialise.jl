@@ -40,7 +40,6 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # Random seed set from current unix time, 
     # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
     seed = (setRandomSeed==0 ? floor(Int64,datetime2unix(now())) : setRandomSeed)
-    # rng = Xoshiro(seed)
     Random.seed!(seed)
 
     # Initialise system matrices from function or file
