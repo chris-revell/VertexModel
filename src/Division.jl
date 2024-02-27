@@ -27,8 +27,24 @@ using Random
 
 function division!(integrator,params,matrices)
 
-    @unpack nCells, nEdges, nVerts, nonDimCycleTime, distLogNormal, γ = params
-    @unpack A, B, cellTimeToDivide, cellPositions, edgeMidpoints, cellEdgeCount, cellVertexOrders, cellEdgeOrders, boundaryEdges, ϵ, μ, Γ = matrices
+    @unpack nCells,
+        nEdges,
+        nVerts,
+        nonDimCycleTime,
+        distLogNormal,
+        γ = params
+    @unpack A, 
+        B, 
+        cellTimeToDivide, 
+        cellPositions, 
+        edgeMidpoints, 
+        cellEdgeCount, 
+        cellVertexOrders, 
+        cellEdgeOrders, 
+        boundaryEdges, 
+        ϵ, 
+        μ, 
+        Γ = matrices
 
     divisionCount = 0
 

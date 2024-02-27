@@ -24,8 +24,25 @@ using DrWatson
 function model!(du, u, p, t)
 
     params, matrices = p
-    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges,vertexAreas = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
+    @unpack A,
+        B,
+        Ā,
+        B̄,
+        cellTensions,
+        cellPressures,
+        edgeLengths,
+        edgeTangents,
+        F,
+        externalF,
+        ϵ,
+        boundaryVertices,
+        boundaryEdges,
+        vertexAreas = matrices
+    @unpack nVerts,
+        nCells,
+        nEdges,
+        pressureExternal,
+        peripheralTension = params
 
     spatialData!(u,params,matrices)
 

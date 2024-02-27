@@ -31,8 +31,17 @@ using DrWatson
 
 function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
 
-    @unpack cellEdgeCount, cellVertexOrders, cellEdgeOrders, cellPositions, edgeMidpoints, F, edgeMidpointLinks, μ = matrices
-    @unpack nEdges, nVerts, nCells = params
+    @unpack cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        cellPositions,
+        edgeMidpoints,
+        F,
+        edgeMidpointLinks,
+        μ = matrices
+    @unpack nEdges,
+        nVerts,
+        nCells = params
 
     empty!(ax1)
 

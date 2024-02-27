@@ -23,8 +23,34 @@ using GeometryBasics
 
 function spatialData!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,Bᵀ,C,cellEdgeCount,cellVertexOrders,cellEdgeOrders,cellPositions,cellPerimeters,cellOrientedAreas,cellAreas,cellTensions,cellPressures,edgeLengths,edgeTangents,edgeMidpoints,edgeMidpointLinks,vertexAreas,μ,Γ = matrices
-    @unpack nCells,nEdges,nVerts,γ,L₀,A₀ = params
+    @unpack A,
+        B,
+        Ā,
+        B̄,
+        Bᵀ,
+        C,
+        cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        cellPositions,
+        cellPerimeters,
+        cellOrientedAreas,
+        cellAreas,
+        cellTensions,
+        cellPressures,
+        edgeLengths,
+        edgeTangents,
+        edgeMidpoints,
+        edgeMidpointLinks,
+        vertexAreas,
+        μ,
+        Γ = matrices
+    @unpack nCells,
+        nEdges,
+        nVerts,
+        γ,
+        L₀,
+        A₀ = params
 
     cellPositions  .= C*R./cellEdgeCount
     
@@ -70,10 +96,10 @@ function spatialData!(R,params,matrices)
     end
 
     # Calculate cell boundary tensions
-    @.. thread=false cellTensions   .= Γ.*L₀.*log.(cellPerimeters./L₀) #γ.*(L₀ .- cellPerimeters)
+    @.. thread=false cellTensions  .= Γ.*L₀.*log.(cellPerimeters./L₀)
 
     # Calculate cell internal pressures
-    @.. thread=false cellPressures  .= A₀.*μ.*log.(cellAreas./A₀) #cellAreas .- A₀
+    @.. thread=false cellPressures .= A₀.*μ.*log.(cellAreas./A₀)
 
     return nothing
 
