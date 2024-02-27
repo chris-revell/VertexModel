@@ -30,6 +30,7 @@ function model!(du, u, p, t)
     spatialData!(u,params,matrices)
 
     fill!(F, @SVector zeros(2))
+    dropzeros!(F)
     fill!(externalF, @SVector zeros(2))
 
     peripheryLength = sum(boundaryEdges.*edgeLengths)
@@ -40,7 +41,7 @@ function model!(du, u, p, t)
                 # Force components from cell pressure perpendicular to edge tangents 
                 F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])
                 # Force components from cell membrane tension parallel to edge tangents 
-                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
+                F[k,rowvals(B)[i]] -= cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure 
                 externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end

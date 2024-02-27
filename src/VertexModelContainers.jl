@@ -68,7 +68,7 @@ mutable struct MatricesContainer
     edgeMidpointLinks::SparseMatrixCSC{SVector{2, Float64}, Int64}
     timeSinceT1      ::Vector{Float64}                              # Vector of times since each edge last underwent a T1 transition
     vertexAreas      ::Vector{Float64}                              # Vector of areas of triangles surrounding vertices    
-    F                ::Matrix{SVector{2, Float64}}                  # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
+    F                ::SparseMatrixCSC{SVector{2, Float64}, Int64}  # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
     externalF        ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix

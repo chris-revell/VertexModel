@@ -94,7 +94,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         spzeros(SVector{2,Float64}, nCells, nVerts),          # edgeMidpointLinks
         zeros(nEdges),                                        # timeSinceT1
         ones(nVerts),                                         # vertexAreas
-        fill(SVector{2,Float64}(zeros(2)), (nVerts, nCells)), # F
+        spzeros(SVector{2,Float64}, nVerts, nCells),          # F
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # externalF
         fill(SVector{2,Float64}(zeros(2)), nVerts),           # totalF
         SMatrix{2, 2, Float64}([                              # ϵ Clockwise rotation matrix setting orientation of cell faces

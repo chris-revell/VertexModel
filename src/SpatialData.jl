@@ -65,12 +65,12 @@ function spatialData!(R,params,matrices)
 
     cellPerimeters .= B̄*edgeLengths
 
-    # Calculate cell boundary tensions
-    @.. thread=false cellTensions   .= Γ.*L₀.*log.(L₀./cellPerimeters) #γ.*(L₀ .- cellPerimeters)
-
     for i=1:nCells
         cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
     end
+
+    # Calculate cell boundary tensions
+    @.. thread=false cellTensions   .= Γ.*L₀.*log.(cellPerimeters./L₀) #γ.*(L₀ .- cellPerimeters)
 
     # Calculate cell internal pressures
     @.. thread=false cellPressures  .= A₀.*μ.*log.(cellAreas./A₀) #cellAreas .- A₀
