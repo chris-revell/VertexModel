@@ -5,7 +5,7 @@
 #  Created by Christopher Revell on 10/03/2021.
 #
 #
-# Function to recalculate derived matrices (Ā, Aᵀ etc.) for any change in vertex network topology (ie any change to A or B matrices).
+# 
 
 module T1Transitions
 
@@ -15,7 +15,7 @@ using UnPack
 
 function t1Transitions!(R,params,matrices)
 
-    @unpack A,B,Ā,B̄,C,edgeLengths,edgeTangents,timeSinceT1,ϵ,boundaryVertices,boundaryEdges,edgeMidpoints,cellPositions = matrices
+    @unpack A,B,C,edgeLengths,timeSinceT1,boundaryEdges = matrices
     @unpack nEdges,t1Threshold = params
 
     transitionCount = 0
