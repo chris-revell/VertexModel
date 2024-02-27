@@ -36,9 +36,9 @@ using Printf
 
 function vertexModel(;
     initialSystem="large",
-    reInitAges=true,
-    realTimetMax=1.0*86400.0,
+    nCycles=1,
     realCycleTime=86400.0,
+    realTimetMax=nCycles*realCycleTime,
     γ=0.2,
     L₀=0.75,
     A₀=1.0,
@@ -66,8 +66,9 @@ function vertexModel(;
 
     BLAS.set_num_threads(nBlasThreads)
 
+    # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -145,7 +146,7 @@ function vertexModel(;
         end
 
         # Update cell ages with (variable) timestep used in integration step
-        matrices.cellAges .+= integrator.dt
+        matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
     end
 
@@ -172,7 +173,7 @@ end
 
 # Ensure code is precompiled
 @compile_workload begin
-    vertexModel(realTimetMax=250.0,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
+    vertexModel(nCycles=0.01,outputToggle=0,frameDataToggle=0,frameImageToggle=0,printToggle=0,videoToggle=0)
 end
 
 export vertexModel

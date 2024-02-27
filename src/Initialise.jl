@@ -28,7 +28,7 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed)
 
     # Calculate derived parameters
     tMax            = realTimetMax/viscousTimeScale  # Non dimensionalised maximum system run time
@@ -47,19 +47,15 @@ function initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureE
     if initialSystem in ["one","three","seven","seven_original"]
         # Create matrices for one, three, or seven cells geometrically
         A,B,R = initialHexagons(initialSystem)
-        cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
+        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
     elseif initialSystem=="large"
         A,B,R = largeInitialSystem()
-        cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
+        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem")
         @unpack A,B = importedData["matrices"]
-        if reInitAges
-            cellAges = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
-        else
-            @unpack cellAges = importedData["matrices"]
-        end
+        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
 
@@ -89,7 +85,7 @@ function initialise(initialSystem,reInitAges,realTimetMax,γ,L₀,A₀,pressureE
         zeros(nCells),                                        # cellAreas
         zeros(nCells),                                        # cellTensions
         zeros(nCells),                                        # cellPressures
-        cellAges,                                             # cellAges
+        cellTimeToDivide,                                     # cellTimeToDivide
         ones(nCells),                                         # μ
         γ.*ones(nCells),                                      # Γ
         zeros(nEdges),                                        # edgeLengths

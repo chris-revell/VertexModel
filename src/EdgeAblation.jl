@@ -90,7 +90,7 @@ function edgeAblation(j, params, matrices, integrator)
     
     resizeMatrices!(params, matrices, nVerts-2, nEdges-3, nCells-1)
     # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to delete specific values
-    deleteat!(matrices.cellAges, cells[2])
+    deleteat!(matrices.cellTimeToDivide, cells[2])
     deleteat!(matrices.μ, cells[2])
     deleteat!(matrices.Γ, cells[2])
 
