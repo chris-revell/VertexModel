@@ -17,7 +17,7 @@ using UnPack
 using JLD2
 using DrWatson
 
-function createRunDirectory(R,params,matrices,subFolder)
+function createRunDirectory(R,params,matrices,subFolder,stiffnessFactor)
 
     @unpack initialSystem,
         realTimetMax,
@@ -38,7 +38,7 @@ function createRunDirectory(R,params,matrices,subFolder)
         nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
-    paramsName = @savename nCells L₀ γ realTimetMax
+    paramsName = @savename nCells realTimetMax pressureExternal stiffnessFactor
     folderName = "$(paramsName)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir("sims",subFolder,folderName,"frameImages"))

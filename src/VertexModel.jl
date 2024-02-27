@@ -62,6 +62,7 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
+    stiffnessFactor = 1.0
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -73,7 +74,7 @@ function vertexModel(;
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
-        folderName = createRunDirectory(R,params,matrices,subFolder)
+        folderName = createRunDirectory(R,params,matrices,subFolder,stiffnessFactor)
         if frameImageToggle==1 || videoToggle==1
             # Create plot object for later use 
             fig,ax1,mov=plotSetup(R,params,matrices,subFolder,folderName)
@@ -84,9 +85,31 @@ function vertexModel(;
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
     integrator = init(prob,solver,abstol=1e-7,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
+    stiffened=false
+
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode == ReturnCode.Default
         
+        if !stiffened #integrator.t>params.tMax/100.0 && !stiffened
+            cellNeighbourMatrix = matrices.B*matrices.B'
+            cellsToStiffen = Int64[]
+            excludedCells = Int64[]
+            while length(excludedCells) < params.nCells
+                cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
+                neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
+                neighboursOfNeighbours = Int64[]
+                for n in neighbours
+                    append!(neighboursOfNeighbours,findall(x->x!=0,cellNeighbourMatrix[n,:]))
+                end                
+                push!(cellsToStiffen,cellToUpdate)
+                append!(excludedCells,neighboursOfNeighbours)
+                unique!(excludedCells)
+            end
+            matrices.μ[cellsToStiffen] .*= 2.0
+            matrices.Γ[cellsToStiffen] .*= 2.0
+            stiffened = true
+        end
+
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 
@@ -116,11 +139,13 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator,params,matrices)>0
-            u_modified!(integrator,true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+        if integrator.t<params.nonDimCycleTime/2.0
+            if division!(integrator,params,matrices)>0
+                u_modified!(integrator,true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+            end
         end
 
         # Update cell ages with (variable) timestep used in integration step

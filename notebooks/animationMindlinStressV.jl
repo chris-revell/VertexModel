@@ -27,13 +27,20 @@ hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
 
 potentials = Vector{Float64}[]
+notExcludedVertVectors = Vector{Bool}[]
 for t=0:100
     @unpack R, matrices, params = load(datadir(folderName,"frameData","systemData$(@sprintf("%03d", t)).jld2"))
     ψ̆, spectrum = capitalPsivPotential(R, params,matrices)
     push!(potentials,ψ̆)
+    notExcludedVerts = fill(true,params.nVerts)
+    # notExcludedCells[matrices.μ.>1.5] .= false
+    for j in findall(x->x!=0, matrices.boundaryVertices)
+        notExcludedVerts[j] = false
+    end
+    push!(notExcludedCellVectors,notExcludedCells)    
 end 
 
-globalMax = maximum([maximum(abs.(x)) for x in potentials])
+globalMax = maximum([maximum(abs.(potentials[t][notExcludedVertVectors[t]])) for t=1:101])
 ψ̆Lims = [-globalMax,globalMax]
 
 Colorbar(fig[1,1][1,2],limits=ψ̆Lims,colormap=:bwr,flipaxis=true)
@@ -49,7 +56,11 @@ for t=0:100
         poly!(ax,linkTriangles[k],color=potentials[t+1][k],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
     end
     for i=1:nCells
-        poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
+        if matrices.μ[i]>1.5
+            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
+        else
+            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.2),strokewidth=2)
+        end
     end
     reset_limits!(ax)
     recordframe!(mov)

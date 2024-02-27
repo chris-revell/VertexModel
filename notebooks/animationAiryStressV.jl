@@ -45,11 +45,20 @@ for t=0:100
     cellPolygons = makeCellPolygonsOld(R,params,matrices)
     linkTriangles = makeLinkTriangles(R,params,matrices)
     empty!(ax)
-    for k=1:nVerts
-        poly!(ax,linkTriangles[k],color=potentials[t+1][k],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
+    # for k=1:nVerts
+    #     poly!(ax,linkTriangles[k],color=potentials[t+1][k],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
+    # end
+    for i=1:nCells
+        if matrices.μ[i]>1.5
+            # poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
+        else
+            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,0.2),strokewidth=2)
+        end
     end
     for i=1:nCells
-        poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
+        if matrices.μ[i]>1.5
+            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=2)
+        end
     end
     reset_limits!(ax)
     recordframe!(mov)

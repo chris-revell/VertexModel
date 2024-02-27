@@ -46,7 +46,16 @@ for t=0:100
     cellPolygons = makeCellPolygonsOld(R,params,matrices)
     empty!(ax)
     for i=1:nCells
-        poly!(ax,cellPolygons[i],color=potentials[t+1][i],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
+        if matrices.μ[i]>1.5
+            # poly!(ax,cellPolygons[i],color=potentials[t+1][i],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
+        else
+            poly!(ax,cellPolygons[i],color=potentials[t+1][i],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,0.2),strokewidth=2)
+        end
+    end
+    for i=1:nCells 
+        if matrices.μ[i]>1.5
+            poly!(ax,cellPolygons[i],color=potentials[t+1][i],colormap=:bwr,colorrange=Tuple(ψ̆Lims), strokecolor=(:black,1.0),strokewidth=2)
+        end
     end
     reset_limits!(ax)
     recordframe!(mov)
