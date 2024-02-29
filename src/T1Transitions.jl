@@ -22,12 +22,13 @@ function t1Transitions!(R,params,matrices)
         timeSinceT1,
         boundaryEdges = matrices
     @unpack nEdges,
-        t1Threshold = params
+        t1Threshold,
+        nonDimCycleTime = params
 
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > 1000.0
+        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > nonDimCycleTime/100.0
 
             timeSinceT1[j] = 0
 
