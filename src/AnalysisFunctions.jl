@@ -68,10 +68,8 @@ function makeCellPolygonsOld(R,params,matrices)
 end
 
 function makeCellLinks(params,matrices)
-    @unpack B,cellPositions,edgeMidpoints = matrices
+    @unpack B,cellPositions,boundaryEdges,edgeMidpoints = matrices
     @unpack nCells,nEdges = params
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
     T = SVector{2,Float64}[]
     for j=1:nEdges
@@ -85,11 +83,9 @@ function makeCellLinks(params,matrices)
 end
 
 function makeLinkTriangles(R,params,matrices)
-    @unpack A,B,C,boundaryVertices,cellPositions,edgeMidpoints = matrices
-    @unpack nCells,nVerts = params
-    onesVec = ones(1,nCells)
+    @unpack A,C,boundaryVertices,boundaryEdges,cellPositions,cellEdgeOrders,edgeMidpoints = matrices
+    @unpack nVerts = params
     linkTriangles = Vector{Point{2,Float64}}[]
-    boundaryEdges = abs.(onesVec*B)
     for k=1:nVerts
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
@@ -97,18 +93,16 @@ function makeLinkTriangles(R,params,matrices)
             push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
-            vertexCells = findall(x->x!=0,C[:,k])
-            vertexEdges = findall(x->x!=0,A[:,k])
-            boundaryVertexEdges = intersect(vertexEdges,findall(x->x!=0,boundaryEdges[1,:]))
-            kiteVertices = [edgeMidpoints[boundaryVertexEdges]; cellPositions[vertexCells]]
-            push!(kiteVertices,R[k])
-            com = sum(kiteVertices)./length(kiteVertices)
-            angles = Float64[]
-            for p=1:length(kiteVertices)
-                angle = atan((kiteVertices[p].-com)...)
-                push!(angles,angle)
+            vertexCells = findall(x->x!=0, C[:,k])
+            vertexEdges = findall(x->x!=0, A[:,k])
+            boundaryVertexEdges = [v for v in vertexEdges if boundaryEdges[v]!=0] #vertexEdges ∩ findall(x->x!=0,boundaryEdges))
+            if length(vertexCells)>1
+                edge1 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[1]])[1]
+                edge2 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[2]])[1]
+                kiteVertices = [R[k], edgeMidpoints[edge1], cellPositions[vertexCells[1]], cellPositions[vertexCells[2]], edgeMidpoints[edge2]]
+            else 
+                kiteVertices = [R[k], edgeMidpoints[boundaryVertexEdges[1]], cellPositions[vertexCells[1]], edgeMidpoints[boundaryVertexEdges[2]]]
             end
-            kiteVertices .= kiteVertices[sortperm(angles)]
             push!(linkTriangles,Point{2,Float64}.(kiteVertices))
         end
     end
@@ -253,26 +247,23 @@ function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     return vertexCurls
 end
 
-function makeCellVerticesDict(params,matrices)
-    cellVerticesDict = Dict()
-    for i=1:params.nCells
-        cellVertices, cellEdges = orderAroundCell(matrices, i)
-        # Store sorted cell vertices for this cell
-        cellVerticesDict[i] = cellVertices
-    end
-    return cellVerticesDict
-end
+# function makeCellVerticesDict(params,matrices)
+#     cellVerticesDict = Dict()
+#     for i=1:params.nCells
+#         cellVertices, cellEdges = orderAroundCell(matrices, i)
+#         # Store sorted cell vertices for this cell
+#         cellVerticesDict[i] = cellVertices
+#     end
+#     return cellVerticesDict
+# end
 
 function edgeLinkMidpoints(R,params,matrices,trapeziumAreas,T)
-    @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ = matrices
+    @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ,boundaryEdges = matrices
     @unpack nEdges = params
 
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1*ϵ
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
-
     intersections = SVector{2,Float64}[]
     for j=1:nEdges
         if boundaryEdges[j] == 0
@@ -301,7 +292,7 @@ end
 
 
 function calculateVertexMidpointCurls(params,matrices,intersections,linkTriangleAreas,q)
-    @unpack A,B,ϵ = matrices
+    @unpack A,B = matrices
     @unpack nVerts,nCells,nEdges = params
 
     vertexMidpointCurls = Float64[]
@@ -337,7 +328,7 @@ function calculateVertexMidpointDivs(params,matrices,intersections,linkTriangleA
 end
 
 function calculateCellMidpointDivs(params,matrices,intersections,q)
-    @unpack B,cellAreas,edgeTangents = matrices
+    @unpack B,cellAreas,edgeTangents,ϵ = matrices
     @unpack nCells = params
     cellMidpointDivs = Float64[]
     for i=1:nCells
@@ -375,7 +366,7 @@ export calculateCellCurls
 export calculateCellDivs
 export calculateVertexDivs
 export calculateVertexCurls
-export makeCellVerticesDict
+# export makeCellVerticesDict
 export edgeLinkMidpoints
 export calculateSpokes
 export calculateVertexMidpointCurls

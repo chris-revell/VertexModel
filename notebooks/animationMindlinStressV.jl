@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 
-# folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=400_pressureExternal=0.1_realTimetMax=173000.0_stiffnessFactor=5.0_24-02-28-12-15-02"
+# folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=400_pressureExternal=0.1_realTimetMax=173000.0_stiffnessFactor=5.0_24-02-28-16-00-39"
 
 potentials = Vector{Float64}[]
 stiffnesses = Vector{Float64}[]
@@ -47,6 +47,7 @@ globalMax = maximum([maximum(abs.(potentials[t][notExcludedVertVectors[t]])) for
 Colorbar(fig[1, 1][1, 2], limits=ψ̆Lims, colormap=:bwr, flipaxis=true)
 
 for t = 1:length(potentials)
+    @show t
     empty!(ax)
     for k = 1:length(linkTriangleVectors[t])
         if notExcludedVertVectors[t][k]
