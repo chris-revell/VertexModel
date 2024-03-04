@@ -36,17 +36,23 @@ function model!(du, u, p, t)
 
     #stretch monolayer, map R_x->(1 + \lambda)R_x, Ry->R-y/(1+\lambda)
 
-    Λ=@SMatrix[
+    Λx=@SMatrix[
         1+λs 0.0
         0.0 1/(1+λs)
     ]
 
-    # Λ=@SMatrix[
-    #    1/(1+λ) 0.0
-    #     0.0 (1+λ)
-    # ]
+    
+    Λy=@SMatrix[
+        1/(1+λs) 0.0
+        0.0 (1+λs)
+    ]
+    
+    ΛA=@SMatrix[
+       (1+λs) 0.0
+        0.0 (1+λs)
+    ]
 
-    stretch=Λ-I(2)
+    stretch=ΛA-I(2)
 
     for k=1:nVerts
         for j in nzrange(A,k)

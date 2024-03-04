@@ -53,8 +53,8 @@ function conditionSteadyState(u, t, integrator)
     # norm.() calculates magnitudes of all gradients as Floats; 
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
-    #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 2e-7 ? true : false
+    @show maximum(norm.(get_du(integrator)))
+    (maximum(norm.(get_du(integrator)))<1e-8 && integrator.t>1.5*integrator.p[2].tStretch)  ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -144,7 +144,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(R_initial,params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-7,callback=cbs, tstops=[params.tStretch]) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8,callback=cbs, tstops=[params.tStretch]) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode!=ReturnCode.Success
@@ -184,7 +184,10 @@ function vertexModel(;
 
                 R = @view integrator.u[:]
 
-                jldsave(datadir("sims",subFolder,folderName,"frameData","systemDataFullStretch.jld2");matrices,params,R)        
+                jldsave(datadir("sims",subFolder,folderName,"systemDataFullStretch.jld2");matrices,params,R)     
+                visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)  
+                save(datadir("sims",subFolder,folderName,"FullStretch.png"),fig)
+ 
         end
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
@@ -221,6 +224,8 @@ function vertexModel(;
         # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
         R = @view integrator.u[:]
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
+    
+        jldsave(datadir("sims",subFolder,folderName,"systemDataFinal.jld2");matrices,params,R) 
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
             visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)

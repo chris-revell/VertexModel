@@ -35,7 +35,7 @@ function spatialData!(R,params,matrices)
 
     @.. thread=false edgeLengths .= norm.(edgeTangents)
 
-    @show minimum(edgeLengths)
+    #@show minimum(edgeLengths)
 
     # edgeMidpoints  .= 0.5.*Ā*R
     mul!(edgeMidpoints,Ā,R)
