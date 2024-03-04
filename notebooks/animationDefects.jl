@@ -22,16 +22,19 @@ function neighbourColours(x)
     end
 end
 
-# folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=400_pressureExternal=0.1_realTimetMax=173000.0_stiffnessFactor=5.0_24-02-28-16-00-39"
+folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"
 
 fig = CairoMakie.Figure(size=(1000, 1000))
 ax = Axis(fig[1, 1], aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
-
-for t = 2:100
-    @unpack R, matrices, params = load(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", t)).jld2"))
+files = [datadir(folderName, "frameData", f) for f in readdir(datadir(folderName, "frameData")) if occursin(".jld2",f)]
+for t = 2:length(files)
+    @show t
+    @unpack R, matrices, params = load(files[t]; 
+        typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
+        "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
     @unpack B, Bᵀ, C, cellPositions = matrices
     @unpack nCells, nVerts = params
     cellNeighbourMatrix = B * Bᵀ
