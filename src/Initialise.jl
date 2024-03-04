@@ -52,7 +52,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
-        importedData = load("$initialSystem")
+        importedData = load("$initialSystem"; 
+            typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
+            "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
         @unpack A,B = importedData["matrices"]
         cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
