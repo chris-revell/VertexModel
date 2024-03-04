@@ -247,16 +247,6 @@ function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     return vertexCurls
 end
 
-# function makeCellVerticesDict(params,matrices)
-#     cellVerticesDict = Dict()
-#     for i=1:params.nCells
-#         cellVertices, cellEdges = orderAroundCell(matrices, i)
-#         # Store sorted cell vertices for this cell
-#         cellVerticesDict[i] = cellVertices
-#     end
-#     return cellVerticesDict
-# end
-
 function edgeLinkMidpoints(R,params,matrices,trapeziumAreas,T)
     @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ,boundaryEdges = matrices
     @unpack nEdges = params
@@ -289,7 +279,6 @@ function calculateSpokes(R,params,matrices)
     end
     return q
 end
-
 
 function calculateVertexMidpointCurls(params,matrices,intersections,linkTriangleAreas,q)
     @unpack A,B = matrices
@@ -366,7 +355,6 @@ export calculateCellCurls
 export calculateCellDivs
 export calculateVertexDivs
 export calculateVertexCurls
-# export makeCellVerticesDict
 export edgeLinkMidpoints
 export calculateSpokes
 export calculateVertexMidpointCurls
