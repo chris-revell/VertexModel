@@ -39,11 +39,11 @@ function topologyChange!(matrices)
         boundaryEdges = matrices
 
     # Find adjacency matrices from incidence matrices
-    @.. thread=false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
-    @.. thread=false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
+    @.. thread = false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    @.. thread = false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
-    C .= B̄*Ā./2
+    C .= B̄ * Ā ./ 2
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))
@@ -69,13 +69,13 @@ function topologyChange!(matrices)
     # Summing each column of B finds boundary edges (for all other edges, cell orientations on either side cancel);
     # multiplying by Aᵀ gives nonzero values only where a vertex (row) has nonzero values at columns (edges) corresponding to nonzero values in the list of boundary edges.
     # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
-    boundaryVertices .= Āᵀ*abs.(sum.(eachcol(B))).÷2  # FastBroadcast doesn't work for this line; not sure why
+    boundaryVertices .= Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
 
     # Find list of edges at system periphery
     boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
 
-    for i=1:length(cellVertexOrders)
-        cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(matrices,i)
+    for i = 1:length(cellVertexOrders)
+        cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(matrices, i)
     end
 
     return nothing
