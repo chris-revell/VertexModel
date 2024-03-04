@@ -41,7 +41,7 @@ function makeLc(params,matrices,T,trapeziumAreas)
     H = Diagonal(cellAreas)
     Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
     invTₗ = inv(Tₗ)
-    boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1,:])
+    boundaryEdgesFactorMat = Diagonal(@view boundaryEdgesFactor[1,:])
     Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
     dropzeros!(Lc)
     return Lc

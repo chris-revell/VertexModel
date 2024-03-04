@@ -89,12 +89,12 @@ function makeLinkTriangles(R,params,matrices)
     for k=1:nVerts
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
-            vertexCells = findall(x->x!=0,C[:,k])
+            vertexCells = findall(x->x!=0, @view C[:,k])
             push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
-            vertexCells = findall(x->x!=0, C[:,k])
-            vertexEdges = findall(x->x!=0, A[:,k])
+            vertexCells = findall(x->x!=0, @view C[:,k])
+            vertexEdges = findall(x->x!=0, @view A[:,k])
             boundaryVertexEdges = [v for v in vertexEdges if boundaryEdges[v]!=0] #vertexEdges ∩ findall(x->x!=0,boundaryEdges))
             if length(vertexCells)>1
                 edge1 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[1]])[1]
@@ -114,8 +114,8 @@ function makeEdgeTrapezia(R,params,matrices)
     @unpack nEdges = params
     edgeTrapezia = Vector{Point{2,Float64}}[]
     for j=1:nEdges
-        edgeCells = findall(x->x!=0,B[:,j])
-        edgeVertices = findall(x->x!=0,A[j,:])
+        edgeCells = findall(x->x!=0, @view B[:,j])
+        edgeVertices = findall(x->x!=0, @view A[j,:])
         if length(edgeCells) > 1
             push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
         else
@@ -140,7 +140,7 @@ function calculateCellCurls(R,params,matrices)
     @unpack nCells = params
     cellCurls = Float64[]
     for c=1:nCells
-        cellVertices = findall(x->x!=0,C[c,:])
+        cellVertices = findall(x->x!=0, @view C[c,:])
         vertexAngles = zeros(size(cellVertices))
         for (k,v) in enumerate(cellVertices)
             vertexAngles[k] = atan((R[v].-cellPositions[c])...)
@@ -148,7 +148,7 @@ function calculateCellCurls(R,params,matrices)
         m = minimum(vertexAngles)
         vertexAngles .-= m
         cellVertices .= cellVertices[sortperm(vertexAngles)]
-        cellEdges = findall(x->x!=0,B[c,:])
+        cellEdges = findall(x->x!=0, @view B[c,:])
         edgeAngles = zeros(size(cellEdges))
         for (k,e) in enumerate(cellEdges)
             edgeAngles[k] = atan((edgeMidpoints[e].-cellPositions[c])...)
@@ -174,7 +174,7 @@ function calculateCellDivs(R,params,matrices)
     @unpack nCells = params
     cellDivs = Float64[]
     for c=1:nCells
-        cellVertices = findall(x->x!=0,C[c,:])
+        cellVertices = findall(x->x!=0, @view C[c,:])
         vertexAngles = zeros(size(cellVertices))
         for (k,v) in enumerate(cellVertices)
             vertexAngles[k] = atan((R[v].-cellPositions[c])...)
@@ -182,7 +182,7 @@ function calculateCellDivs(R,params,matrices)
         m = minimum(vertexAngles)
         vertexAngles .-= m
         cellVertices .= cellVertices[sortperm(vertexAngles)]
-        cellEdges = findall(x->x!=0,B[c,:])
+        cellEdges = findall(x->x!=0, @view B[c,:])
         edgeAngles = zeros(size(cellEdges))
         for (k,e) in enumerate(cellEdges)
             edgeAngles[k] = atan((edgeMidpoints[e].-cellPositions[c])...)
@@ -210,7 +210,7 @@ function calculateVertexDivs(R,params,matrices,q,linkTriangleAreas)
     vertexDivs = Float64[]
     for k=1:nVerts
         divSum = 0
-        vertexCells = findall(x->x!=0,C[:,k])
+        vertexCells = findall(x->x!=0, @view C[:,k])
         cellAngles = zeros(length(vertexCells))
         for i=1:length(cellAngles)
             cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
@@ -233,7 +233,7 @@ function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts
         curlSum = 0
-        vertexCells = findall(x->x!=0,C[:,k])
+        vertexCells = findall(x->x!=0, @view C[:,k])
         cellAngles = zeros(length(vertexCells))
         for i=1:length(cellAngles)
             cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
@@ -267,8 +267,8 @@ function edgeLinkMidpoints(R,params,matrices,trapeziumAreas,T)
     intersections = SVector{2,Float64}[]
     for j=1:nEdges
         if boundaryEdges[j] == 0
-            k = findall(x->x<0,A[j,:])[1]
-            i = findall(x->x<0,B[:,j])[1]
+            k = findall(x->x<0, @view A[j,:])[1]
+            i = findall(x->x<0, @view B[:,j])[1]
             mⱼ = R[k] .+ ((cellPositions[i].-R[k])⋅(ϵₖ*T[j]))/(2.0*trapeziumAreas[j]).*edgeTangents[j]
             push!(intersections,mⱼ)
         else

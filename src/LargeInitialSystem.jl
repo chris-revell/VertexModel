@@ -83,7 +83,7 @@ function largeInitialSystem()
             vertexLeading = vertexIndexingMap[tessellation_constrained.polygons[c][i-1]]  # Leading with respect to *clockwise* direction around cell
             vertexTrailing = vertexIndexingMap[tessellation_constrained.polygons[c][i]]
             # Find index of edge connecting these vertices 
-            edge = (findall(x -> x != 0, A[:, vertexLeading])∩findall(x -> x != 0, A[:, vertexTrailing]))[1]
+            edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
             if A[edge, vertexLeading] > 0
                 B[c, edge] = 1
             else
@@ -97,9 +97,9 @@ function largeInitialSystem()
     verticesToRemove = Int64[]
     edgesToRemove = Int64[]
     for i=1:nVerts
-        edges = findall(x->x!=0,A[:,i])
-        cells1 = findall(x->x!=0, B[:,edges[1]])
-        cells2 = findall(x->x!=0, B[:,edges[2]])
+        edges = findall(x->x!=0, @view A[:,i])
+        cells1 = findall(x->x!=0, @view B[:,edges[1]])
+        cells2 = findall(x->x!=0, @view B[:,edges[2]])
         if cells1==cells2           
             # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
             push!(verticesToRemove, i)
@@ -107,8 +107,8 @@ function largeInitialSystem()
         end
     end
     for i in verticesToRemove
-        edges = findall(x->x!=0,A[:,i])
-        otherVertexOnEdge1 = setdiff(findall(x->x!=0, A[edges[1],:]), [i])[1]      
+        edges = findall(x->x!=0, @view A[:,i])
+        otherVertexOnEdge1 = setdiff(findall(x->x!=0, @view A[edges[1],:]), [i])[1]      
         A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
         A[edges[1], otherVertexOnEdge1] = 0
     end

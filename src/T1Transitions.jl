@@ -33,20 +33,20 @@ function t1Transitions!(R,params,matrices)
             timeSinceT1[j] = 0
 
             # Find vertices a and b at either end of the short edge j
-            a = findall(j->j>0,A[j,:])[1]
-            b = findall(j->j<0,A[j,:])[1]
+            a = findall(j->j>0, @view A[j,:])[1]
+            b = findall(j->j<0, @view A[j,:])[1]
             # Find cells around vertices a and b
-            aCells = findall(i->i!=0,C[:,a])            
-            bCells = findall(i->i!=0,C[:,b])            
+            aCells = findall(i->i!=0, @view C[:,a])            
+            bCells = findall(i->i!=0, @view C[:,b])            
             if length(aCells)>1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
                 if boundaryEdges[j]==0 
                     # Find cells P, Q, R, S surrounding vertices a and b
-                    Q = findall(i->i>0,B[:,j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
-                    S = findall(i->i<0,B[:,j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
-                    aEdges = findall(x->x!=0,A[:,a])                # Find all edges around vertex a
-                    k = setdiff(aEdges,findall(x->x!=0,B[Q,:]))[1]  # Find edge k around vertex a that is not shared by cell Q
-                    bEdges = findall(x->x!=0,A[:,b])                # Find all edges around vertex b
-                    m = setdiff(bEdges,findall(x->x!=0,B[S,:]))[1]  # Find edge m around vertex b that is not shared by cell S                    
+                    Q = findall(i->i>0, @view B[:,j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
+                    S = findall(i->i<0, @view B[:,j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
+                    aEdges = findall(x->x!=0, @view A[:,a])                # Find all edges around vertex a
+                    k = setdiff(aEdges,findall(x->x!=0, @view B[Q,:]))[1]  # Find edge k around vertex a that is not shared by cell Q
+                    bEdges = findall(x->x!=0, @view A[:,b])                # Find all edges around vertex b
+                    m = setdiff(bEdges,findall(x->x!=0, @view B[S,:]))[1]  # Find edge m around vertex b that is not shared by cell S                    
                     # Assume cell P shares vertex a, which has positive orientation with respect to edge j
                     P = setdiff(aCells, [Q,S]) # NB This is an array that may have 1 element or be empty since cell P may not exist if vertex a is at the periphery, but the algorithm is generalised to accommodate this
                     # Assume cell R shares vertex b, which has negative orientation with respect to edge j
@@ -66,16 +66,16 @@ function t1Transitions!(R,params,matrices)
                 else
                     # Boundary edge 
                     # Find cells P, Q, R surrounding vertices a and b. There is no cell S.
-                    Q = findall(i->i!=0,B[:,j])[1]
+                    Q = findall(i->i!=0, @view B[:,j])[1]
                     # Assume cell P shares vertex a, which has positive orientation with respect to edge j
                     P = setdiff(aCells, [Q])[1]   
                     # Assume cell R shares vertex b, which has negative orientation with respec to edge j
                     R = setdiff(bCells, [Q])[1]                                    
             
-                    aEdges = findall(x->x!=0,A[:,a])                            # Find all edges around vertex a
-                    k = setdiff(aEdges,findall(x->x!=0,B[Q,:]))[1]              # Find edge k around vertex a that is not shared by cell Q
-                    bEdges = findall(x->x!=0,A[:,b])                            # Find all edges around vertex b
-                    m = (findall(x->x!=0,B[Q,:])∩findall(x->x!=0,B[R,:]))[1]    # Find edge m around vertex b that is shared by Q and R
+                    aEdges = findall(x->x!=0, @view A[:,a])                            # Find all edges around vertex a
+                    k = setdiff(aEdges,findall(x->x!=0, @view B[Q,:]))[1]              # Find edge k around vertex a that is not shared by cell Q
+                    bEdges = findall(x->x!=0, @view A[:,b])                            # Find all edges around vertex b
+                    m = (findall(x->x!=0, @view B[Q,:])∩findall(x->x!=0, @view B[R,:]))[1]    # Find edge m around vertex b that is shared by Q and R
                     
                     # Add edge j to cells R and P
                     B[R,j] = B[Q,j]; B[P,j] = -B[Q,j]

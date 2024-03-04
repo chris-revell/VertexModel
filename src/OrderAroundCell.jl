@@ -21,40 +21,42 @@ using FromFile
 @from "VertexModelContainers.jl" using VertexModelContainers
 
 
-function orderAroundCell2(matrices, i)
+# function orderAroundCell2(matrices, i)
 
-    @unpack A, B = matrices
+#     @unpack A, B = matrices
 
-    # Find all edges and vertices for cell i
-    cellEdges, edgeOrientations = findnz(B[i,:])
-    N = length(cellEdges)
-
-
-    a, b, c = findnz(A[cellEdges,:])
-    b .= b[sortperm(a)]
-    c .= c[sortperm(a)]
+#     # Find all edges and vertices for cell i
+#     cellEdges, edgeOrientations = findnz(B[i,:])
+#     # cellEdges, edgeOrientations = findnz(@view B[i,:])
+#     N = length(cellEdges)
 
 
-    orderedVerticesAroundEdges = zeros(Int64,N,2)
-    # orderedVerticesAroundEdges = MMatrix{N,2,Int64}(zeros(Int64,N,2))
-    for j=1:N
-        verts = @view b[2*(j-1)+1:2*j]
-        orients = @view c[2*(j-1)+1:2*j]
-        # verts, orients = findnz(A[cellEdges[j],:])
-        orderedVerticesAroundEdges[j,:] .= verts[sortperm(edgeOrientations[j].*orients)]
-    end
+#     # a, b, c = findnz(A[cellEdges,:])
+#     a, b, c = findnz(@view A[cellEdges,:])
+#     b .= b[sortperm(a)]
+#     c .= c[sortperm(a)]
+
+
+#     orderedVerticesAroundEdges = zeros(Int64,N,2)
+#     # orderedVerticesAroundEdges = MMatrix{N,2,Int64}(zeros(Int64,N,2))
+#     for j=1:N
+#         verts = @view b[2*(j-1)+1:2*j]
+#         orients = @view c[2*(j-1)+1:2*j]
+#         # verts, orients = findnz(A[cellEdges[j],:])
+#         orderedVerticesAroundEdges[j,:] .= verts[sortperm(edgeOrientations[j].*orients)]
+#     end
     
-    orderedVerts = CircularArray(ones(Int64,N)) # Ordered list of vertices around cell i in clockwise direction 
-    orderedEdges = CircularArray(ones(Int64,N)) # Ordered list of edges around cell i in clockwise direction
+#     orderedVerts = CircularArray(ones(Int64,N)) # Ordered list of vertices around cell i in clockwise direction 
+#     orderedEdges = CircularArray(ones(Int64,N)) # Ordered list of edges around cell i in clockwise direction
     
-    for j=1:N
-        orderedVerts[j] = orderedVerticesAroundEdges[orderedEdges[j-1],2]
-        orderedEdges[j] = findfirst(x->x==orderedVerts[j],orderedVerticesAroundEdges[:,1])
-    end
-    orderedEdges .= cellEdges[orderedEdges[0:N-1]]
+#     for j=1:N
+#         orderedVerts[j] = orderedVerticesAroundEdges[orderedEdges[j-1],2]
+#         orderedEdges[j] = findfirst(x->x==orderedVerts[j], @view orderedVerticesAroundEdges[:,1])
+#     end
+#     orderedEdges .= cellEdges[orderedEdges[0:N-1]]
     
-    return orderedVerts, orderedEdges
-end
+#     return orderedVerts, orderedEdges
+# end
 
 
 function orderAroundCell(matrices, i)
@@ -77,7 +79,7 @@ function orderAroundCell(matrices, i)
     
     for j=1:N
         orderedVerts[j] = orderedVerticesAroundEdges[orderedEdges[j-1],2]
-        orderedEdges[j] = findfirst(x->x==orderedVerts[j],orderedVerticesAroundEdges[:,1])
+        orderedEdges[j] = findfirst(x->x==orderedVerts[j], @view orderedVerticesAroundEdges[:,1])
     end
     orderedEdges .= cellEdges[orderedEdges[0:N-1]]
     
