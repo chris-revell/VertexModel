@@ -48,3 +48,4 @@ Possible input parameters:
 
 TODO:
 - How do we choose T1 transition edge length threshold? Should this depend on preferred cell perimeter? 
+- Handling of division in ablated cells.

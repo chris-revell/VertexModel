@@ -29,10 +29,19 @@ using DrWatson
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
 
-    @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellAreas, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ, edgeMidpointLinks, μ = matrices
-    @unpack nEdges, nVerts, nCells = params
+    @unpack cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        cellPositions,
+        edgeMidpoints,
+        F,
+        edgeMidpointLinks,
+        μ = matrices
+    @unpack nEdges,
+        nVerts,
+        nCells = params
 
     empty!(ax1)
 
@@ -48,33 +57,35 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
 
     # Scatter vertices
     if scatterVertices == 1
-        scatter!(ax1, Point2f.(R), color=:green)
-        annotations!(ax1, string.(collect(1:length(R))), Point2f.(R), color=:green)
+        scatter!(ax1, Point{2,Float64}.(R), color=:green)
+        annotations!(ax1, string.(collect(1:length(R))), Point{2,Float64}.(R), color=:green)
     end
 
     # Scatter edge midpoints
     if scatterEdges == 1
-        scatter!(ax1, Point2f.(edgeMidpoints), color=:blue)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point2f.(edgeMidpoints), color=:blue)
+        scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
     end
 
     # Scatter cell positions
     if scatterCells == 1
-        scatter!(ax1, Point2f.(cellPositions), color=:red)
-        annotations!(ax1, string.(collect(1:length(cellPositions))), Point2f.(cellPositions), color=:red)
+        scatter!(ax1, Point{2,Float64}.(cellPositions), color=:red)
+        annotations!(ax1, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions), color=:red)
     end
 
     # Plot resultant forces on vertices (excluding external pressure)
     # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
     if plotForces == 1
-        arrows!(ax1, Point2f.(R), Vec2f.(sum(F, dims=2)), color=:red)
+        arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
 
     if plotEdgeMidpointLinks == 1
-        for i=1:nCells
-            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-            for kk=1:length(orderedVertices)
-                lines!(ax1, [Point2(edgeMidpoints[orderedEdges[kk]]...), Point2( (edgeMidpoints[orderedEdges[kk]].+edgeMidpointLinks[i,orderedVertices[kk]])... )], linestyle=:dot, color=:black)
+        for i = 1:nCells
+            for j = 1:cellEdgeCount[i]
+                lines!(ax1,
+                    Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]] .+ edgeMidpointLinks[i, cellVertexOrders[i][j]])]),
+                    linestyle=:dot,
+                    color=:black)
             end
         end
     end
@@ -83,7 +94,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     reset_limits!(ax1)
 
     recordframe!(mov)
-    
+
     return nothing
 
 end

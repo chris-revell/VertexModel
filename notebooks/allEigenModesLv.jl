@@ -20,7 +20,7 @@ frame = 100
 
 folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
 
-@unpack R, matrices, params = load(datadir(folderName,"frames","systemData$(@sprintf("%03d", frame)).jld2"))
+@unpack R, matrices, params = load(datadir(folderName,"frameData","systemData$(@sprintf("%03d", frame)).jld2"))
 @unpack B, Bᵀ, C, cellPositions = matrices
 @unpack nCells,nVerts = params
 
@@ -31,7 +31,7 @@ hidespines!(ax)
 
 mkpath(datadir(folderName,"eigenmodesLv","frame$(@sprintf("%03d", frame))"))
 
-cellPolygons = makeCellPolygons(R,params,matrices)
+cellPolygons = makeCellPolygonsOld(R,params,matrices)
 linkTriangles = makeLinkTriangles(R,params,matrices)
 
 decomposition = eigenmodesLv(R,matrices,params)
@@ -40,7 +40,7 @@ for mode=1:nVerts
     empty!(ax)
     lims = (-maximum(abs.(decomposition[:,mode])),maximum(abs.(decomposition[:,mode])))
     for k=1:nVerts
-        poly!(ax,linkTriangles[k],color=[decomposition[k,mode]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
+        poly!(ax,linkTriangles[k],color=decomposition[k,mode],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
     end
     for i=1:nCells
         poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr

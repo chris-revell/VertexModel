@@ -25,33 +25,52 @@ using DrWatson
 function model!(du, u, p, t)
 
     params, matrices = p
-    @unpack A,B,Ā,B̄,cellTensions,cellPressures,edgeLengths,edgeTangents,F,externalF,ϵ,boundaryVertices,boundaryEdges,vertexAreas = matrices
-    @unpack nVerts,nCells,nEdges,pressureExternal,peripheralTension = params
+    @unpack A,
+        B,
+        Ā,
+        B̄,
+        cellTensions,
+        cellPressures,
+        edgeLengths,
+        edgeTangents,
+        F,
+        externalF,
+        ϵ,
+        boundaryVertices,
+        boundaryEdges,
+        vertexAreas = matrices
+    @unpack nVerts,
+        nCells,
+        nEdges,
+        pressureExternal,
+        peripheralTension = params
 
-    spatialData!(u,params,matrices)
+    spatialData!(u, params, matrices)
 
-    fill!(F,@SVector zeros(2))
-    fill!(externalF,@SVector zeros(2))
+    fill!(F, @SVector zeros(2))
+    dropzeros!(F)
+    fill!(externalF, @SVector zeros(2))
 
-    peripheryLength = sum(boundaryEdges.*edgeLengths)
-    
-    for k=1:nVerts
-        for j in nzrange(A,k)
-            for i in nzrange(B,rowvals(A)[j])
+    peripheryLength = sum(boundaryEdges .* edgeLengths)
+
+    for k = 1:nVerts
+        for j in nzrange(A, k)
+            for i in nzrange(B, rowvals(A)[j])
                 # Force components from cell pressure perpendicular to edge tangents 
-                F[k,rowvals(B)[i]] += 0.5*cellPressures[rowvals(B)[i]]*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])
+                F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
                 # Force components from cell membrane tension parallel to edge tangents 
-                F[k,rowvals(B)[i]] += cellTensions[rowvals(B)[i]]*B̄[rowvals(B)[i],rowvals(A)[j]]*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
+                F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure 
-                externalF[k] += boundaryVertices[k]*(0.5*pressureExternal*B[rowvals(B)[i],rowvals(A)[j]]*Ā[rowvals(A)[j],k].*(ϵ*edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+                externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
             # Force on vertex from peripheral tension
-            externalF[k] -= boundaryEdges[rowvals(A)[j]]*peripheralTension*(peripheryLength-sqrt(π*nCells))*A[rowvals(A)[j],k].*edgeTangents[rowvals(A)[j]]./edgeLengths[rowvals(A)[j]]
+            externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
-    end
 
-    du .= (sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)
+        du[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
+    end
     
+    return du
 end
 
 function modeltest!(du, u, p, t)
