@@ -51,7 +51,7 @@ function conditionSteadyState(u, t, integrator)
     # norm.() calculates magnitudes of all gradients as Floats; 
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
-    #@show maximum(norm.(get_du(integrator)))
+    @show maximum(norm.(get_du(integrator)))
     maximum(norm.(get_du(integrator))) < 1e-10 ? true : false
     # Use integrator.opts.abstol as threshold?
 end
@@ -76,8 +76,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,    
-    solver= Vern7(lazy=false),
-    #solver= Tsit5(),
+    #solver= Vern7(lazy=false),
+    solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -157,15 +157,17 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition  
             spatialData!(integrator.u,params,matrices) # Update spatial data after T1 transition  
         end
-        #= 
-        if division!(integrator,params,matrices)>0
-            u_modified!(integrator,true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+       #=
+        if params.nCells < 100
+            if division!(integrator,params,matrices)>0
+                u_modified!(integrator,true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(integrator.u,params,matrices) # Update spatial data after division 
+            end
         end
+        @show params.nCells
         =#
-
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellAges .+= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt

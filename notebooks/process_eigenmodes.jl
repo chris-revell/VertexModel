@@ -26,7 +26,7 @@ using ColorSchemes
 @from "$(projectdir())/src/CellProperties.jl" using CellProperties
 
 folder="C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims/new_energy/Hex_relax/relaxed"
-files=Glob.glob("new_energy/Hex_relax/full/*L₀=1.0*/systemData*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")[3:end]
+files=Glob.glob("new_energy/Hex_relax/relaxed/systemData*L₀=1.0*γ=0.5*.jld2","C:\\Users\\v35431nc\\Documents\\VM_code\\VertexModel\\data\\sims")
 mkpath(datadir(folder,"cell_plots"))
 mkpath(datadir(folder,"spectra"))
 mkpath(datadir(folder,"cell_modes"))
@@ -110,6 +110,10 @@ for f in files
     writedlm(datadir(dat_dir,"svd_N_Y.csv"), Y, ',') 
     writedlm(datadir(dat_dir,"svd_N_Z.csv"), Z, ',') 
     writedlm(datadir(dat_dir,"svd_N_sigma.csv"), sNF, ',') 
+    writedlm(datadir(dat_dir,"evmap.csv"), evecmap, ',') 
+    writedlm(datadir(dat_dir,"evmapLv.csv"), evmapLv, ',') 
+    writedlm(datadir(dat_dir,"evmapgX.csv"), evmapgX, ',') 
+
 
     nv=LinRange(1, 2*nVerts, 2*nVerts)
     nc=LinRange(2*nVerts-2*nCells+1, 2*nVerts, 2*nCells)
@@ -125,18 +129,20 @@ for f in files
     fig[1, 2] = Legend(fig, ax, framevisible = false)
     save(datadir(folder, "spectra","compare_spectra_log_Γ_"*string(params.γ)*"_L0_"*string(params.L₀)*".png"),fig)
    
+    perm=sortperm((abs.(evalH)))
+
     fig = Figure()
     set_theme!(figure_padding=5, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
     ax=Axis(fig[1, 1], xlabel="Mode number, n", ylabel="λₙ", yscale=log10, title="Γ = "*string(params.γ)*", L₀ = "*string(params.L₀))
     hidedecorations!(ax, grid=true, ticks=false, label=false,ticklabels = false)
     #vspan!(197.5, 396.5, color = (:grey, 0.3))
-    scatter!(ax,nv[4:end], ((abs.(evalH)))[4:end], color=:black,markersize=5, label=L"\lambda_n,\, \mathcal{H}")
+    scatter!(ax,nv[4:end], ((abs.(evalH[perm])))[4:end], color=:black,markersize=5, label=L"\lambda_n,\, \mathcal{H}")
 
     #scatter!(ax,nv, (sort(abs.(evalLv))), color=ColorSchemes.seaborn_colorblind6[1],markersize=4, label=L"\lambda_n,\, \mathcal{L}_v^G")
 
 
-    scatter!(ax,nv[4:end], ((abs.(evmapLv)))[4:end], color=ColorSchemes.seaborn_colorblind6[2],markersize=5)
-    scatter!(ax,nv[4:end], ((abs.(evmapgX)))[4:end], color=ColorSchemes.seaborn_colorblind6[3],markersize=5)
+    scatter!(ax,nv[4:end], ((abs.(evmapLv[perm])))[4:end], color=ColorSchemes.seaborn_colorblind6[2],markersize=5)
+    scatter!(ax,nv[4:end], ((abs.(evmapgX[perm])))[4:end], color=ColorSchemes.seaborn_colorblind6[3],markersize=5)
 
 
     elem_1 = [MarkerElement(color = :black, marker = :circle, markersize = 15)]
