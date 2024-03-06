@@ -20,10 +20,10 @@ using DrWatson
 function createRunDirectory(R,params,matrices,subFolder)
 
     @unpack A,B = matrices
-    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime = params
+    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime, λs, tStretchRealTime = params
 
     # Create directory for run data labelled with current time.
-    paramsName = @savename nCells L₀ γ realTimetMax
+    paramsName = @savename nCells L₀ γ realTimetMax λs tStretchRealTime
     folderName = "$(paramsName)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir("sims",subFolder,folderName,"frameImages"))

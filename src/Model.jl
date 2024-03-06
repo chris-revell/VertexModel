@@ -33,7 +33,7 @@ function model!(du, u, p, t)
     fill!(externalF,@SVector zeros(2))
 
     peripheryLength = sum(boundaryEdges.*edgeLengths)
-
+    ω=100
     #stretch monolayer, map R_x->(1 + \lambda)R_x, Ry->R-y/(1+\lambda)
 
     Λx=@SMatrix[
@@ -52,7 +52,19 @@ function model!(du, u, p, t)
         0.0 (1+λs)
     ]
 
-    stretch=ΛA-I(2)
+    Λs=@SMatrix[
+        (1) λs
+        0.0 (1)
+     ]
+
+     Λcos=@SMatrix[
+        (λs)*ω*cos(ω*t) 0.0
+        0.0 ((1/(1+λs))-1)*ω*cos(ω*t)
+     ]
+
+
+    stretch=Λx-I(2)
+    #stretch =Λcos
 
     for k=1:nVerts
         for j in nzrange(A,k)
@@ -69,7 +81,7 @@ function model!(du, u, p, t)
         end
     end
 
-    du .=((sum.(eachrow(matrices.F)).+externalF)./(100.0.*vertexAreas)) .+  ([stretch*x for x in R_i] )./(tStretch)
+    du .=((sum.(eachrow(matrices.F)).+externalF)./(vertexAreas)) .+  ([stretch*x for x in R_i] )./tStretch
     
 end
 
@@ -83,7 +95,7 @@ function modeltest!(du, u, p, t)
 
     M=makeM(matrices)
 
-    du .= -(M'*g_vec)./(100.0.*vertexAreas)
+    du .= -(M'*g_vec)./(vertexAreas)
 end
 
 export model!, modeltest!

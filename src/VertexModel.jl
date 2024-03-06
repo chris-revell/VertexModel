@@ -54,7 +54,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     @show maximum(norm.(get_du(integrator)))
-    (maximum(norm.(get_du(integrator)))<1e-8 && integrator.t>1.5*integrator.p[2].tStretch)  ? true : false
+    (maximum(norm.(get_du(integrator)))<5e-8 && integrator.t>1.5*integrator.p[2].tStretch)  ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -120,6 +120,9 @@ function vertexModel(;
     R.=R.-mean(R, dims=1)
     R_initial=R
     initialCellAreas= SVector{params.nCells, Float64}(matrices.cellAreas)
+    
+    saveName = @savename L₀ γ λs tStretchRealTime
+
     #tStretch=1/params.viscousTimeScale 
     
     #cb1 = DiscreteCallback(conditionStretch, affectStopStretch!)
@@ -183,10 +186,9 @@ function vertexModel(;
             # Update progress on command line 
 
                 R = @view integrator.u[:]
-
-                jldsave(datadir("sims",subFolder,folderName,"systemDataFullStretch.jld2");matrices,params,R)     
+                jldsave(datadir("sims",subFolder,folderName,"systemDataFullStretch_$(saveName).jld2");matrices,params,R)     
                 visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)  
-                save(datadir("sims",subFolder,folderName,"FullStretch.png"),fig)
+                save(datadir("sims",subFolder,folderName,"FullStretch_$(saveName).png"),fig)
  
         end
         # Step integrator forwards in time to update vertex positions 
@@ -225,7 +227,7 @@ function vertexModel(;
         R = @view integrator.u[:]
         jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)
     
-        jldsave(datadir("sims",subFolder,folderName,"systemDataFinal.jld2");matrices,params,R) 
+        jldsave(datadir("sims",subFolder,folderName,"systemDataFinal_$(saveName).jld2");matrices,params,R) 
         if frameImageToggle==1 || videoToggle==1
             # Render visualisation of system and add frame to movie
             visualise(integrator.u, integrator.t,fig,ax1,mov,params,matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks,initialCellAreas)
