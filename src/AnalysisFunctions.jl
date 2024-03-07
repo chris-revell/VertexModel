@@ -18,13 +18,47 @@ using GeometryBasics
 using Random
 using FromFile
 using Colors
+using CircularArrays
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 
 getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 
+effectiveCellPressure(cellPressures,cellTensions,cellPerimeters,cellAreas) = cellPressures .+ cellTensions.*cellPerimeters./(2.0.*cellAreas)
+
+function cellQs(cellPerimeters,edgeTangents,B̄) 
+    Q = Matrix{Float64}[]
+    for i=1:length(cellPerimeters)
+        sum_j = zeros(2,2)
+        for j=1:length(edgeTangents)
+            sum_j += B̄[i,j].*edgeTangents[j]*normalize(edgeTangents[j]')
+        end
+        Qᵢ = sum_j./cellPerimeters[i] 
+        push!(Q,Qᵢ)
+    end
+    return Q
+end
+
+function cellShears(cellTensions, cellPerimeters, cellAreas, cellQs)
+    shears = Float64[]
+    for i=1:length(cellTensions)
+        determinantComponent = -det(cellQs[i]-(I./2))
+        shear = (cellTensions[i]*cellPerimeters[i]/cellAreas[i])*sqrt(determinantComponent)
+        push!(shears, shear)
+    end
+    return shears
+end
+
 function makeCellPolygons(R,params,matrices)
+    cellPolygons = Vector{Point{2,Float64}}[]
+    for i=1:params.nCells
+        push!(cellPolygons,Point{2,Float64}.(R[matrices.cellVertexOrders[i]]))
+    end
+    return cellPolygons
+end
+
+function makeCellPolygonsOld(R,params,matrices)
     cellPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
         orderedVertices, orderedEdges = orderAroundCell(matrices,i)
@@ -34,10 +68,8 @@ function makeCellPolygons(R,params,matrices)
 end
 
 function makeCellLinks(params,matrices)
-    @unpack B,cellPositions,edgeMidpoints = matrices
+    @unpack B,cellPositions,boundaryEdges,edgeMidpoints = matrices
     @unpack nCells,nEdges = params
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
     T = SVector{2,Float64}[]
     for j=1:nEdges
@@ -51,30 +83,26 @@ function makeCellLinks(params,matrices)
 end
 
 function makeLinkTriangles(R,params,matrices)
-    @unpack A,B,C,boundaryVertices,cellPositions,edgeMidpoints = matrices
-    @unpack nCells,nVerts = params
-    onesVec = ones(1,nCells)
-    linkTriangles = Vector{Point}[]
-    boundaryEdges = abs.(onesVec*B)
+    @unpack A,C,boundaryVertices,boundaryEdges,cellPositions,cellEdgeOrders,edgeMidpoints = matrices
+    @unpack nVerts = params
+    linkTriangles = Vector{Point{2,Float64}}[]
     for k=1:nVerts
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
-            vertexCells = findall(x->x!=0,C[:,k])
+            vertexCells = findall(x->x!=0, @view C[:,k])
             push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
-            vertexCells = findall(x->x!=0,C[:,k])
-            vertexEdges = findall(x->x!=0,A[:,k])
-            boundaryVertexEdges = intersect(vertexEdges,findall(x->x!=0,boundaryEdges[1,:]))
-            kiteVertices = [edgeMidpoints[boundaryVertexEdges]; cellPositions[vertexCells]]
-            push!(kiteVertices,R[k])
-            com = sum(kiteVertices)./length(kiteVertices)
-            angles = Float64[]
-            for p=1:length(kiteVertices)
-                angle = atan((kiteVertices[p].-com)...)
-                push!(angles,angle)
+            vertexCells = findall(x->x!=0, @view C[:,k])
+            vertexEdges = findall(x->x!=0, @view A[:,k])
+            boundaryVertexEdges = [v for v in vertexEdges if boundaryEdges[v]!=0] #vertexEdges ∩ findall(x->x!=0,boundaryEdges))
+            if length(vertexCells)>1
+                edge1 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[1]])[1]
+                edge2 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[2]])[1]
+                kiteVertices = [R[k], edgeMidpoints[edge1], cellPositions[vertexCells[1]], cellPositions[vertexCells[2]], edgeMidpoints[edge2]]
+            else 
+                kiteVertices = [R[k], edgeMidpoints[boundaryVertexEdges[1]], cellPositions[vertexCells[1]], edgeMidpoints[boundaryVertexEdges[2]]]
             end
-            kiteVertices .= kiteVertices[sortperm(angles)]
             push!(linkTriangles,Point{2,Float64}.(kiteVertices))
         end
     end
@@ -84,10 +112,10 @@ end
 function makeEdgeTrapezia(R,params,matrices)
     @unpack A,B,cellPositions = matrices
     @unpack nEdges = params
-    edgeTrapezia = Vector{Point}[]
+    edgeTrapezia = Vector{Point{2,Float64}}[]
     for j=1:nEdges
-        edgeCells = findall(x->x!=0,B[:,j])
-        edgeVertices = findall(x->x!=0,A[j,:])
+        edgeCells = findall(x->x!=0, @view B[:,j])
+        edgeVertices = findall(x->x!=0, @view A[j,:])
         if length(edgeCells) > 1
             push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
         else
@@ -98,10 +126,9 @@ function makeEdgeTrapezia(R,params,matrices)
 end
 
 function makeEdgeMidpointPolygons(params,matrices)
-    edgeMidpointPolygons = Vector{Point}[]
+    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
-        push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[orderedEdges]))
+        push!(edgeMidpointPolygons,Point{2,Float64}.(matrices.edgeMidpoints[matrices.cellEdgeOrders[i]]))
     end
     return edgeMidpointPolygons
 end
@@ -113,7 +140,7 @@ function calculateCellCurls(R,params,matrices)
     @unpack nCells = params
     cellCurls = Float64[]
     for c=1:nCells
-        cellVertices = findall(x->x!=0,C[c,:])
+        cellVertices = findall(x->x!=0, @view C[c,:])
         vertexAngles = zeros(size(cellVertices))
         for (k,v) in enumerate(cellVertices)
             vertexAngles[k] = atan((R[v].-cellPositions[c])...)
@@ -121,7 +148,7 @@ function calculateCellCurls(R,params,matrices)
         m = minimum(vertexAngles)
         vertexAngles .-= m
         cellVertices .= cellVertices[sortperm(vertexAngles)]
-        cellEdges = findall(x->x!=0,B[c,:])
+        cellEdges = findall(x->x!=0, @view B[c,:])
         edgeAngles = zeros(size(cellEdges))
         for (k,e) in enumerate(cellEdges)
             edgeAngles[k] = atan((edgeMidpoints[e].-cellPositions[c])...)
@@ -147,7 +174,7 @@ function calculateCellDivs(R,params,matrices)
     @unpack nCells = params
     cellDivs = Float64[]
     for c=1:nCells
-        cellVertices = findall(x->x!=0,C[c,:])
+        cellVertices = findall(x->x!=0, @view C[c,:])
         vertexAngles = zeros(size(cellVertices))
         for (k,v) in enumerate(cellVertices)
             vertexAngles[k] = atan((R[v].-cellPositions[c])...)
@@ -155,7 +182,7 @@ function calculateCellDivs(R,params,matrices)
         m = minimum(vertexAngles)
         vertexAngles .-= m
         cellVertices .= cellVertices[sortperm(vertexAngles)]
-        cellEdges = findall(x->x!=0,B[c,:])
+        cellEdges = findall(x->x!=0, @view B[c,:])
         edgeAngles = zeros(size(cellEdges))
         for (k,e) in enumerate(cellEdges)
             edgeAngles[k] = atan((edgeMidpoints[e].-cellPositions[c])...)
@@ -183,7 +210,7 @@ function calculateVertexDivs(R,params,matrices,q,linkTriangleAreas)
     vertexDivs = Float64[]
     for k=1:nVerts
         divSum = 0
-        vertexCells = findall(x->x!=0,C[:,k])
+        vertexCells = findall(x->x!=0, @view C[:,k])
         cellAngles = zeros(length(vertexCells))
         for i=1:length(cellAngles)
             cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
@@ -206,7 +233,7 @@ function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     # Working around a given vertex, an h force space point from a cell is mapped to the next edge anticlockwise from the cell
     for k=1:nVerts
         curlSum = 0
-        vertexCells = findall(x->x!=0,C[:,k])
+        vertexCells = findall(x->x!=0, @view C[:,k])
         cellAngles = zeros(length(vertexCells))
         for i=1:length(cellAngles)
             cellAngles[i] = atan((cellPositions[vertexCells[i]].-R[k])...)
@@ -220,31 +247,18 @@ function calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
     return vertexCurls
 end
 
-function makeCellVerticesDict(params,matrices)
-    cellVerticesDict = Dict()
-    for i=1:params.nCells
-        cellVertices, cellEdges = orderAroundCell(matrices, i)
-        # Store sorted cell vertices for this cell
-        cellVerticesDict[i] = cellVertices
-    end
-    return cellVerticesDict
-end
-
 function edgeLinkMidpoints(R,params,matrices,trapeziumAreas,T)
-    @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ = matrices
+    @unpack A,B,cellPositions,edgeTangents,edgeMidpoints,ϵ,boundaryEdges = matrices
     @unpack nEdges = params
 
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1*ϵ
-    onesVec = ones(1,nCells)
-    boundaryEdges = abs.(onesVec*B)
     cᵖ = boundaryEdges'.*edgeMidpoints
-
     intersections = SVector{2,Float64}[]
     for j=1:nEdges
         if boundaryEdges[j] == 0
-            k = findall(x->x<0,A[j,:])[1]
-            i = findall(x->x<0,B[:,j])[1]
+            k = findall(x->x<0, @view A[j,:])[1]
+            i = findall(x->x<0, @view B[:,j])[1]
             mⱼ = R[k] .+ ((cellPositions[i].-R[k])⋅(ϵₖ*T[j]))/(2.0*trapeziumAreas[j]).*edgeTangents[j]
             push!(intersections,mⱼ)
         else
@@ -266,9 +280,8 @@ function calculateSpokes(R,params,matrices)
     return q
 end
 
-
 function calculateVertexMidpointCurls(params,matrices,intersections,linkTriangleAreas,q)
-    @unpack A,B,ϵ = matrices
+    @unpack A,B = matrices
     @unpack nVerts,nCells,nEdges = params
 
     vertexMidpointCurls = Float64[]
@@ -304,13 +317,12 @@ function calculateVertexMidpointDivs(params,matrices,intersections,linkTriangleA
 end
 
 function calculateCellMidpointDivs(params,matrices,intersections,q)
-    @unpack B,cellAreas,edgeTangents = matrices
+    @unpack B,cellAreas,edgeTangents,ϵ = matrices
     @unpack nCells = params
     cellMidpointDivs = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)       
         divSum = 0
-        for j in orderedEdges
+        for j in matrices.cellEdgeOrders[i]
             divSum -= B[i,j]*(intersections[j]⋅(ϵ*edgeTangents[j]))/cellAreas[i]
         end        
         push!(cellMidpointDivs,divSum)
@@ -323,9 +335,8 @@ function calculateCellMidpointCurls(params,matrices,intersections,q)
     @unpack nCells = params
     cellMidpointCurls = Float64[]
     for i=1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
         curlSum = 0
-        for j in orderedEdges
+        for j in cellEdgeOrders[i]
             curlSum += B[i,j]*(intersections[j]⋅edgeTangents[j])/cellAreas[i]
         end
         push!(cellMidpointCurls,curlSum)
@@ -335,6 +346,7 @@ end
 
 export getRandomColor
 export makeCellPolygons
+export makeCellPolygonsOld
 export makeCellLinks
 export makeLinkTriangles
 export makeEdgeTrapezia
@@ -343,12 +355,14 @@ export calculateCellCurls
 export calculateCellDivs
 export calculateVertexDivs
 export calculateVertexCurls
-export makeCellVerticesDict
 export edgeLinkMidpoints
 export calculateSpokes
 export calculateVertexMidpointCurls
 export calculateVertexMidpointDivs
 export calculateCellMidpointDivs
 export calculateCellMidpointCurls
+export effectiveCellPressure
+export cellQs
+export cellShears
 
 end #end module 

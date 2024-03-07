@@ -31,8 +31,18 @@ using DrWatson
 
 function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks, initialCellAreas)
 
-    @unpack boundaryVertices, A, Ā, B, B̄, Bᵀ, C, cellAreas, cellPressures, cellTensions, cellPositions, edgeTangents, edgeLengths, edgeMidpoints, F, ϵ, edgeMidpointLinks, μ = matrices
-    @unpack nEdges, nVerts, nCells = params
+    @unpack cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        cellPositions,
+        cellAreas,
+        edgeMidpoints,
+        F,
+        edgeMidpointLinks,
+        μ = matrices
+    @unpack nEdges,
+        nVerts,
+        nCells = params
 
     empty!(ax1)
 
@@ -71,10 +81,12 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     end
 
     if plotEdgeMidpointLinks == 1
-        for i=1:nCells
-            orderedVertices, orderedEdges = orderAroundCell(matrices, i)
-            for kk=1:length(orderedVertices)
-                lines!(ax1, [Point(edgeMidpoints[orderedEdges[kk]]...), Point( (edgeMidpoints[orderedEdges[kk]].+edgeMidpointLinks[i,orderedVertices[kk]])... )], linestyle=:dot, color=:black)
+        for i = 1:nCells
+            for j = 1:cellEdgeCount[i]
+                lines!(ax1,
+                    Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]] .+ edgeMidpointLinks[i, cellVertexOrders[i][j]])]),
+                    linestyle=:dot,
+                    color=:black)
             end
         end
     end
@@ -83,7 +95,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     #reset_limits!(ax1)
 
     recordframe!(mov)
-    
+
     return nothing
 
 end

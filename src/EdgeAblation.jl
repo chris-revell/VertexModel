@@ -24,11 +24,14 @@ using DifferentialEquations
 
 function edgeAblation(j, params, matrices, integrator)
     
-    @unpack A, B = matrices 
-    @unpack nVerts, nEdges, nCells = params
+    @unpack A,
+        B = matrices 
+    @unpack nVerts, 
+        nEdges, 
+        nCells = params
 
     # Find cells adjacent to edge j 
-    cells = sort(findall(x->x!=0, B[:,j]))
+    cells = sort(findall(x->x!=0, @view B[:,j]))
 
     # cells[1] will be a hole; cells[2] will be deleted
     # Set stiffness of cells[1] to 0
@@ -37,17 +40,17 @@ function edgeAblation(j, params, matrices, integrator)
 
     # Find edges in cell 2 that will be transferred to cell 1
     # No need to consider vertices transfered to cell 1 because these come free with adjustment to A matrix
-    cell2EdgesTransferredToCell1 = sort([jj for jj in findall(x->x!=0, B[cells[2],:]) if jj!=j])
+    cell2EdgesTransferredToCell1 = sort([jj for jj in findall(x->x!=0, @view B[cells[2],:]) if jj!=j])
 
     # Find trailing vertices adjacent to edge j left behind after edge ablation. These vertices will be pruned 
-    verticesToRemove = findall(x->x!=0,A[j,:])
+    verticesToRemove = findall(x->x!=0, @view A[j,:])
     # Also find both other edges adjacent to pruned vertices, one of which will be removed for each vertex
     edgesToRemove = [j]
     for i in verticesToRemove
         # Edges around i excluding j
-        edges = [jj for jj in findall(x->x!=0,A[:,i]) if jj!=j] 
+        edges = [jj for jj in findall(x->x!=0, @view A[:,i]) if jj!=j] 
         # Select first edge from edges around i, then find its other adjacent vertex, otherVertexOnEdge1
-        otherVertexOnEdge1 = [kk for kk in findall(x->x!=0, A[edges[1],:]) if kk!=i][1] 
+        otherVertexOnEdge1 = [kk for kk in findall(x->x!=0, @view A[edges[1],:]) if kk!=i][1] 
         # Attach the second edge from edges around i to the other vertex on first edge; preserve orientation of second edge        
         A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
         # Unlink second edge from vertex otherVertexOnEdge1
@@ -56,7 +59,7 @@ function edgeAblation(j, params, matrices, integrator)
         push!(edgesToRemove,edges[1])
         # Unlink the same edge from its other adjacent cell, unless the ablated edge is adjacent to a peripheral edge 
         if matrices.boundaryVertices[otherVertexOnEdge1] != 0
-            otherCellToRemoveEdgeFrom = [ii for ii in findall(x->x!=0,B[:,edges[1]]) if ii∉cells][1]
+            otherCellToRemoveEdgeFrom = [ii for ii in findall(x->x!=0, @view B[:,edges[1]]) if ii∉cells][1]
             B[otherCellToRemoveEdgeFrom,edges[1]] = 0
         end
     end
@@ -90,7 +93,7 @@ function edgeAblation(j, params, matrices, integrator)
     
     resizeMatrices!(params, matrices, nVerts-2, nEdges-3, nCells-1)
     # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to delete specific values
-    deleteat!(matrices.cellAges, cells[2])
+    deleteat!(matrices.cellTimeToDivide, cells[2])
     deleteat!(matrices.μ, cells[2])
     deleteat!(matrices.Γ, cells[2])
 

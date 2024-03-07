@@ -19,8 +19,23 @@ using DrWatson
 
 function createRunDirectory(R,params,matrices,subFolder)
 
-    @unpack A,B = matrices
-    @unpack initialSystem,realTimetMax,γ,λ,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,nVerts,nCells,nEdges,L₀,outputInterval,tMax,nonDimCycleTime, λs, tStretchRealTime = params
+    @unpack initialSystem,
+        realTimetMax,
+        γ,
+        λ,
+        A₀,
+        pressureExternal,
+        viscousTimeScale,
+        outputTotal,
+        t1Threshold,
+        realCycleTime,
+        nVerts,
+        nCells,
+        nEdges,
+        L₀,
+        outputInterval,
+        tMax,
+        nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax λs tStretchRealTime
@@ -30,9 +45,9 @@ function createRunDirectory(R,params,matrices,subFolder)
     mkpath(datadir("sims",subFolder,folderName,"frameData"))
 
     # Store initial system characteristic matrices
-    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");A,B,R)
-    writedlm(datadir("sims",subFolder,folderName,"A_initial.csv"), A, ',')
-    writedlm(datadir("sims",subFolder,folderName,"B_initial.csv"), B, ',')
+    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");matrices.A,matrices.B,R)
+    writedlm(datadir("sims",subFolder,folderName,"A_initial.csv"), matrices.A, ',')
+    writedlm(datadir("sims",subFolder,folderName,"B_initial.csv"), matrices.B, ',')
     writedlm(datadir("sims",subFolder,folderName,"R_initial.csv"), R, ',')
 
     return folderName

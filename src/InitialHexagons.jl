@@ -90,24 +90,24 @@ function initialHexagons(n)
         B[3,7] = -1
         B[3,6] = -1
 
-        R = Array{SVector{2,Float64}}(undef,13)
+        R = Array{SVector{2,Float64}}(undef, 13)
         a = sin(π/3)
         b = cos(π/3)
-        R[1]  = SVector{2}([-1.0,-2*a])
-        R[2]  = SVector{2}([0.0,-2*a])
-        R[3]  = SVector{2}([b,-a])
-        R[4]  = SVector{2}([0.0,0.0])
-        R[5]  = SVector{2}([-1.0-b,-a])
-        R[6]  = SVector{2}([-1.0,0.0])
-        R[7]  = SVector{2}([-1.0-b,a])
-        R[8]  = SVector{2}([-1.0,2.0*a])
-        R[9]  = SVector{2}([0.0,2.0*a])
-        R[10] = SVector{2}([b,a])
-        R[11] = SVector{2}([1.0+b,-a])
-        R[12] = SVector{2}([1.0+2*b,0.0])
-        R[13] = SVector{2}([1.0+b,a])
+        R[1] =  SVector{2}([-1.0, -2 * a])
+        R[2] =  SVector{2}([0.0, -2 * a])
+        R[3] =  SVector{2}([b, -a])
+        R[4] =  SVector{2}([0.0, 0.0])
+        R[5] =  SVector{2}([-1.0 - b, -a])
+        R[6] =  SVector{2}([-1.0, 0.0])
+        R[7] =  SVector{2}([-1.0 - b, a])
+        R[8] =  SVector{2}([-1.0, 2.0 * a])
+        R[9] =  SVector{2}([0.0, 2.0 * a])
+        R[10] = SVector{2}([b, a])
+        R[11] = SVector{2}([1.0 + b, -a])
+        R[12] = SVector{2}([1.0 + 2 * b, 0.0])
+        R[13] = SVector{2}([1.0 + b, a])
         # Set initial cell areas to 1.0
-        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        R .*= 1.0 / (2 * sin(π / 3.0) * (1 + cos(π / 3.0)))
 
     elseif n=="four"
 
@@ -201,9 +201,9 @@ function initialHexagons(n)
         R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
 
     elseif n=="seven"
-        A = spzeros(Int64,18,12)
-        B = spzeros(Int64,7, 18)
-        R = Array{SVector{2,Float64}}(undef,12)
+        A = spzeros(Int64, 18, 12)
+        B = spzeros(Int64, 7, 18)
+        R = Array{SVector{2,Float64}}(undef, 12)
 
         B[1,1]  = 1
         B[1,2]  = 1
@@ -274,12 +274,12 @@ function initialHexagons(n)
         A[18,7] = 1
 
         for k=1:6
-            R[k] = SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
-            R[k+6] = 3.0.*SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
+            R[k] = SVector{2}([cos((-k * π) / 3.0), sin((-k * π) / 3.0)])
+            R[k+6] = 3.0 .* SVector{2}([cos((-k * π) / 3.0), sin((-k * π) / 3.0)])
         end
 
         # Adjust intial cell areas
-        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        R .*= 1.0 / (2 * sin(π / 3.0) * (1 + cos(π / 3.0)))
 
     elseif n=="three_uneq"
         R = Array{SVector{2,Float64}}(undef,13)
@@ -360,9 +360,9 @@ function initialHexagons(n)
             0 0 0 0 0 -1 -1 -1 -1 -1 0 0 0 0 1 0]
         B=sparse(Btmp)
     elseif n=="seven_original"
-        A = spzeros(Int64,30,24)
-        B = spzeros(Int64,7, 30)
-        R = Array{SVector{2,Float64}}(undef,24)
+        A = spzeros(Int64, 30, 24)
+        B = spzeros(Int64, 7, 30)
+        R = Array{SVector{2,Float64}}(undef, 24)
 
         B[1,1] = 1
         B[1,2] = 1
@@ -469,38 +469,38 @@ function initialHexagons(n)
         A[30,24] = 1
 
         for k=1:6
-            R[k] = SVector{2}([cos((-k*π)/3.0),sin((-k*π)/3.0)])
+            R[k] = SVector{2}([cos((-k * π) / 3.0), sin((-k * π) / 3.0)])
         end
 
         edgeLength1 = 1.0
-        edgeLength2 = 2.0*sin(π/3.0)
+        edgeLength2 = 2.0 * sin(π / 3.0)
 
-        R[22] = R[1] .+ SVector{2}([cos((-1*π)/3.0),sin((-1*π)/3.0)]).*edgeLength1
-        R[21] = R[1] .+ SVector{2}([cos((-1.5*π)/3.0),sin((-1.5*π)/3.0)]).*edgeLength2
-        R[20] = R[2] .+ SVector{2}([cos((-1.5*π)/3.0),sin((-1.5*π)/3.0)]).*edgeLength2
+        R[22] = R[1] .+ SVector{2}([cos((-1 * π) / 3.0), sin((-1 * π) / 3.0)]) .* edgeLength1
+        R[21] = R[1] .+ SVector{2}([cos((-1.5 * π) / 3.0), sin((-1.5 * π) / 3.0)]) .* edgeLength2
+        R[20] = R[2] .+ SVector{2}([cos((-1.5 * π) / 3.0), sin((-1.5 * π) / 3.0)]) .* edgeLength2
 
-        R[19] = R[2] .+ SVector{2}([cos((-2*π)/3.0),sin((-2*π)/3.0)]).*edgeLength1
-        R[18] = R[2] .+ SVector{2}([cos((-2.5*π)/3.0),sin((-2.5*π)/3.0)]).*edgeLength2
-        R[17] = R[3] .+ SVector{2}([cos((-2.5*π)/3.0),sin((-2.5*π)/3.0)]).*edgeLength2
+        R[19] = R[2] .+ SVector{2}([cos((-2 * π) / 3.0), sin((-2 * π) / 3.0)]) .* edgeLength1
+        R[18] = R[2] .+ SVector{2}([cos((-2.5 * π) / 3.0), sin((-2.5 * π) / 3.0)]) .* edgeLength2
+        R[17] = R[3] .+ SVector{2}([cos((-2.5 * π) / 3.0), sin((-2.5 * π) / 3.0)]) .* edgeLength2
 
-        R[16] = R[3] .+ SVector{2}([cos((-3*π)/3.0),sin((-3*π)/3.0)]).*edgeLength1
-        R[15] = R[3] .+ SVector{2}([cos((-3.5*π)/3.0),sin((-3.5*π)/3.0)]).*edgeLength2
-        R[14] = R[4] .+ SVector{2}([cos((-3.5*π)/3.0),sin((-3.5*π)/3.0)]).*edgeLength2
+        R[16] = R[3] .+ SVector{2}([cos((-3 * π) / 3.0), sin((-3 * π) / 3.0)]) .* edgeLength1
+        R[15] = R[3] .+ SVector{2}([cos((-3.5 * π) / 3.0), sin((-3.5 * π) / 3.0)]) .* edgeLength2
+        R[14] = R[4] .+ SVector{2}([cos((-3.5 * π) / 3.0), sin((-3.5 * π) / 3.0)]) .* edgeLength2
 
-        R[13] = R[4] .+ SVector{2}([cos((-4*π)/3.0),sin((-4*π)/3.0)]).*edgeLength1
-        R[12] = R[4] .+ SVector{2}([cos((-4.5*π)/3.0),sin((-4.5*π)/3.0)]).*edgeLength2
-        R[11] = R[5] .+ SVector{2}([cos((-4.5*π)/3.0),sin((-4.5*π)/3.0)]).*edgeLength2
+        R[13] = R[4] .+ SVector{2}([cos((-4 * π) / 3.0), sin((-4 * π) / 3.0)]) .* edgeLength1
+        R[12] = R[4] .+ SVector{2}([cos((-4.5 * π) / 3.0), sin((-4.5 * π) / 3.0)]) .* edgeLength2
+        R[11] = R[5] .+ SVector{2}([cos((-4.5 * π) / 3.0), sin((-4.5 * π) / 3.0)]) .* edgeLength2
 
-        R[10] = R[5] .+ SVector{2}([cos((-5*π)/3.0),sin((-5*π)/3.0)]).*edgeLength1
-        R[9] = R[5] .+ SVector{2}([cos((-5.5*π)/3.0),sin((-5.5*π)/3.0)]).*edgeLength2
-        R[8] = R[6] .+ SVector{2}([cos((-5.5*π)/3.0),sin((-5.5*π)/3.0)]).*edgeLength2
+        R[10] = R[5] .+ SVector{2}([cos((-5 * π) / 3.0), sin((-5 * π) / 3.0)]) .* edgeLength1
+        R[9] = R[5] .+ SVector{2}([cos((-5.5 * π) / 3.0), sin((-5.5 * π) / 3.0)]) .* edgeLength2
+        R[8] = R[6] .+ SVector{2}([cos((-5.5 * π) / 3.0), sin((-5.5 * π) / 3.0)]) .* edgeLength2
 
-        R[7] = R[6] .+ SVector{2}([cos((-6*π)/3.0),sin((-6*π)/3.0)]).*edgeLength1
-        R[24] = R[6] .+ SVector{2}([cos((-6.5*π)/3.0),sin((-6.5*π)/3.0)]).*edgeLength2
-        R[23] = R[1] .+ SVector{2}([cos((-6.5*π)/3.0),sin((-6.5*π)/3.0)]).*edgeLength2
+        R[7] = R[6] .+ SVector{2}([cos((-6 * π) / 3.0), sin((-6 * π) / 3.0)]) .* edgeLength1
+        R[24] = R[6] .+ SVector{2}([cos((-6.5 * π) / 3.0), sin((-6.5 * π) / 3.0)]) .* edgeLength2
+        R[23] = R[1] .+ SVector{2}([cos((-6.5 * π) / 3.0), sin((-6.5 * π) / 3.0)]) .* edgeLength2
 
         # Set initial cell areas to 1.0
-        R .*= 1.0/(2*sin(π/3.0)*(1+cos(π/3.0)))
+        R .*= 1.0 / (2 * sin(π / 3.0) * (1 + cos(π / 3.0)))
 
     elseif n=="seven_eq"
         A = spzeros(Int64,30,24)
