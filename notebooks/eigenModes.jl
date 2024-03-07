@@ -15,9 +15,9 @@ using FromFile
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Laplacians.jl" using Laplacians
 
-folderName = "sims/nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"
+folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"
 
-files = [datadir(folderName, "frameData", f) for f in readdir(datadir(folderName, "frameData")) if occursin(".jld2",f)]
+files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 
         typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
         "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
@@ -72,10 +72,22 @@ for x=1:5
         hidedecorations!(ax)
         hidespines!(ax)
         for k=1:nVerts
-            poly!(ax,linkTriangles[k],color=[decompositionLv[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
+            poly!(ax,
+                linkTriangles[k],
+                color=[decompositionLv[k, eigenvectorIndex]],
+                colorrange=lims,
+                colormap=:bwr,
+                strokewidth=1,
+                strokecolor=(:black,0.25),
+            )
         end
         for i=1:nCells
-            poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
+            poly!(ax,
+                cellPolygons[i],
+                color=(:white,0.0),
+                strokecolor=(:black,1.0),
+                strokewidth=1,
+            )
         end
         Label(grid1[y+4,x,Bottom()],
                 L"k=%$eigenvectorIndex",
@@ -145,4 +157,4 @@ Label(grid2[9,:],
 resize_to_layout!(fig)
 
 display(fig)
-save(datadir(folderName,"eigenModes.png"),fig)
+save(datadir("sims", folderName,"eigenModes.png"),fig)
