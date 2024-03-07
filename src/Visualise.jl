@@ -46,7 +46,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
 
     empty!(ax1)
 
-    ax1.title = "t = $(@sprintf("%.2f", t))"
+    ax1.title = "t = $(@sprintf("%.3f", t))"
 
     # Plot cells
     if plotCells == 1

@@ -131,7 +131,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        LogNormal(0.0, 0.2)
+        LogNormal(0.0, 0.2),
+        λs,
+        tStretchRealTime,
+        tStretch
     )
 
     # Initial evaluation of matrices based on system topology

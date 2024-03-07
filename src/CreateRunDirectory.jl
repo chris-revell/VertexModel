@@ -35,7 +35,9 @@ function createRunDirectory(R,params,matrices,subFolder)
         L₀,
         outputInterval,
         tMax,
-        nonDimCycleTime = params
+        nonDimCycleTime,
+        λs,
+        tStretchRealTime = params
 
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax λs tStretchRealTime

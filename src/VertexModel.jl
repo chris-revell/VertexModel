@@ -120,7 +120,7 @@ function vertexModel(;
 
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, λs, tStretchRealTime)
+    R,params,matrices = initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, λs, tStretchRealTime,)
     R.=R.-mean(R, dims=1)
     R_initial=R
     initialCellAreas= SVector{params.nCells, Float64}(matrices.cellAreas)
@@ -136,7 +136,6 @@ function vertexModel(;
     cbs=CallbackSet(cb1, cb2)
       
 
-    #@show initialCellAreas
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
@@ -184,7 +183,7 @@ function vertexModel(;
             frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
 
-        if integrator.t==params.tStretch
+        if integrator.t==params.tStretch && outputToggle==1
             # Update progress on command line 
 
                 R = @view integrator.u[:]
