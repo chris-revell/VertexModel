@@ -43,7 +43,7 @@ function getPeff(params, matrices)
     @unpack nCells, γ, L₀= params
 
     Peff=zeros(nCells)
-    Peff=cellPressures+(-cellTensions.*cellPerimeters)./(2*cellAreas)
+    Peff=cellPressures+(cellTensions.*cellPerimeters)./(2*cellAreas)
     return Peff
 end
 
@@ -73,7 +73,7 @@ function getShearStress(params, matrices, cellJ)
     @unpack nCells= params
 
     detJ=det.(cellJ)
-    cellShearStress=((cellPerimeters.*(-cellTensions))./cellAreas).*sqrt.(-detJ)
+    cellShearStress=((cellPerimeters.*(cellTensions))./cellAreas).*sqrt.(-detJ)
 
     return cellShearStress
 end

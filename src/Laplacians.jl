@@ -162,7 +162,7 @@ function makeD(params,matrices,X, Lvevals, Lvevec, q)
     
     @unpack cellTensions, cellPressures = matrices
     @unpack nCells, nVerts = params
-    g=vcat(cellPressures, -cellTensions)
+    g=vcat(cellPressures, cellTensions)
 
     gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
     fill!(gX,@SMatrix zeros(2,2))
@@ -185,7 +185,7 @@ function makeFullD(params,matrices,X, Lvevals, Lvevec, q)
     @unpack nCells, nVerts = params
     #q=2*nCells-1
 
-    g=vcat(cellPressures, -cellTensions)
+    g=vcat(cellPressures, cellTensions)
 
     gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
     fill!(gX,@SMatrix zeros(2,2))

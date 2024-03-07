@@ -49,7 +49,7 @@ for f in files
     Lv=makeEvLvnew(M, G, vertexAreas)
     Lc=makeEvLcnew(M, G, vertexAreas)
     X=makeX(params, matrices)
-    g=vcat(cellPressures, -cellTensions)
+    g=vcat(cellPressures, cellTensions)
     
     gX=Matrix{SMatrix{2,2,Float64,4}}(undef,nVerts,nVerts)
     fill!(gX,@SMatrix zeros(2,2))
@@ -281,7 +281,7 @@ for f in files
     cellShearStress=getShearStress(params, matrices, cellJ)
 
     Plims=(minimum(cellPressures[1:nCells])-1e-6, maximum(cellPressures[1:nCells])+1e-6)
-    Tlims=(minimum(-cellTensions[1:nCells])-1e-6, maximum(-cellTensions[1:nCells])+1e-6)
+    Tlims=(minimum(cellTensions[1:nCells])-1e-6, maximum(cellTensions[1:nCells])+1e-6)
     Pefflims=(-maximum(abs.(Peff)), maximum(abs.(Peff)))
     ShStlims=(minimum(cellShearStress[1:nCells])-5e-8, maximum(cellShearStress[1:nCells])+5e-8)
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica", fontsize=19)
@@ -301,7 +301,7 @@ for f in files
     hidespines!(a23)
     for i=1:nCells
         poly!(a11,cellPolygons[i],color=cellPressures[i],colormap=cgrad(:Blues_9, rev=true),colorrange=Plims, strokecolor=(:black,1.0),strokewidth=1)
-        poly!(a21,cellPolygons[i],color=-cellTensions[i],colormap=:plasma,colorrange=Tlims, strokecolor=(:black,1.0),strokewidth=1)
+        poly!(a21,cellPolygons[i],color=cellTensions[i],colormap=:plasma,colorrange=Tlims, strokecolor=(:black,1.0),strokewidth=1)
         poly!(a13,cellPolygons[i],color=Peff[i],colormap=:bwr,colorrange=Pefflims, strokecolor=(:black,1.0),strokewidth=1)
         poly!(a23,cellPolygons[i],color=cellShearStress[i],colormap=:plasma,colorrange=ShStlims, strokecolor=(:black,1.0),strokewidth=1)
     end
