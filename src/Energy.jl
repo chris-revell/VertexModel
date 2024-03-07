@@ -15,8 +15,7 @@ using UnPack
 
 function energy(params,matrices)
 
-    @unpack cellEnergies,
-        cellAreas,
+    @unpack cellAreas,
         cellPerimeters = matrices
     @unpack nCells,
         A₀,

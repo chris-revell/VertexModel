@@ -53,8 +53,8 @@ function conditionSteadyState(u, t, integrator)
     # norm.() calculates magnitudes of all gradients as Floats; 
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
-    @show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-10 ? true : false
+    #@show maximum(norm.(get_du(integrator)))
+    maximum(norm.(get_du(integrator))) < 1e-8   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -80,7 +80,7 @@ function vertexModel(;
     peripheralTension=0.0,
     t1Threshold=0.05,    
     #solver= Vern7(lazy=false),
-    solver= Tsit5(),
+    solver= DP8(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -117,7 +117,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-10, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
@@ -148,7 +148,6 @@ function vertexModel(;
             # Save still image of this time step 
             frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
-
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
@@ -159,7 +158,7 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
-       #=
+       
         if params.nCells < 100
             if division!(integrator,params,matrices)>0
                 u_modified!(integrator,true)
@@ -168,8 +167,11 @@ function vertexModel(;
                 spatialData!(integrator.u,params,matrices) # Update spatial data after division 
             end
         end
-        @show params.nCells
-        =#
+        #@show params.nCells
+
+
+       
+        
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt

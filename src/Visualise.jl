@@ -35,6 +35,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
         cellVertexOrders,
         cellEdgeOrders,
         cellPositions,
+        cellAreas,
         edgeMidpoints,
         F,
         edgeMidpointLinks,

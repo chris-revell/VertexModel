@@ -83,7 +83,7 @@ function modeltest!(du, u, p, t)
 
     M=makeM(matrices)
 
-    du .= -(M'*g_vec)./(100.0.*vertexAreas)
+    du .= -(M'*g_vec)./(vertexAreas)
 end
 
 export model!, modeltest!

@@ -45,9 +45,9 @@ function createRunDirectory(R,params,matrices,subFolder)
     mkpath(datadir("sims",subFolder,folderName,"frameData"))
 
     # Store initial system characteristic matrices
-    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");A,B,R)
-    writedlm(datadir("sims",subFolder,folderName,"A_initial.csv"), A, ',')
-    writedlm(datadir("sims",subFolder,folderName,"B_initial.csv"), B, ',')
+    jldsave(datadir("sims",subFolder,folderName,"matricesInitial.jld2");matrices.A,matrices.B,R)
+    writedlm(datadir("sims",subFolder,folderName,"A_initial.csv"), matrices.A, ',')
+    writedlm(datadir("sims",subFolder,folderName,"B_initial.csv"), matrices.B, ',')
     writedlm(datadir("sims",subFolder,folderName,"R_initial.csv"), R, ',')
 
     return folderName
