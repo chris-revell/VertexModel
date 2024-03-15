@@ -13,14 +13,14 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"
+folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-12-15-24-12"
 
 shears = Vector{Float64}[]
 stiffnesses = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
-files = [datadir(folderName, "frameData", f) for f in readdir(datadir(folderName, "frameData")) if occursin(".jld2",f)]
-for t = 2:length(files)
+files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
+for t = 5:length(files)
     @show t
     @unpack R, matrices, params = load(files[t]; 
         typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
@@ -86,5 +86,5 @@ for t = 1:length(shears)
     recordframe!(mov)
 end
 
-save(datadir(folderName, "movieShears.mp4"), mov)
+save(datadir("sims", folderName, "movieShears.mp4"), mov)
 
