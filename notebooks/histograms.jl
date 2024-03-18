@@ -32,38 +32,44 @@ for i in MCCs
 end
 unique!(MCCneighbours)
 
-# MCCtensions = mean(matrices.cellTensions[MCCs])
 MCCtensions = matrices.cellTensions[MCCs]
-@show MCCtensions
-# MCCneighbourTensions = mean(matrices.cellTensions[MCCneighbours])
 MCCneighbourTensions = matrices.cellTensions[MCCneighbours]
-@show MCCneighbourTensions
-# otherTensions = mean(matrices.cellTensions[Not([MCCneighbours...,MCCs...])])
 otherTensions = matrices.cellTensions[Not([MCCneighbours...,MCCs...])]
-@show otherTensions
 
-minTension = minimum([MCCtensions...,MCCneighbourTensions...,otherTensions...])
-maxTension = maximum([MCCtensions...,MCCneighbourTensions...,otherTensions...])
+Qs = cellQs(matrices.cellPerimeters, matrices.edgeTangents, matrices.B̄)
+shrs = cellShears(matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas, Qs)
+
+effectivePressure = effectiveCellPressure(matrices.cellPressures, matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas)
 
 #%%
 
-fig = Figure(size=(500,1000))
-# ax1 = Axis(fig[1,1])
-# hist1 = fit(Histogram, MCCtensions,  0.0:0.005:2.1)
-# barplot!(ax1, hist1, label="MCCs", color=(:red,0.8))
-# xlims!(ax1,(1.85,2.1))
-# Label(fig[1,1,Bottom()], "MCCs", fontsize = 16)
-ax2 = Axis(fig[1,1])
-hist2 = fit(Histogram, MCCneighbourTensions,  0.0:0.005:0.25)
-barplot!(ax2, hist2, label="Neighbours", color=(:green,0.8))
-xlims!(ax2,(0.0,0.25))
-Label(fig[1,1,Bottom()], "Neighbours", fontsize = 16)
-ax3 = Axis(fig[2,1])
-hist3 = fit(Histogram, otherTensions,  0.0:0.005:0.25)
-barplot!(ax3, hist3, label="Others", color=(:blue,0.8))
-xlims!(ax3,(0.0,0.25))
-Label(fig[2,1,Bottom()], "Others", fontsize = 16)
+fig = Figure(size=(1000,1000))
+ax1 = Axis(fig[1,1])
+hist1 = fit(Histogram, nbins=100, matrices.cellTensions[MCCneighbours])
+barplot!(ax1, hist1, label="Neighbour cell\ntensions", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, matrices.cellTensions[Not([MCCneighbours...,MCCs...])])
+barplot!(ax1, hist2, label="Other cell\ntensions", color=(:blue,0.5))
+axislegend(ax1, merge = true, unique = true)
+save(datadir("sims", folderName, "tensionHistograms.png"), fig)
 
+#%%
 
-display(fig)
-save("Histograms.png",fig)
+fig2 = Figure(size=(1000,1000))
+ax1 = Axis(fig2[1,1])
+hist1 = fit(Histogram, nbins=100, effectivePressure[MCCneighbours])
+barplot!(ax1, hist1, label="Neighbour cell\neffective pressures", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, effectivePressure[Not([MCCneighbours...,MCCs...])])
+barplot!(ax1, hist2, label="Other cell\neffective pressures", color=(:blue,0.5))
+axislegend(ax1, merge = true, unique = true)
+save(datadir("sims", folderName, "peffHistograms.png"), fig2)
+
+#%%
+
+fig3 = Figure(size=(1000,1000))
+ax1 = Axis(fig3[1,1])
+hist1 = fit(Histogram, nbins=100, shrs[MCCneighbours])
+barplot!(ax1, hist1, label="Neighbour cell\nshears", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, shrs[Not([MCCneighbours...,MCCs...])])
+barplot!(ax1, hist2, label="Other cell\nshears", color=(:blue,0.5))
+axislegend(ax1, merge = true, unique = true)
+save(datadir("sims", folderName, "shearHistograms.png"), fig3)
