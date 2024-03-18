@@ -31,7 +31,6 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-
 @from "EdgeAblation.jl" using EdgeAblation
 
 function vertexModel(;
@@ -86,29 +85,36 @@ function vertexModel(;
     integrator = init(prob,solver,abstol=1e-6,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     stiffened=false
-    if !stiffened #integrator.t>params.tMax/100.0 && !stiffened
-        cellNeighbourMatrix = matrices.B*matrices.B'
-        cellsToStiffen = Int64[]
-        excludedCells = Int64[]
-        while length(excludedCells) < params.nCells
-            cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
-            neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
-            neighboursOfNeighbours = Int64[]
-            for n in neighbours
-                append!(neighboursOfNeighbours,findall(x->x!=0,cellNeighbourMatrix[n,:]))
-            end                
-            push!(cellsToStiffen,cellToUpdate)
-            append!(excludedCells,neighboursOfNeighbours)
-            unique!(excludedCells)
-        end
-        matrices.μ[cellsToStiffen] .*= stiffnessFactor
-        matrices.Γ[cellsToStiffen] .*= stiffnessFactor
-        stiffened = true
-    end
 
     # Iterate until integrator time reaches max system time 
     while integrator.t<params.tMax && integrator.sol.retcode == ReturnCode.Default
         
+        if integrator.t>params.tMax/100.0 && !stiffened
+            cellNeighbourMatrix = matrices.B*matrices.B'
+            cellsToStiffen = Int64[]
+            excludedCells = Int64[]
+            while length(excludedCells) < params.nCells
+                cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
+                neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
+                neighboursOfNeighbours = Int64[]
+                for n in neighbours
+                    neighboursOfn = findall(x->x!=0,cellNeighbourMatrix[n,:])
+                    append!(neighboursOfNeighbours,neighboursOfn)
+                    for nn in neighboursOfn
+                        neighboursOfnn = findall(x->x!=0,cellNeighbourMatrix[nn,:])
+                        append!(neighboursOfNeighbours,neighboursOfnn)
+                    end
+                end                
+                push!(cellsToStiffen,cellToUpdate)
+                append!(excludedCells,neighboursOfNeighbours)
+                unique!(excludedCells)
+            end
+            matrices.μ[cellsToStiffen] .*= stiffnessFactor
+            matrices.Γ[cellsToStiffen] .*= stiffnessFactor
+            stiffened = true
+        end
+
+
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 
