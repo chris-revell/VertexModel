@@ -16,13 +16,12 @@ using StatsBase
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-12-15-24-12"
+folderName = "MCCsNotStifferDoDivide"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
-@unpack R, matrices, params = load(files[end]; 
+@unpack R, matrices, params = load(files[25]; 
     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
     "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
-
 
 cellNeighbourMatrix = matrices.B*matrices.B'
 MCCs = findall(x->x>1.5, matrices.Γ)
@@ -44,32 +43,109 @@ effectivePressure = effectiveCellPressure(matrices.cellPressures, matrices.cellT
 #%%
 
 fig = Figure(size=(1000,1000))
-ax1 = Axis(fig[1,1])
-hist1 = fit(Histogram, nbins=100, matrices.cellTensions[MCCneighbours])
-barplot!(ax1, hist1, label="Neighbour cell\ntensions", color=(:green,0.5))
-hist2 = fit(Histogram, nbins=100, matrices.cellTensions[Not([MCCneighbours...,MCCs...])])
-barplot!(ax1, hist2, label="Other cell\ntensions", color=(:blue,0.5))
-axislegend(ax1, merge = true, unique = true)
+ax = Axis(fig[1,1])
+hist1 = fit(Histogram, nbins=100, matrices.cellTensions[MCCneighbours], closed=:right)
+barplot!(ax, hist1, label="Neighbour cell\ntensions", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, matrices.cellTensions[Not([MCCneighbours...,MCCs...])], closed=:right)
+barplot!(ax, hist2, label="Other cell\ntensions", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
 save(datadir("sims", folderName, "tensionHistograms.png"), fig)
+empty!(ax)
+hist1Normalised = normalize(hist1, mode=:pdf)
+hist2Normalised = normalize(hist2, mode=:pdf)
+barplot!(ax, hist1Normalised, label="Neighbour cell\ntensions", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\ntensions", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "tensionDensities.png"), fig)
+
+empty!(ax)
+for i=2:length(hist1Normalised.weights)
+    hist1Normalised.weights[i]=hist1Normalised.weights[i]+hist1Normalised.weights[i-1]
+end
+for i=2:length(hist2Normalised.weights)
+    hist2Normalised.weights[i]=hist2Normalised.weights[i]+hist2Normalised.weights[i-1]
+end
+barplot!(ax, hist1Normalised, label="Neighbour cell\ntensions", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\ntensions", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "tensionCumulativeDensities.png"), fig)
 
 #%%
 
-fig2 = Figure(size=(1000,1000))
-ax1 = Axis(fig2[1,1])
-hist1 = fit(Histogram, nbins=100, effectivePressure[MCCneighbours])
-barplot!(ax1, hist1, label="Neighbour cell\neffective pressures", color=(:green,0.5))
-hist2 = fit(Histogram, nbins=100, effectivePressure[Not([MCCneighbours...,MCCs...])])
-barplot!(ax1, hist2, label="Other cell\neffective pressures", color=(:blue,0.5))
-axislegend(ax1, merge = true, unique = true)
-save(datadir("sims", folderName, "peffHistograms.png"), fig2)
+empty!(ax)
+hist1 = fit(Histogram, nbins=100, effectivePressure[MCCneighbours], closed=:right)
+barplot!(ax, hist1, label="Neighbour cell\neffective pressures", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, effectivePressure[Not([MCCneighbours...,MCCs...])], closed=:right)
+barplot!(ax, hist2, label="Other cell\neffective pressures", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "peffHistograms.png"), fig)
+empty!(ax)
+hist1Normalised = normalize(hist1, mode=:pdf)
+hist2Normalised = normalize(hist2, mode=:pdf)
+barplot!(ax, hist1Normalised, label="Neighbour cell\neffective pressures", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\neffective pressures", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "peffDensities.png"), fig)
 
+empty!(ax)
+for i=2:length(hist1Normalised.weights)
+    hist1Normalised.weights[i]=hist1Normalised.weights[i]+hist1Normalised.weights[i-1]
+end
+for i=2:length(hist2Normalised.weights)
+    hist2Normalised.weights[i]=hist2Normalised.weights[i]+hist2Normalised.weights[i-1]
+end
+barplot!(ax, hist1Normalised, label="Neighbour cell\neffective pressures", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\neffective pressures", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "peffCumulativeDensities.png"), fig)
 #%%
 
-fig3 = Figure(size=(1000,1000))
-ax1 = Axis(fig3[1,1])
-hist1 = fit(Histogram, nbins=100, shrs[MCCneighbours])
-barplot!(ax1, hist1, label="Neighbour cell\nshears", color=(:green,0.5))
-hist2 = fit(Histogram, nbins=100, shrs[Not([MCCneighbours...,MCCs...])])
-barplot!(ax1, hist2, label="Other cell\nshears", color=(:blue,0.5))
-axislegend(ax1, merge = true, unique = true)
-save(datadir("sims", folderName, "shearHistograms.png"), fig3)
+empty!(ax)
+hist1 = fit(Histogram, nbins=100, shrs[MCCneighbours], closed=:right)
+barplot!(ax, hist1, label="Neighbour cell\nshears", color=(:green,0.5))
+hist2 = fit(Histogram, nbins=100, shrs[Not([MCCneighbours...,MCCs...])], closed=:right)
+barplot!(ax, hist2, label="Other cell\nshears", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "shearHistograms.png"), fig)
+empty!(ax)
+hist1Normalised = normalize(hist1, mode=:pdf)
+hist2Normalised = normalize(hist2, mode=:pdf)
+barplot!(ax, hist1Normalised, label="Neighbour cell\nshears", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\nshears", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "shearDensities.png"), fig)
+
+
+empty!(ax)
+for i=2:length(hist1Normalised.weights)
+    hist1Normalised.weights[i]=hist1Normalised.weights[i]+hist1Normalised.weights[i-1]
+end
+for i=2:length(hist2Normalised.weights)
+    hist2Normalised.weights[i]=hist2Normalised.weights[i]+hist2Normalised.weights[i-1]
+end
+barplot!(ax, hist1Normalised, label="Neighbour cell\nshears", color=(:green,0.5))
+barplot!(ax, hist2Normalised, label="Other cell\nshears", color=(:blue,0.5))
+axislegend(ax)#, merge = true, unique = true)
+save(datadir("sims", folderName, "shearCumulativeDensities.png"), fig)
+#%%
+
+# fig7 = Figure(size=(1000,1000))
+# ax7 = Axis(fig7[1,1])
+# range = minimum(shrs):0.01:maximum(shrs)
+# cDif1 = ecdf(shrs[MCCneighbours])
+# lines!(ax7, collect(range), cDif1(range), label="Neighbour cell\nshears", color=(:green,0.5))
+# cDif2 = ecdf(shrs[Not([MCCneighbours...,MCCs...])])
+# lines!(ax7, collect(range), cDif2(range), label="Other cell\nshears", color=(:blue,0.5))
+# axislegend(ax7, merge = true, unique = true)
+# display(fig7)
+# save(datadir("sims", folderName, "shearECDF.png"), fig7)
+
+
+# fig8 = Figure(size=(1000,1000))
+# ax8 = Axis(fig8[1,1])
+# hist1Normalised = normalize(hist1, mode=:pdf)
+# hist2Normalised = normalize(hist2, mode=:pdf)
+# barplot!(ax6, hist1Normalised, label="Neighbour cell\nshears", color=(:green,0.5))
+# barplot!(ax6, hist2Normalised, label="Other cell\nshears", color=(:blue,0.5))
+# axislegend(ax6, merge = true, unique = true)
+# save(datadir("sims", folderName, "shearDensities.png"), fig6)

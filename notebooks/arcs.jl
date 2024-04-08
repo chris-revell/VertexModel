@@ -13,7 +13,7 @@ using Printf
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-12-15-24-12"
+folderName = "MCCsNotStifferDontDivide"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 
@@ -93,7 +93,7 @@ end
 # pressureStrings = [@sprintf("%.2f", p) for p in cellPressures]
 # annotations!(ax1, pressureStrings, Point{2,Float64}.(cellPositions))
 hidedecorations!(ax1); hidespines!(ax1)
-display(fig)
+# display(fig)
 
 #%%
 

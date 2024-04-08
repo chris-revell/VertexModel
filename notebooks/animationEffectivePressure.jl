@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-12-15-24-12"
+folderName = "MCCsNotStifferDontDivide"
 
 effectivePressureVectors = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
