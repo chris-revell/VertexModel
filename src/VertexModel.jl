@@ -82,7 +82,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!,R,(0.0,Inf),(params,matrices))
-    integrator = init(prob,solver,abstol=1e-6,reltol=1e-4) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-6,reltol=1e-4, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     stiffened=false
 
@@ -114,13 +114,12 @@ function vertexModel(;
             stiffened = true
         end
 
-
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u,params,matrices)
         # Output data to file 
         if integrator.t%params.outputInterval<integrator.dt
             # Update progress on command line 
-            printToggle==1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(Int64(integrator.t*outputTotal÷params.tMax))/$outputTotal") : nothing 
+            printToggle==1 ? println("$(@sprintf("%.3f", integrator.t))/$(@sprintf("%.3f", params.tMax)), $(Int64(integrator.t*outputTotal÷params.tMax))/$outputTotal") : nothing 
             if frameDataToggle==1
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
                 R = @view integrator.u[:]
@@ -176,6 +175,8 @@ function vertexModel(;
         # Save movie of simulation if videoToggle==1
         videoToggle==1 ? save(datadir("sims",subFolder,folderName,"$(splitpath(folderName)[end]).mp4"),mov) : nothing
     end
+
+    return nothing
 
 end
 
