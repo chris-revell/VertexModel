@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "MCCsNotStifferDontDivide"
+folderName = "L₀=0.75_nCells=794_pressureExternal=0.0_realTimetMax=173000.0_stiffnessFactor=10.0_γ=2.0_24-04-12-10-06-29"
 
 shears = Vector{Float64}[]
 stiffnesses = Vector{Float64}[]

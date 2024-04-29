@@ -9,16 +9,19 @@ using UnPack
 using CairoMakie
 using Printf
 using Colors
+using CircularArrays
+using GeometryBasics
 
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Laplacians.jl" using Laplacians
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 @from "$(projectdir())/src/Eigenmodes.jl" using Eigenmodes
+@from "$(projectdir())/src/OrderAroundCell.jl" using OrderAroundCell
 
 frame = 100
 
-folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
+folderName = "800cellsMostlyRelaxed"
 
 @unpack R, matrices, params = load(datadir("sims", folderName,"frameData","systemData$(@sprintf("%03d", frame)).jld2"))
 @unpack B, Bᵀ, C, cellPositions = matrices
@@ -32,9 +35,40 @@ hidespines!(ax)
 mkpath(datadir("sims", folderName,"eigenmodesLv","frame$(@sprintf("%03d", frame))"))
 
 cellPolygons = makeCellPolygonsOld(R,params,matrices)
-linkTriangles = makeLinkTriangles(R,params,matrices)
 
-decomposition = eigenmodesLv(R,matrices,params)
+@unpack A,C,boundaryVertices,boundaryEdges,cellPositions,edgeMidpoints = matrices
+@unpack nVerts = params
+linkTriangles = Vector{Point{2,Float64}}[]
+cellEdgeOrders = fill(CircularVector(Int64[]),nCells)
+for i=1:length(cellEdgeOrders)
+    cellEdgeOrders[i] = orderAroundCell(matrices,i)[2]
+end
+for k=1:nVerts
+    if boundaryVertices[k] == 0
+        # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
+        vertexCells = findall(x->x!=0,C[:,k])
+        push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
+    else
+        # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
+        vertexCells = findall(x->x!=0, C[:,k])
+        vertexEdges = findall(x->x!=0, A[:,k])
+        boundaryVertexEdges = [v for v in vertexEdges if boundaryEdges[v]!=0] #vertexEdges ∩ findall(x->x!=0,boundaryEdges))
+        if length(vertexCells)>1
+            edge1 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[1]])[1]
+            edge2 = (boundaryVertexEdges ∩ cellEdgeOrders[vertexCells[2]])[1]
+            kiteVertices = [R[k], edgeMidpoints[edge1], cellPositions[vertexCells[1]], cellPositions[vertexCells[2]], edgeMidpoints[edge2]]
+        else 
+            kiteVertices = [R[k], edgeMidpoints[boundaryVertexEdges[1]], cellPositions[vertexCells[1]], edgeMidpoints[boundaryVertexEdges[2]]]
+        end
+        push!(linkTriangles,Point{2,Float64}.(kiteVertices))
+    end
+end
+
+edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+trapeziumAreas = abs.(area.(edgeTrapezia))
+linkTriangleAreas = abs.(area.(linkTriangles))    
+Lᵥ = makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
+decomposition = (eigen(Matrix(Lᵥ))).vectors
 
 for mode=1:nVerts
     empty!(ax)

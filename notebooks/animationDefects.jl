@@ -22,7 +22,7 @@ function neighbourColours(x)
     end
 end
 
-folderName = "MCCsNotStifferDontDivide"
+folderName = "L₀=0.75_nCells=794_pressureExternal=0.0_realTimetMax=173000.0_stiffnessFactor=10.0_γ=2.0_24-04-12-10-06-29"
 
 fig = CairoMakie.Figure(size=(1000, 1000))
 ax = Axis(fig[1, 1], aspect=DataAspect())
