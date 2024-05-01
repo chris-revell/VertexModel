@@ -86,8 +86,6 @@ function vertexModel(;
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
         
-        # Update spatial data (edge lengths, cell areas, etc.)
-        spatialData!(integrator.u, params, matrices)
         # Output data to file 
         if integrator.t % params.outputInterval < integrator.dt
             # Update progress on command line 
@@ -107,6 +105,9 @@ function vertexModel(;
 
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
+
+        # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
+        spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u, params, matrices) > 0
