@@ -44,7 +44,8 @@ function spatialData!(R,params,matrices)
         edgeMidpointLinks,
         vertexAreas,
         μ,
-        Γ = matrices
+        Γ,
+        A₀s = matrices
     @unpack nCells,
         nEdges,
         nVerts,
@@ -96,7 +97,7 @@ function spatialData!(R,params,matrices)
     @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    @.. thread = false cellPressures .= A₀s .* μ .* log.(cellAreas ./ A₀s)
 
     return nothing
 

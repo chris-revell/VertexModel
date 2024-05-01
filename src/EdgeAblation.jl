@@ -96,6 +96,7 @@ function edgeAblation(j, params, matrices, integrator)
     deleteat!(matrices.cellTimeToDivide, cells[2])
     deleteat!(matrices.μ, cells[2])
     deleteat!(matrices.Γ, cells[2])
+    deleteat!(matrices.A₀s, cells[2])
 
     # Reduce size of domain in integrator 
     deleteat!(integrator,verticesToRemove)

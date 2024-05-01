@@ -170,6 +170,7 @@ function division!(integrator,params,matrices)
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
+            push!(matrices.A₀s, params.A₀)
 
             divisionCount = 1
             

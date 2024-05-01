@@ -89,6 +89,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellTimeToDivide,                                     # cellTimeToDivide
         ones(nCells),                                         # μ
         γ.*ones(nCells),                                      # Γ
+        A₀.*ones(nCells),                                     # A₀s
         zeros(nEdges),                                        # edgeLengths
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
