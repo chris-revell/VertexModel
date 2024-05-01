@@ -114,8 +114,6 @@ function vertexModel(;
         #     stiffened = true
         # end
 
-        # Update spatial data (edge lengths, cell areas, etc.)
-        spatialData!(integrator.u, params, matrices)
         # Output data to file 
         if integrator.t % params.outputInterval < integrator.dt
             # Update progress on command line 
@@ -140,6 +138,8 @@ function vertexModel(;
             matrices.A₀s[10] *= 0.75
             shrunk=true
         end
+        # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
+        spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u, params, matrices) > 0
