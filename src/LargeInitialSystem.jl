@@ -1,5 +1,5 @@
 #
-#  InitialHexagons.jl
+#  LargeInitialSystem.jl
 #  VertexModel
 #
 #  Created by Christopher Revell on 06/09/2023.
@@ -23,12 +23,12 @@ using Random
 
 function largeInitialSystem()
     
-    cellPoints = [SVector(x, 0.0) for x=1:9]
-    for j=1:4
-        for i=1:9-j
+    cellPoints = [SVector(x, 0.0) for x = 1:9]
+    for j = 1:4
+        for i = 1:9-j
             # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
-            push!(cellPoints,SVector(i+0.5*j+rand()*0.001-0.0005, j*sqrt(1-0.5^2)+rand()*0.001-0.0005))
-            push!(cellPoints,SVector(i+0.5*j+rand()*0.001-0.0005, -j*sqrt(1-0.5^2)+rand()*0.001-0.0005))
+            push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
+            push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, -j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
         end
     end
     xs = [x[1] for x in cellPoints]
@@ -46,19 +46,19 @@ function largeInitialSystem()
     #Exclude points outside constraining boundary
     usableVertices = Int64[]
     for a in values(tessellation_constrained.polygons)
-        push!(usableVertices,a...)
+        push!(usableVertices, a...)
     end
     sort!(unique!(usableVertices))
-    outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)),usableVertices)
+    outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
 
     # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
-    vertexIndexingMap = Dict(usableVertices.=>collect(1:length(usableVertices)))
+    vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
 
     R = SVector.(tessellation_constrained.polygon_points[usableVertices])
 
     # Find pairs of vertices connected by edges in tessellation 
     # Use incidence matrix indexing for vertices, and exclude outer vertices 
-    pairs = [(vertexIndexingMap[p[1]],vertexIndexingMap[p[2]]) for p in keys(tessellation_constrained.adjacent.adjacent) if p[1]∈usableVertices && p[2]∈usableVertices]
+    pairs = [(vertexIndexingMap[p[1]], vertexIndexingMap[p[2]]) for p in keys(tessellation_constrained.adjacent.adjacent) if p[1] ∈ usableVertices && p[2] ∈ usableVertices]
     # Ensure lowest index is first in tuple, and remove duplicates 
     orderedPairs = unique([(min(p...), max(p...)) for p in pairs])
 
@@ -83,7 +83,7 @@ function largeInitialSystem()
             vertexLeading = vertexIndexingMap[tessellation_constrained.polygons[c][i-1]]  # Leading with respect to *clockwise* direction around cell
             vertexTrailing = vertexIndexingMap[tessellation_constrained.polygons[c][i]]
             # Find index of edge connecting these vertices 
-            edge = (findall(x -> x != 0, A[:, vertexLeading])∩findall(x -> x != 0, A[:, vertexTrailing]))[1]
+            edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
             if A[edge, vertexLeading] > 0
                 B[c, edge] = 1
             else
@@ -96,25 +96,25 @@ function largeInitialSystem()
     # Making the assumption that there will never be two such vertices adjacent to each other
     verticesToRemove = Int64[]
     edgesToRemove = Int64[]
-    for i=1:nVerts
-        edges = findall(x->x!=0,A[:,i])
-        cells1 = findall(x->x!=0, B[:,edges[1]])
-        cells2 = findall(x->x!=0, B[:,edges[2]])
-        if cells1==cells2           
+    for i = 1:nVerts
+        edges = findall(x -> x != 0, @view A[:, i])
+        cells1 = findall(x -> x != 0, @view B[:, edges[1]])
+        cells2 = findall(x -> x != 0, @view B[:, edges[2]])
+        if cells1 == cells2
             # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
             push!(verticesToRemove, i)
             push!(edgesToRemove, edges[1])
         end
     end
     for i in verticesToRemove
-        edges = findall(x->x!=0,A[:,i])
-        otherVertexOnEdge1 = setdiff(findall(x->x!=0, A[edges[1],:]), [i])[1]      
-        A[edges[2], otherVertexOnEdge1] = A[edges[2],i]
+        edges = findall(x -> x != 0, @view A[:, i])
+        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
+        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
         A[edges[1], otherVertexOnEdge1] = 0
     end
-    A = A[setdiff(1:size(A,1),edgesToRemove), setdiff(1:size(A,2),verticesToRemove)]
-    B = B[:, setdiff(1:size(B,2),edgesToRemove)]
-    R = R[setdiff(1:size(R,1),verticesToRemove)]
+    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
+    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
+    R = R[setdiff(1:size(R, 1), verticesToRemove)]
 
     senseCheck(A, B; marker="Removing peropheral vertices")
 

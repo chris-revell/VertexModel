@@ -111,18 +111,18 @@ function division!(integrator,params,matrices)
             # Add new edges to these neighbour cells
             # These edges are clockwise in the new cell, so must be anticlockwise in these neighbour cells                      
             if boundaryEdges[intersectedEdges[1]] == 0
-                neighbourCell = setdiff(findall(j->j!=0,B[:,intersectedEdges[1]]),[i])[1]
+                neighbourCell = setdiff(findall(j->j!=0, @view B[:,intersectedEdges[1]]),[i])[1]
                 Btmp[neighbourCell,newEdges[2]] = -1
             end
             if boundaryEdges[intersectedEdges[2]] == 0
-                neighbourCell = setdiff(findall(j->j!=0,B[:,intersectedEdges[2]]),[i])[1]
+                neighbourCell = setdiff(findall(j->j!=0, @view B[:,intersectedEdges[2]]),[i])[1]
                 Btmp[neighbourCell,newEdges[3]] = -1
             end
 
             # Ensure orientations with respect to other cells of all edges in new cell are correct
             for edge in [newCellEdges...]
                 if boundaryEdges[edge] == 0
-                    neighbourCell = setdiff(findall(j->j!=0,B[:,edge]),[i])[1]
+                    neighbourCell = setdiff(findall(j->j!=0, @view B[:,edge]),[i])[1]
                     Btmp[neighbourCell,edge] = -1
                 end
             end

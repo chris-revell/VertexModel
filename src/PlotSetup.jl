@@ -9,19 +9,9 @@
 module PlotSetup
 
 # Julia packages
-using LinearAlgebra
-using JLD2
-using SparseArrays
-using StaticArrays
 using UnPack
-using DrWatson
-using Printf
 using FromFile
 using CairoMakie
-
-# Local modules
-# @from "CreateRunDirectory.jl" using CreateRunDirectory
-# @from "Visualise.jl" using Visualise
 
 function plotSetup(R,params,matrices,subFolder,folderName)
 

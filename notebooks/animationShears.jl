@@ -31,6 +31,10 @@ for t = 5:length(files)
     notExcludedCells = fill(true, params.nCells)
     for j in findall(x -> x != 0, matrices.boundaryEdges)
         notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
+    push!(shears, shrs)
+    notExcludedCells = fill(true, params.nCells)
+    for j in findall(x -> x != 0, matrices.boundaryEdges)
+        notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
     end
     push!(notExcludedCellVectors, notExcludedCells)
     cellPolygons = makeCellPolygonsOld(R, params, matrices)
@@ -50,7 +54,9 @@ globalShearMax = maximum([maximum(shears[t][notExcludedCellVectors[t]]) for t = 
 sLims = (globalShearMin, globalShearMax)
 
 Colorbar(fig[1, 1][1, 2], limits=sLims, flipaxis=true)
+Colorbar(fig[1, 1][1, 2], limits=sLims, flipaxis=true)
 
+for t = 1:length(shears)
 for t = 1:length(shears)
     empty!(ax)
     for i = 1:length(shears[t])
@@ -85,6 +91,8 @@ for t = 1:length(shears)
     reset_limits!(ax)
     recordframe!(mov)
 end
+
+save(datadir("sims", folderName, "movieShears.mp4"), mov)
 
 save(datadir("sims", folderName, "movieShears.mp4"), mov)
 

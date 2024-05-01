@@ -63,45 +63,40 @@ function spatialData!(R,params,matrices)
     fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
     dropzeros!(edgeMidpointLinks)
     nzC = findnz(C)
-    ikPairs = tuple.(nzC[1],nzC[2])
-    for (i,k) in ikPairs
-        # for j in findnz(A[:,k])[1]
+    ikPairs = tuple.(nzC[1], nzC[2])
+    for (i, k) in ikPairs
         for j in cellEdgeOrders[i]
-            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j].*edgeTangents[j].*Ā[j,k]
+            edgeMidpointLinks[i, k] = edgeMidpointLinks[i, k] .+ 0.5 .* B[i, j] .* edgeTangents[j] .* Ā[j, k]
         end
     end
-    
+
     # Find vertex areas, with special consideration of peripheral vertices with 1 or 2 adjacent cells
-    for k=1:nVerts
-        k_is = findall(x->x!=0, C[:,k])
+    for k = 1:nVerts
+        k_is = findall(x -> x != 0, @view C[:, k])
         if length(k_is) == 1
-            k_js = findall(x->x!=0, A[:,k])
-            vertexAreas[k] = 0.5^3*norm([edgeTangents[k_js[1]]...,0.0]×[edgeTangents[k_js[2]]...,0.0])
+            k_js = findall(x -> x != 0, A[:, k])
+            vertexAreas[k] = 0.5^3 * norm([edgeTangents[k_js[1]]..., 0.0] × [edgeTangents[k_js[2]]..., 0.0])
         elseif length(k_is) == 2
-            # edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
-            edgesSharedBy_i1_And_k = findall(x->x!=0,B[k_is[1],:].*A[:,k]) # This line does the same as the commented out line above but seems to allocate less memory
-            vertexAreas[k] = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
-            # edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
-            edgesSharedBy_i2_And_k = findall(x->x!=0,B[k_is[2],:].*A[:,k]) # This line does the same as the commented out line above but seems to allocate less memory
-            vertexAreas[k] += 0.5^3*norm([edgeTangents[edgesSharedBy_i2_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i2_And_k[2]]...,0.0])
+            edgesSharedBy_i1_And_k = findall(x -> x != 0, B[k_is[1], :] .* A[:, k])
+            vertexAreas[k] = 0.5^3 * norm([edgeTangents[edgesSharedBy_i1_And_k[1]]..., 0.0] × [edgeTangents[edgesSharedBy_i1_And_k[2]]..., 0.0])
+            edgesSharedBy_i2_And_k = findall(x -> x != 0, B[k_is[2], :] .* A[:, k])
+            vertexAreas[k] += 0.5^3 * norm([edgeTangents[edgesSharedBy_i2_And_k[1]]..., 0.0] × [edgeTangents[edgesSharedBy_i2_And_k[2]]..., 0.0])
         else
-            vertexAreas[k] = 0.5*norm([edgeMidpointLinks[k_is[1], k]...,0.0]×[edgeMidpointLinks[k_is[2],k]...,0.0])
+            vertexAreas[k] = 0.5 * norm([edgeMidpointLinks[k_is[1], k]..., 0.0] × [edgeMidpointLinks[k_is[2], k]..., 0.0])
         end
     end
 
-    cellPerimeters .= B̄*edgeLengths
+    cellPerimeters .= B̄ * edgeLengths
 
-    for i=1:nCells
+    for i = 1:nCells
         cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
     end
 
     # Calculate cell boundary tensions
-    # @.. thread=false cellTensions  .= Γ.*L₀.*log.(cellPerimeters./L₀)
-    @.. thread=false cellTensions  .= L₀.*log.(cellPerimeters./L₀)
+    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
 
     # Calculate cell internal pressures
-    # @.. thread=false cellPressures .= A₀.*μ.*log.(cellAreas./A₀)
-    @.. thread=false cellPressures .= A₀.*log.(cellAreas./A₀)
+    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
 
     return nothing
 

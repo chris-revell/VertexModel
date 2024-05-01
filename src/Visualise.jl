@@ -29,7 +29,7 @@ using DrWatson
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges,scatterVertices,scatterCells,plotForces,plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -84,11 +84,12 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     end
 
     if plotEdgeMidpointLinks == 1
-        for i=1:nCells
-            for j=1:cellEdgeCount[i]
-                lines!(ax1, 
-                Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]].+edgeMidpointLinks[i,cellVertexOrders[i][j]])]),
-                    linestyle=:dot, color=:black)
+        for i = 1:nCells
+            for j = 1:cellEdgeCount[i]
+                lines!(ax1,
+                    Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]] .+ edgeMidpointLinks[i, cellVertexOrders[i][j]])]),
+                    linestyle=:dot,
+                    color=:black)
             end
         end
     end
@@ -97,7 +98,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells,scatterEdges
     reset_limits!(ax1)
 
     recordframe!(mov)
-    
+
     return nothing
 
 end
