@@ -31,7 +31,6 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-
 @from "EdgeAblation.jl" using EdgeAblation
 
 function vertexModel(;
