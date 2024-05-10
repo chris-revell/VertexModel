@@ -22,7 +22,7 @@ function neighbourColours(x)
     end
 end
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.1_24-05-01-16-02-18"
+folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-08-16-38-39"
 
 fig = CairoMakie.Figure(size=(1000, 1000))
 ax = Axis(fig[1, 1], aspect=DataAspect())
