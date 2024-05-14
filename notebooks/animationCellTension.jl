@@ -15,7 +15,7 @@ using Colors
 
 folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-08-16-38-39"
 
-effectivePressureVectors = Vector{Float64}[]
+cellTensionVectors = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
 stiffnesses = Vector{Float64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
@@ -25,8 +25,8 @@ for t = 5:length(files)
     @unpack R, matrices, params = load(files[t]; 
         typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
         "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
-    effectivePressure = effectiveCellPressure(matrices.cellPressures, matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas)
-    push!(effectivePressureVectors, effectivePressure)
+    # effectivePressure = effectiveCellPressure(matrices.cellTensions, matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas)
+    push!(cellTensionVectors, matrices.cellTensions)
     notExcludedCells = fill(true, params.nCells)
     for j in findall(x -> x != 0, matrices.boundaryEdges)
         notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
@@ -42,46 +42,34 @@ ax = Axis(fig[1, 1][1, 1], aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
-globalPeffMin = minimum([minimum(effectivePressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(effectivePressureVectors)])
-globalPeffMax = maximum([maximum(effectivePressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(effectivePressureVectors)])
-globalLimit = max(abs(globalPeffMin), abs(globalPeffMax))
-pLims = (-globalLimit, globalLimit)
-Colorbar(fig[1, 1][1, 2], colormap=:bwr, limits=pLims, flipaxis=true)
+globalTensionMin = minimum([minimum(cellTensionVectors[t]) for t = 1:length(cellTensionVectors)])
+globalTensionMax = maximum([maximum(cellTensionVectors[t]) for t = 1:length(cellTensionVectors)])
+pLims = (globalTensionMin, globalTensionMax)
+Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=pLims, flipaxis=true)
 
-for t = 1:length(effectivePressureVectors)
+for t = 1:length(cellTensionVectors)
     empty!(ax)
-    for i = 1:length(effectivePressureVectors[t])
-        if notExcludedCellVectors[t][i]
-            if stiffnesses[t][i] < 1.5                
-                poly!(ax,
-                    cellPolygonVectors[t][i],
-                    color=effectivePressureVectors[t][i],
-                    colormap=:bwr,
-                    colorrange=pLims,
-                    strokecolor=(:black,0.0),
-                    strokewidth=0)
-            end
-        else
+    for i = 1:length(cellTensionVectors[t])
+        # if notExcludedCellVectors[t][i]            
             poly!(ax,
                 cellPolygonVectors[t][i],
-                color=(:black,0.5),
-                strokecolor=(:black,0.0),
-                strokewidth=0)
-        end
-    end
-    for i = 1:length(effectivePressureVectors[t])
-        if stiffnesses[t][i] > 1.5 && notExcludedCellVectors[t][i]
-            poly!(ax,
-                cellPolygonVectors[t][i],
-                color=effectivePressureVectors[t][i],
-                colormap=:bwr,
+                color=cellTensionVectors[t][i],
+                colormap=:batlow,
                 colorrange=pLims,
                 strokecolor=(:black,1.0),
                 strokewidth=2)
-        end
+        # else
+        #     poly!(ax,
+        #         cellPolygonVectors[t][i],
+        #         color=(:black,0.5),
+        #         strokecolor=(:black,0.0),
+        #         strokewidth=2)
+        # end
     end
     reset_limits!(ax)
     recordframe!(mov)
+    t==72 ? save(datadir("sims", folderName, "cellTensions072.png"), fig) : nothing 
 end
 
-save(datadir("sims", folderName, "movieEffectivePressures.mp4"), mov)
+save(datadir("sims", folderName, "cellTensions100.png"), fig)
+save(datadir("sims", folderName, "movieCellTensions.mp4"), mov)
