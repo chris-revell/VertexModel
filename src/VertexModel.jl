@@ -134,8 +134,8 @@ function vertexModel(;
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
-        if integrator.t>params.nCells*3.0/4.0 && !shrunk
-            matrices.A₀s[10] *= 0.75
+        if integrator.t>params.tMax*3.0/4.0 && !shrunk
+            matrices.A₀s[5] *= 0.75
             shrunk=true
         end
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
