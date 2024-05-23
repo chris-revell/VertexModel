@@ -31,7 +31,6 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-
 @from "EdgeAblation.jl" using EdgeAblation
 
 function vertexModel(;
@@ -88,8 +87,6 @@ function vertexModel(;
     # while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
     while params.nCells < 100
         
-        # Update spatial data (edge lengths, cell areas, etc.)
-        spatialData!(integrator.u, params, matrices)
         # Output data to file 
         if integrator.t % params.outputInterval < integrator.dt
             # Update progress on command line 
@@ -109,6 +106,9 @@ function vertexModel(;
 
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
+
+        # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
+        spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u, params, matrices) > 0
