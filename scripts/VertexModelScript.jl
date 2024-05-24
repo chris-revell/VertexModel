@@ -33,7 +33,7 @@ using Printf
 
 
 initialSystem="large"
-nCycles=0.1
+nCycles=1.0
 realCycleTime=86400.0
 realTimetMax=nCycles*realCycleTime
 γ=0.2
@@ -84,7 +84,7 @@ integrator = init(prob, solver, abstol=1e-7, reltol=1e-4, save_on=false, save_st
 while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
 
     # Output data to file 
-    # if integrator.t % params.outputInterval < integrator.dt
+    if integrator.t % params.outputInterval < integrator.dt
         # Update progress on command line 
         printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(Int64(integrator.t*outputTotal÷params.tMax))/$outputTotal") : nothing
         if frameDataToggle == 1
@@ -98,7 +98,7 @@ while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Defaul
         end
         # Save still image of this time step 
         frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
-    # end
+    end
 
     # Step integrator forwards in time to update vertex positions 
     step!(integrator)
