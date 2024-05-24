@@ -87,7 +87,7 @@ function vertexModel(;
     shrunk = false 
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
+    while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # if params.nCells>800 && !stiffened
         #     cellNeighbourMatrix = matrices.B*matrices.B'
