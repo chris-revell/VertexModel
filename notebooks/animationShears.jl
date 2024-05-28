@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-08-16-38-39"
+folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-24-14-37-24"
 
 shears = Vector{Float64}[]
 stiffnesses = Vector{Float64}[]
@@ -29,9 +29,10 @@ for t = 5:length(files)
     shrs = cellShears(matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas, Qs)
     push!(shears, shrs)
     notExcludedCells = fill(true, params.nCells)
-    for j in findall(x -> x != 0, matrices.boundaryEdges)
-        notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
-    push!(shears, shrs)
+    # for j in findall(x -> x != 0, matrices.boundaryEdges)
+    #     notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
+    # end
+    # push!(shears, shrs)
     notExcludedCells = fill(true, params.nCells)
     for j in findall(x -> x != 0, matrices.boundaryEdges)
         notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
@@ -56,7 +57,6 @@ sLims = (globalShearMin, globalShearMax)
 Colorbar(fig[1, 1][1, 2], limits=sLims, flipaxis=true)
 Colorbar(fig[1, 1][1, 2], limits=sLims, flipaxis=true)
 
-for t = 1:length(shears)
 for t = 1:length(shears)
     empty!(ax)
     for i = 1:length(shears[t])
@@ -94,5 +94,4 @@ end
 
 save(datadir("sims", folderName, "movieShears.mp4"), mov)
 
-save(datadir("sims", folderName, "movieShears.mp4"), mov)
 
