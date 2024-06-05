@@ -51,8 +51,8 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            # if matrices.μ[i] < 2.0
-            if i == 5
+            if matrices.μ[i] < 1.5
+            # if i == 5
                 poly!(ax1,cellPolygons[i],color=:purple,strokecolor=(:black,1.0),strokewidth=2)
             else
                 poly!(ax1,cellPolygons[i],color=:green,strokecolor=(:black,1.0),strokewidth=2)

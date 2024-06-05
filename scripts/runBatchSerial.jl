@@ -1,7 +1,7 @@
 using DrWatson
 @quickactivate
 using VertexModel
-using DifferentialEquations
+using OrdinaryDiffEq
 
 nRuns = 1
 
