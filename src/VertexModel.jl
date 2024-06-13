@@ -87,8 +87,8 @@ function vertexModel(;
     stiffened = false 
 
     # Iterate until integrator time reaches max system time 
-    # while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
-    while params.nCells < 800 && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    # while params.nCells < 800 && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         if params.nCells>400 && !stiffened
             cellNeighbourMatrix = matrices.B*matrices.B'
@@ -149,11 +149,13 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator, params, matrices) > 0
-            u_modified!(integrator, true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(integrator.u, params, matrices) # Update spatial data after division 
+        if params.nCells < 800
+            if division!(integrator, params, matrices) > 0
+                u_modified!(integrator, true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(integrator.u, params, matrices) # Update spatial data after division 
+            end
         end
 
         # Update cell ages with (variable) timestep used in integration step
