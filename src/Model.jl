@@ -67,7 +67,7 @@ function model!(du, u, p, t)
             externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
 
-        du[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
+        du[k] = (sum(@view F[k, :]) .+ externalF[k]) 
     end
     
     return du

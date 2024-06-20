@@ -22,7 +22,7 @@ function energy(params,matrices)
         L₀,
         γ = params
 
-    energyTotal = sum(cellAreas.*(log.(cellAreas).-1)+(γ*L₀).*cellPerimeters.*(log.(cellPerimeters./L₀).-1))
+    energyTotal = sum(0.5.*((cellAreas.-A₀).^2+γ.*(cellPerimeters.-L₀).^2))
 
     return energyTotal
 

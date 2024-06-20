@@ -80,7 +80,8 @@ function vertexModel(;
     peripheralTension=0.0,
     t1Threshold=0.05,    
     #solver= Vern7(lazy=false),
-    solver= DP8(),
+    #solver= DP8(),
+    solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -117,7 +118,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-6, reltol=1e-5) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
@@ -140,6 +141,7 @@ function vertexModel(;
                 println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
                 close(csvfile)
                 print(e_tot ,'\n')
+                @show params.nCells
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
