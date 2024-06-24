@@ -12,19 +12,21 @@ using Colors
 using Statistics
 using InvertedIndices
 using GeometryBasics
-# using StatsBase 
+using DataFrames
 
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 
     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
     "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
 
-function myECDF!(ax, dataNeighbour, dataBulk)
+series = Dict()
+
+function myECDF!(ax, dataNeighbour, dataBulk, series, label)
     minVal = min(minimum(dataNeighbour), minimum(dataBulk))
     maxVal = max(maximum(dataNeighbour), maximum(dataBulk))
 
@@ -54,6 +56,11 @@ function myECDF!(ax, dataNeighbour, dataBulk)
     push!(xs2, maxVal)
     push!(ys2, 1.0)
 
+    series["$(label)MCCneighbours_x"] = xs1
+    series["$(label)MCCneighbours_y"] = ys1
+    series["$(label)BulkCells_x"] = xs2
+    series["$(label)BulkCells_y"] = ys2
+
     # pts1 = Point2[]
     # push!(pts1, Point2(minVal,0.0))
     # pts2 = Point2[]
@@ -76,7 +83,7 @@ function myECDF!(ax, dataNeighbour, dataBulk)
 end 
 
 cellNeighbourMatrix = matrices.B*matrices.B'
-MCCs = findall(x->x>1.5, matrices.μ)
+MCCs = findall(x->x==1, matrices.MCCsList)
 MCCneighbours = Int64[]
 for i in MCCs
     append!(MCCneighbours, [x for x in findall(x->x!=0, cellNeighbourMatrix[i,:]) if x∉MCCs] )
@@ -96,13 +103,13 @@ fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
 # sc2 = ecdfplot!(ax, matrices.cellTensions[Not([MCCneighbours...,MCCs...])]; color=:green, label="Other cell tensions")
 # axislegend(ax)#, merge = true, unique = true)
 # pts1, pts2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])], "label")
-l1, l2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])])
+l1, l2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])], series, "CellTensions")
 # lines!(ax, pts1)#, color=:red, label="MCC neighbours")
 # lines!(ax, pts2)#, color=:green, label="Bulk cells")
 ax.ylabel = "Cumulative distribution"
 ax.xlabel = "Tension"
 Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-display(fig)
+# display(fig)
 # axislegend(ax)
 save(datadir("sims", folderName, "tensionCumulativeDensities.png"), fig)
 
@@ -113,13 +120,13 @@ fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
 # sc2 = ecdfplot!(ax, matrices.cellTensions[Not([MCCneighbours...,MCCs...])]; color=:green, label="Other cell tensions")
 # axislegend(ax)#, merge = true, unique = true)
 # pts1, pts2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])], "label")
-l1, l2 = myECDF!(ax, effectivePressure[MCCneighbours], effectivePressure[Not([MCCneighbours...,MCCs...])])
+l1, l2 = myECDF!(ax, effectivePressure[MCCneighbours], effectivePressure[Not([MCCneighbours...,MCCs...])], series, "CellEffectivePressures")
 # lines!(ax, pts1)#, color=:red, label="MCC neighbours")
 # lines!(ax, pts2)#, color=:green, label="Bulk cells")
 ax.ylabel = "Cumulative distribution"
 ax.xlabel = "Effective pressure"
 Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-display(fig)
+# display(fig)
 # axislegend(ax)
 save(datadir("sims", folderName, "peffCumulativeDensities.png"), fig)
 
@@ -140,13 +147,13 @@ fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
 # sc2 = ecdfplot!(ax, matrices.cellTensions[Not([MCCneighbours...,MCCs...])]; color=:green, label="Other cell tensions")
 # axislegend(ax)#, merge = true, unique = true)
 # pts1, pts2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])], "label")
-l1, l2 = myECDF!(ax, matrices.cellPressures[MCCneighbours], matrices.cellPressures[Not([MCCneighbours...,MCCs...])])
+l1, l2 = myECDF!(ax, matrices.cellPressures[MCCneighbours], matrices.cellPressures[Not([MCCneighbours...,MCCs...])], series, "CellPressures")
 # lines!(ax, pts1)#, color=:red, label="MCC neighbours")
 # lines!(ax, pts2)#, color=:green, label="Bulk cells")
 ax.ylabel = "Cumulative distribution"
 ax.xlabel = "Cell pressure"
 Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-display(fig)
+# display(fig)
 # axislegend(ax)
 save(datadir("sims", folderName, "pressureCumulativeDensities.png"), fig)
 
@@ -166,15 +173,34 @@ fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
 # sc2 = ecdfplot!(ax, matrices.cellTensions[Not([MCCneighbours...,MCCs...])]; color=:green, label="Other cell tensions")
 # axislegend(ax)#, merge = true, unique = true)
 # pts1, pts2 = myECDF!(ax, matrices.cellTensions[MCCneighbours], matrices.cellTensions[Not([MCCneighbours...,MCCs...])], "label")
-l1, l2 = myECDF!(ax, shrs[MCCneighbours], shrs[Not([MCCneighbours...,MCCs...])])
+l1, l2 = myECDF!(ax, shrs[MCCneighbours], shrs[Not([MCCneighbours...,MCCs...])], series, "CellShears")
 # lines!(ax, pts1)#, color=:red, label="MCC neighbours")
 # lines!(ax, pts2)#, color=:green, label="Bulk cells")
 ax.ylabel = "Cumulative distribution"
 ax.xlabel = "Cell shear"
 Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-display(fig)
+# display(fig)
 # axislegend(ax)
 save(datadir("sims", folderName, "shearCumulativeDensities.png"), fig)
 
 
 #%%
+
+
+using XLSX
+XLSX.openxlsx(datadir("sims", folderName, "ecdfs.xlsx"), mode="w") do xf
+    sheet = xf[1]
+    # XLSX.rename!(sheet, "new_sheet")
+    for (i,j) in enumerate(keys(series))
+        sheet["A$(i)"] = j 
+        sheet["B$(i)"] = series[j]
+    end
+end
+
+
+#%%
+
+cellTypes = fill("Bulk cell", params.nCells)
+cellTypes[MCCneighbours] .= "MCC neighbour"
+dfCells = DataFrame(cellID = collect(1:params.nCells), cellType=cellTypes, pressure=matrices.cellPressures, pEff=effectivePressure, tension=matrices.cellTensions, shear=shrs)
+XLSX.writetable(datadir("sims", folderName, "MCCcellData.xlsx"), collect(eachcol(dfCells)), names(dfCells))

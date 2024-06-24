@@ -14,12 +14,12 @@ using Colors
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 potentials = Vector{Float64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 linkTriangleVectors = Vector{Vector{Point{2,Float64}}}[]
-stiffnesses = Vector{Float64}[]
+MCCs = Vector{Int64}[]
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 5:length(files)
     @show t
@@ -32,7 +32,7 @@ for t = 5:length(files)
     push!(cellPolygonVectors, cellPolygons)
     linkTriangles = makeLinkTriangles(R, params, matrices)
     push!(linkTriangleVectors, linkTriangles)
-    push!(stiffnesses, matrices.μ)
+    push!(MCCs, matrices.MCCsList)
 end
 
 fig = CairoMakie.Figure(size=(1000, 1000))
@@ -57,7 +57,7 @@ for t = 1:length(potentials)
             strokecolor=(:black,0.0))
     end
     for i = 1:length(cellPolygonVectors[t])
-        if stiffnesses[t][i] > 1.5
+        if MCCs[t][i] == 1
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=(:white,0.0),

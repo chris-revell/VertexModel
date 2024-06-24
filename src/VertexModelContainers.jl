@@ -59,6 +59,7 @@ mutable struct MatricesContainer
     cellAreas        ::Vector{Float64}                              # Vector of scalar cell areas
     cellTensions     ::Vector{Float64}                              # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
+    MCCsList         ::Vector{Int64}                                # 
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
     Γ                ::Vector{Float64}                              # Vector of cell tension factors 

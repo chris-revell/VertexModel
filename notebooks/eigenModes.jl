@@ -15,7 +15,7 @@ using FromFile
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Laplacians.jl" using Laplacians
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 
@@ -50,7 +50,7 @@ fig = Figure(size=(1500,1600))
 #         hidedecorations!(ax)
 #         hidespines!(ax)
 #         for k=1:nVerts
-#             poly!(ax,linkTriangles[k],color=[decompositionLv[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25)) #:bwr
+#             poly!(ax,linkTriangles[k],color=[decompositionLv[k,eigenvectorIndex]],colorrange=lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.0)) #:bwr
 #         end
 #         for i=1:nCells
 #             poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1) #:bwr
@@ -71,7 +71,7 @@ for x=1:5
         hidedecorations!(ax)
         hidespines!(ax)
         for k=1:nVerts
-            poly!(ax,linkTriangles[k],color=decompositionLv[k,eigenvectorIndex],colorrange=lims,colormap=:bwr,strokewidth=0,strokecolor=(:black,0.25)) #:bwr
+            poly!(ax,linkTriangles[k],color=decompositionLv[k,eigenvectorIndex],colorrange=lims,colormap=:bwr,strokewidth=0,strokecolor=(:black,0.0)) #:bwr
         end
         for i=1:nCells
             if matrices.μ[i] < 1.5

@@ -93,7 +93,8 @@ function vertexModel(;
         if params.nCells>400 && !stiffened
             cellNeighbourMatrix = matrices.B*matrices.B'
             cellsToStiffen = Int64[]
-            excludedCells = Int64[]
+            # excludedCells = Int64[]
+            excludedCells = [findall(z->z!=0, matrices.B[:,x])[1] for x in findall(y->y!=0, matrices.boundaryEdges)]
             while length(excludedCells) < params.nCells
                 cellToUpdate = rand([x for x in 1:params.nCells if x∉excludedCells])
                 neighbours = findall(x->x!=0, cellNeighbourMatrix[cellToUpdate,:])
@@ -112,6 +113,7 @@ function vertexModel(;
             end
             matrices.μ[cellsToStiffen] .*= stiffnessFactor
             matrices.Γ[cellsToStiffen] .*= stiffnessFactor
+            matrices.MCCsList[cellsToStiffen] .= 1
             stiffened = true
         end
 
@@ -182,7 +184,7 @@ function vertexModel(;
         videoToggle == 1 ? save(datadir("sims", subFolder, folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
     end
 
-    return integrator, matrices
+    # return integrator, matrices
 
 end
 

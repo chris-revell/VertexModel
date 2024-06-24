@@ -16,7 +16,7 @@ using StatsBase
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 

@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 tensionVectors = Vector{Float64}[]
 notExcludedEdgeVectors = Vector{Bool}[]
@@ -78,17 +78,24 @@ for t = 1:length(tensionVectors)
         end
     end
     for i = 1:length(cellPolygonVectors[t])
-        poly!(ax,
+        # poly!(ax,
+        #     cellPolygonVectors[t][i],
+        #     color=(:white, 0.0),
+        #     strokecolor=(:black, 1.0),
+        #     strokewidth=2,
+        # )
+        if MCCs[t][i] == 1
+            poly!(ax,
             cellPolygonVectors[t][i],
-            color=(:white, 0.0),
+            color=(:white,0.0),
             strokecolor=(:black, 1.0),
-            strokewidth=2,
-        )
+            strokewidth=3)
+        end
     end
     reset_limits!(ax)
     recordframe!(mov)
-    t==72 ? save(datadir("sims", folderName, "EdgeTensions072.png"), fig) : nothing 
+    # t==72 ? save(datadir("sims", folderName, "EdgeTensions072.png"), fig) : nothing 
 end
 
-save(datadir("sims", folderName, "EdgeTensions100.png"), fig)
+# save(datadir("sims", folderName, "EdgeTensions100.png"), fig)
 save(datadir("sims", folderName, "movieEdgeTensions.mp4"), mov)

@@ -16,7 +16,7 @@ using XLSX
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-# folderNames = ["L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-24-14-37-24",
+# folderNames = ["MCCcomparison/pressureExternal=0.5_stiffnessFactor=1.0_γ=0.2_24-06-18-15-39-04",
 #                "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-08-16-38-39",
 #                "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-24-14-35-43",
 #                "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=86400.0_stiffnessFactor=1.0_γ=0.2_24-05-24-17-24-44",

@@ -86,6 +86,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         zeros(nCells),                                        # cellAreas
         zeros(nCells),                                        # cellTensions
         zeros(nCells),                                        # cellPressures
+        zeros(nCells),                                        # MCCsList
         cellTimeToDivide,                                     # cellTimeToDivide
         ones(nCells),                                         # μ
         γ.*ones(nCells),                                      # Γ

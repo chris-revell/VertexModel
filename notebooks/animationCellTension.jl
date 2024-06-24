@@ -13,11 +13,11 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 cellTensionVectors = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
-stiffnesses = Vector{Float64}[]
+MCCs = Vector{Int64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 5:length(files)
@@ -34,7 +34,7 @@ for t = 5:length(files)
     push!(notExcludedCellVectors, notExcludedCells)
     cellPolygons = makeCellPolygonsOld(R, params, matrices)
     push!(cellPolygonVectors, cellPolygons)
-    push!(stiffnesses, matrices.μ)
+    push!(MCCs, matrices.MCCsList)
 end
 
 fig = CairoMakie.Figure(size=(1000, 1000))
@@ -51,25 +51,28 @@ for t = 1:length(cellTensionVectors)
     empty!(ax)
     for i = 1:length(cellTensionVectors[t])
         # if notExcludedCellVectors[t][i]            
+        if MCCs[t][i] == 0
+            poly!(ax,
+                cellPolygonVectors[t][i],
+                color=cellTensionVectors[t][i],
+                colormap=:batlow,
+                colorrange=pLims,
+                strokecolor=(:black,0.0),
+                strokewidth=2)
+        else
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellTensionVectors[t][i],
                 colormap=:batlow,
                 colorrange=pLims,
                 strokecolor=(:black,1.0),
-                strokewidth=2)
-        # else
-        #     poly!(ax,
-        #         cellPolygonVectors[t][i],
-        #         color=(:black,0.5),
-        #         strokecolor=(:black,0.0),
-        #         strokewidth=2)
-        # end
+                strokewidth=3)
+        end
     end
     reset_limits!(ax)
     recordframe!(mov)
-    t==72 ? save(datadir("sims", folderName, "cellTensions072.png"), fig) : nothing 
+    # t==72 ? save(datadir("sims", folderName, "cellTensions072.png"), fig) : nothing 
 end
 
-save(datadir("sims", folderName, "cellTensions100.png"), fig)
+# save(datadir("sims", folderName, "cellTensions100.png"), fig)
 save(datadir("sims", folderName, "movieCellTensions.mp4"), mov)

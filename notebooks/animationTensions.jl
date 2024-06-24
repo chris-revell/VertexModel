@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "L₀=0.75_nCells=61_pressureExternal=0.5_realTimetMax=432000.0_stiffnessFactor=2.0_γ=0.4_24-06-12-19-15-11"
+folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
 
 tensionVectors = Vector{Float64}[]
 edgeMidpointVectors = Vector{StaticVector{2,Float64}}[]
@@ -77,6 +77,15 @@ for t = 1:length(tensionVectors)
                 color=(:black, 1.0),
                 linewidth=4,
             )
+        end
+    end
+    for i = 1:length(shears[t])
+        if MCCs[t][i] == 1
+            poly!(ax,
+            cellPolygonVectors[t][i],
+            color=(:white,0.0),
+            strokecolor=(:black, 1.0),
+            strokewidth=2)
         end
     end
     reset_limits!(ax)
