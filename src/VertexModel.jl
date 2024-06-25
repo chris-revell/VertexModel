@@ -161,7 +161,7 @@ function vertexModel(;
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
        
-        if params.nCells < 100
+        if params.nCells < 2000
             if division!(integrator,params,matrices)>0
                 u_modified!(integrator,true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
