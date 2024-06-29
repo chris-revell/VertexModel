@@ -63,7 +63,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
         @unpack A,B = importedData["matrices"]
-        cellTimeToDivide = rand(Uniform(0.0,0.1*nonDimCycleTime),size(B,1))
+        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
 
@@ -108,7 +108,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         SMatrix{2, 2, Float64}([                              # ϵ Clockwise rotation matrix setting orientation of cell faces
         0.0 1.0
         -1.0 0.0
-        ])        )
+        ]),
+        fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)       # cellShapeTensor
+        )
 
     # Pack parameters into a struct for convenience
     params = ParametersContainer(

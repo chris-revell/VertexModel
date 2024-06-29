@@ -90,7 +90,14 @@ function spatialData!(R,params,matrices)
 
     for i = 1:nCells
         cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
+
+        cell_verts=findall(x-> x!=0, C[i,:])
+        Rα=[R[cell_verts][y]-matrices.cellPositions[i] for y in 1:length(cell_verts)]
+        shape_tensor[i]=sum(Rα.*transpose.(Rα))/Float64.(cellEdgeCount[i])
     end
+
+    
+
 
     # Calculate cell boundary tensions
     @.. thread = false cellTensions .= Γ .*(cellPerimeters .- L₀)
