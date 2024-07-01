@@ -14,13 +14,13 @@ using Colors
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 
-folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"# folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=400_pressureExternal=0.1_realTimetMax=173000.0_stiffnessFactor=5.0_24-02-28-16-00-39"
+folderName = "nCells=751_pressureExternal=0.5_realTimetMax=173000.0_stiffnessFactor=10.0_24-03-04-10-11-13"# folderName = "/Users/christopher/Postdoc/Code/VertexModel/data/sims/nCells=400_pressureExternal=0.1_realTimetMax=173000.0_stiffnessFactor=5.0_24-02-28-16-00-39"
 
 potentials = Vector{Float64}[]
 notExcludedVertVectors = Vector{Bool}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 linkTriangleVectors = Vector{Vector{Point{2,Float64}}}[]
-files = [datadir(folderName, "frameData", f) for f in readdir(datadir(folderName, "frameData")) if occursin(".jld2",f)]
+files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 2:length(files)
     @show t
     @unpack R, matrices, params = load(files[t]; 
@@ -54,22 +54,24 @@ for t = 1:length(potentials)
     for k = 1:length(linkTriangleVectors[t])
         if notExcludedVertVectors[t][k]
             poly!(ax,
-            linkTriangleVectors[t][k],
-            color=potentials[t][k],
-            colorrange=ψ̆Lims,
-            colormap=:bwr,
-            strokewidth=0,
-            strokecolor=(:black, 0.0))
+                linkTriangleVectors[t][k],
+                color=potentials[t][k],
+                colorrange=ψ̆Lims,
+                colormap=:bwr,
+                strokewidth=0,
+                strokecolor=(:black, 0.0),
+            )
         else
             poly!(ax,
-            linkTriangleVectors[t][k],
-            color=(:black,0.5),
-            strokewidth=0,
-            strokecolor=(:black,0.0))
+                linkTriangleVectors[t][k],
+                color=(:black,0.5),
+                strokewidth=0,
+                strokecolor=(:black,0.0),
+            )
         end
     end
     reset_limits!(ax)
     recordframe!(mov)
 end
 
-save(datadir(folderName, "movieMindlinStressV.mp4"), mov)
+save(datadir("sims", folderName, "movieMindlinStressV.mp4"), mov)

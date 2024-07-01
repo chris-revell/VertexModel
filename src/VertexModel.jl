@@ -34,7 +34,6 @@ using CSV
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-
 @from "EdgeAblation.jl" using EdgeAblation
 @from "Energy.jl" using Energy
 @from "Laplacians.jl" using Laplacians
@@ -117,13 +116,11 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8, callback=cb, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
+    while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
-        # Update spatial data (edge lengths, cell areas, etc.)
-        spatialData!(integrator.u, params, matrices)
         # Output data to file 
         if integrator.t % params.outputInterval < integrator.dt
             # Update progress on command line 
@@ -150,6 +147,9 @@ function vertexModel(;
         end
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
+
+        # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
+        spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
         if t1Transitions!(integrator.u, params, matrices) > 0
