@@ -101,10 +101,12 @@ function division!(integrator,params,matrices)
             edgedots=[(edgeTangents[cellEdgeOrders[i]]./norm.(edgeTangents[cellEdgeOrders[i]]))[α]'*shortvec for α in 1:length(cellEdgeOrders[i])]
             inds=sortperm(abs.(edgedots))
             #take smallest dot product and next smallest with non-adjacent edge (avoid triangles)
-            if (abs(inds[1]-inds[2])>1)&&(abs(inds[1]-inds[2])<cellEdgeCount[i]-1)
+            if (abs(inds[1]-inds[2])>1)&&(abs(inds[1]-inds[2])<(cellEdgeCount[i]-1))
                 inds=inds[1:2]
-            else
+            elseif (abs(inds[1]-inds[3])>1)&&(abs(inds[1]-inds[3])<(cellEdgeCount[i]-1)) #also check other edge not neighbour!
                 inds=[inds[1], inds[3]]
+            else
+                inds=[inds[1], inds[4]]
             end
 
 
