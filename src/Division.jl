@@ -40,8 +40,10 @@ function division!(integrator,params,matrices)
         edgeMidpoints, 
         cellEdgeCount, 
         cellVertexOrders, 
-        cellEdgeOrders, 
+        cellEdgeOrders,
+        cellShapeTensor, 
         boundaryEdges, 
+        edgeTangents,
         ϵ, 
         μ, 
         Γ = matrices
@@ -66,21 +68,57 @@ function division!(integrator,params,matrices)
                     push!(distances,tmpDist)
                 end
             end
-            # longAxis is the vector separating the two vertices with labels stored in longPair
-            longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]]
-            # Find short axis perpendicular to long axis
-            shortAxis = ϵ*longAxis
-            shortAngle1 = (atan(shortAxis...)+2π)%2π
+
+### Long/short axis from eigenvalues of shapetensor, put some sort of tolerance that if eigenvalues are approx equal 
+### we randomly choose a division orientation, eg circ >0.95
+
+
+            # # longAxis is the vector separating the two vertices with labels stored in longPair
+            # longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]]
+            
+            # # Find short axis perpendicular to long axis
+            # shortAxis = ϵ*longAxis
+
+            evals, evecs=eigen(cellShapeTensor[i]) #eigen values/vectors listed smallest to largest eigval.
+
+
+            if evecs[:,1][2]<0 #make it so vector is pointing in positive y direction (to fit with existing code in asigning new edges)
+                shortvec=-1.0.*evecs[:,1]
+            else
+                shortvec=evecs[:,1]
+            end
+
+            # shortAngle1=(atan(evecs[:,1][2], evecs[:,1][1])+π)%π
+
+            # @show shortAngle1/π*180
+            
+            #shortAngle1 = (atan(shortAxis...)+2π)%2π
             # Find the indices within cellEdgeOrders[i] of the edges intersected by the short axis
             intersectedIndex = [0,0]
-            minAngle = atan((edgeMidpoints[cellEdgeOrders[i][1]].-cellPositions[i])...)
-            for ind = 1:cellEdgeCount[i]
-                if shortAngle1 <= atan((integrator.u[cellVertexOrders[i][ind]].-cellPositions[i])...)-minAngle
-                    intersectedIndex[1] = ind
-                    break
-                end
+
+
+            #Find smallest dot product of tangents with shape vector for short axis
+            edgedots=[(edgeTangents[cellEdgeOrders[i]]./norm.(edgeTangents[cellEdgeOrders[i]]))[α]'*shortvec for α in 1:length(cellEdgeOrders[i])]
+            inds=sortperm(abs.(edgedots))
+            #take smallest dot product and next smallest with non-adjacent edge (avoid triangles)
+            if (abs(inds[1]-inds[2])>1)&&(abs(inds[1]-inds[2])<cellEdgeCount[i]-1)
+                inds=inds[1:2]
+            else
+                inds=[inds[1], inds[3]]
             end
-            intersectedIndex[2] = intersectedIndex[1]+cellEdgeCount[i]÷2
+
+
+            intersectedIndex=sort(inds) #orders edge indices by order round cell for asigning edges.
+
+            # minAngle = (atan((edgeMidpoints[cellEdgeOrders[i][1]].-cellPositions[i])...)+2π)%2π
+            # for ind = 1:cellEdgeCount[i]
+            #     @show evecs[:,1]*
+            #     if shortAngle1 <= (atan((integrator.u[cellVertexOrders[i][ind]].-cellPositions[i])...)+2π)%2π-minAngle
+            #         intersectedIndex[1] = ind
+            #         break
+            #     end
+            # end
+            # intersectedIndex[2] = intersectedIndex[1]+cellEdgeCount[i]÷2
             intersectedEdges = cellEdgeOrders[i][intersectedIndex]
 
             newCellVertices = cellVertexOrders[i][intersectedIndex[1]:intersectedIndex[2]-1] # Not including new vertices to be added later
@@ -159,7 +197,16 @@ function division!(integrator,params,matrices)
 
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
-            integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+            #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+
+            #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
+            if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
+                integrator.u[end-1:end] .= [cellPositions[i].+ (0.03.*(shortvec)),cellPositions[i].- (0.03.*(shortvec))]
+            else
+                integrator.u[end-1:end] .= [cellPositions[i].- (0.03.*(shortvec)),cellPositions[i].+ (0.03.*(shortvec))]
+            end
+            
+
 
             matrices.A = Atmp
             matrices.B = Btmp

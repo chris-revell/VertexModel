@@ -54,7 +54,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-8   ? true : false
+    maximum(norm.(get_du(integrator))) < 1e-7   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -118,7 +118,7 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-6, reltol=1e-5) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-7, reltol=1e-5) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
@@ -161,7 +161,7 @@ function vertexModel(;
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
        
-        if params.nCells < 2000
+        if params.nCells < 1000
             if division!(integrator,params,matrices)>0
                 u_modified!(integrator,true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
