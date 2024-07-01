@@ -19,6 +19,7 @@ using SparseArrays
 using CircularArrays
 using OrdinaryDiffEq
 using Distributions
+using GeometryBasics
 using Random
 
 # Local modules
@@ -32,7 +33,7 @@ function division!(integrator,params,matrices)
         nVerts,
         nonDimCycleTime,
         distLogNormal,
-        γ = params
+        γ, t1Threshold = params
     @unpack A, 
         B, 
         cellTimeToDivide, 
@@ -55,72 +56,36 @@ function division!(integrator,params,matrices)
     for i=1:nCells
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
-            # Find long axis of cell by calculating the two furthest separated vertices
-            distances = zeros(Float64,1)
-            longPair = [1,3]
-            # TODO this block sometimes fails to find longPair indices, causing an index of 0 to be passed to longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]] 
-            for j=1:cellEdgeCount[i]-1
-                for k=j+1:cellEdgeCount[i]
-                    tmpDist = norm(integrator.u[cellVertexOrders[i][j]].-integrator.u[cellVertexOrders[i][k]])
-                    if tmpDist>maximum(distances)
-                        longPair .= [cellVertexOrders[i][j],cellVertexOrders[i][k]]
-                    end
-                    push!(distances,tmpDist)
+
+        ### Long/short axis from eigenvalues of shapetensor, put some sort of tolerance that if eigenvalues
+        ### are approx equal we randomly choose a division orientation, eg circ >0.95
+
+            evals, evecs=eigen(cellShapeTensor[i]) #eigenvalues/vectors listed smallest to largest eigval.
+
+            circ=abs(evals[1]/evals[2]) #circularity
+
+            #for very circular cells randomly choose division axis
+            if circ>0.95 
+                theta=rand()*π
+                shortvec=[cos(theta), sin(theta)]
+            else
+
+                if evecs[:,1][2]<0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                    shortvec=-1.0.*evecs[:,1]
+                else
+                    shortvec=evecs[:,1]
                 end
+
             end
 
-### Long/short axis from eigenvalues of shapetensor, put some sort of tolerance that if eigenvalues are approx equal 
-### we randomly choose a division orientation, eg circ >0.95
+            ##test cell edges for an intersection
+            poly=LineString(Point{2, Float64}.(pushfirst!(integrator.u[cellVertexOrders[i]], integrator.u[cellVertexOrders[i][end]]))) #pushfirst so indices match for cellEdgeOrder
+            intersections=[intersects(line,Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))) for line in poly] #find which edges intersect and where
+            test_intersect=[x[1] for x in intersections] #true or false
+            intersect_pts=[x[2] for x in intersections] #coordinates
+            intersectedIndex=findall(x->x==1, test_intersect) 
 
 
-            # # longAxis is the vector separating the two vertices with labels stored in longPair
-            # longAxis = integrator.u[longPair[1]].-integrator.u[longPair[2]]
-            
-            # # Find short axis perpendicular to long axis
-            # shortAxis = ϵ*longAxis
-
-            evals, evecs=eigen(cellShapeTensor[i]) #eigen values/vectors listed smallest to largest eigval.
-
-
-            if evecs[:,1][2]<0 #make it so vector is pointing in positive y direction (to fit with existing code in asigning new edges)
-                shortvec=-1.0.*evecs[:,1]
-            else
-                shortvec=evecs[:,1]
-            end
-
-            # shortAngle1=(atan(evecs[:,1][2], evecs[:,1][1])+π)%π
-
-            # @show shortAngle1/π*180
-            
-            #shortAngle1 = (atan(shortAxis...)+2π)%2π
-            # Find the indices within cellEdgeOrders[i] of the edges intersected by the short axis
-            intersectedIndex = [0,0]
-
-
-            #Find smallest dot product of tangents with shape vector for short axis
-            edgedots=[(edgeTangents[cellEdgeOrders[i]]./norm.(edgeTangents[cellEdgeOrders[i]]))[α]'*shortvec for α in 1:length(cellEdgeOrders[i])]
-            inds=sortperm(abs.(edgedots))
-            #take smallest dot product and next smallest with non-adjacent edge (avoid triangles)
-            if (abs(inds[1]-inds[2])>1)&&(abs(inds[1]-inds[2])<(cellEdgeCount[i]-1))
-                inds=inds[1:2]
-            elseif (abs(inds[1]-inds[3])>1)&&(abs(inds[1]-inds[3])<(cellEdgeCount[i]-1)) #also check other edge not neighbour!
-                inds=[inds[1], inds[3]]
-            else
-                inds=[inds[1], inds[4]]
-            end
-
-
-            intersectedIndex=sort(inds) #orders edge indices by order round cell for asigning edges.
-
-            # minAngle = (atan((edgeMidpoints[cellEdgeOrders[i][1]].-cellPositions[i])...)+2π)%2π
-            # for ind = 1:cellEdgeCount[i]
-            #     @show evecs[:,1]*
-            #     if shortAngle1 <= (atan((integrator.u[cellVertexOrders[i][ind]].-cellPositions[i])...)+2π)%2π-minAngle
-            #         intersectedIndex[1] = ind
-            #         break
-            #     end
-            # end
-            # intersectedIndex[2] = intersectedIndex[1]+cellEdgeCount[i]÷2
             intersectedEdges = cellEdgeOrders[i][intersectedIndex]
 
             newCellVertices = cellVertexOrders[i][intersectedIndex[1]:intersectedIndex[2]-1] # Not including new vertices to be added later
@@ -200,12 +165,13 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+            #integrator.u[end-1:end] .= intersect_pts[inds]
 
             #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
-                integrator.u[end-1:end] .= [cellPositions[i].+ (0.03.*(shortvec)),cellPositions[i].- (0.03.*(shortvec))]
+                integrator.u[end-1:end] .= [cellPositions[i].+ ((0.6*t1Threshold).*(shortvec)),cellPositions[i].- ((0.6*t1Threshold).*(shortvec))]
             else
-                integrator.u[end-1:end] .= [cellPositions[i].- (0.03.*(shortvec)),cellPositions[i].+ (0.03.*(shortvec))]
+                integrator.u[end-1:end] .= [cellPositions[i].- ((0.6*t1Threshold).*(shortvec)),cellPositions[i].+ ((0.6*t1Threshold).*(shortvec))]
             end
             
 
