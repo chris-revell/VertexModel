@@ -54,7 +54,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-8   ? true : false
+    maximum(norm.(get_du(integrator))) < 1e-7   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 

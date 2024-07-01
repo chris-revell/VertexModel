@@ -35,6 +35,7 @@ function spatialData!(R,params,matrices)
         cellPositions,
         cellPerimeters,
         cellOrientedAreas,
+        cellShapeTensor,
         cellAreas,
         cellTensions,
         cellPressures,
@@ -93,7 +94,7 @@ function spatialData!(R,params,matrices)
 
         cell_verts=findall(x-> x!=0, C[i,:])
         Rα=[R[cell_verts][y]-matrices.cellPositions[i] for y in 1:length(cell_verts)]
-        shape_tensor[i]=sum(Rα.*transpose.(Rα))/Float64.(cellEdgeCount[i])
+        cellShapeTensor[i]=sum(Rα.*transpose.(Rα))/Float64.(cellEdgeCount[i])
     end
 
     
