@@ -165,14 +165,15 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            #integrator.u[end-1:end] .= intersect_pts[inds]
+            #integrator.u[end-1:end] .= intersect_pts[intersectedIndex]
+            integrator.u[end-1:end] .= [cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
 
             #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
-            if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
-                integrator.u[end-1:end] .= [cellPositions[i].+ ((0.6*t1Threshold).*(shortvec)),cellPositions[i].- ((0.6*t1Threshold).*(shortvec))]
-            else
-                integrator.u[end-1:end] .= [cellPositions[i].- ((0.6*t1Threshold).*(shortvec)),cellPositions[i].+ ((0.6*t1Threshold).*(shortvec))]
-            end
+            # if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
+            #     integrator.u[end-1:end] .= [cellPositions[i].+ ((0.6*t1Threshold).*(shortvec)),cellPositions[i].- ((0.6*t1Threshold).*(shortvec))]
+            # else
+            #     integrator.u[end-1:end] .= [cellPositions[i].- ((0.6*t1Threshold).*(shortvec)),cellPositions[i].+ ((0.6*t1Threshold).*(shortvec))]
+            # end
             
 
 
