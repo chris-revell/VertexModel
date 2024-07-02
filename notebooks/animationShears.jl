@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 shears = Vector{Float64}[]
 MCCs = Vector{Int64}[]
@@ -61,27 +61,43 @@ for t = 1:length(shears)
     empty!(ax)
     for i = 1:length(shears[t])
         if notExcludedCellVectors[t][i]
-            if MCCs[t][i] != 1
+            if MCCs[t][i] == 0                 
                 poly!(ax,
                     cellPolygonVectors[t][i],
                     color=shears[t][i],
                     colorrange=sLims,
-                    strokecolor=(:black, 0.25),
-                    strokewidth=2)
-            else 
-                poly!(ax,
-                    cellPolygonVectors[t][i],
-                    color=shears[t][i],
-                    colorrange=sLims,
-                    strokecolor=(:black, 1.0),
-                    strokewidth=3)
+                    strokecolor=(:black, 0.5),
+                    strokewidth=1,
+                )
             end
         else
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=(:black, 0.5),
                 strokecolor=(:black, 0.0),
-                strokewidth=0)
+                strokewidth=0,
+            )
+        end
+    end
+
+    for i = 1:length(shears[t])
+        if notExcludedCellVectors[t][i]
+            if MCCs[t][i] != 0
+                poly!(ax,
+                    cellPolygonVectors[t][i],
+                    color=shears[t][i],
+                    colorrange=sLims,
+                    strokecolor=(:black, 1.0),
+                    strokewidth=3,
+                )
+            end
+        else
+            poly!(ax,
+                cellPolygonVectors[t][i],
+                color=(:black, 0.5),
+                strokecolor=(:black, 0.0),
+                strokewidth=0,
+            )
         end
     end
     reset_limits!(ax)

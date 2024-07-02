@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 cellTensionVectors = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
@@ -50,23 +50,27 @@ Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=pLims, flipaxis=true)
 for t = 1:length(cellTensionVectors)
     empty!(ax)
     for i = 1:length(cellTensionVectors[t])
-        # if notExcludedCellVectors[t][i]            
         if MCCs[t][i] == 0
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellTensionVectors[t][i],
                 colormap=:batlow,
                 colorrange=pLims,
-                strokecolor=(:black,0.0),
-                strokewidth=2)
-        else
+                strokecolor=(:black,0.5),
+                strokewidth=1,
+            )
+        end
+    end
+    for i = 1:length(cellTensionVectors[t])
+        if MCCs[t][i] != 0
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellTensionVectors[t][i],
                 colormap=:batlow,
                 colorrange=pLims,
                 strokecolor=(:black,1.0),
-                strokewidth=3)
+                strokewidth=3,
+            )
         end
     end
     reset_limits!(ax)

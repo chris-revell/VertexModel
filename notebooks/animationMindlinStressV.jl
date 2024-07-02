@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 potentials = Vector{Float64}[]
 MCCs = Vector{Int64}[]
@@ -56,27 +56,30 @@ for t = 1:length(potentials)
     for k = 1:length(linkTriangleVectors[t])
         if notExcludedVertVectors[t][k]
             poly!(ax,
-            linkTriangleVectors[t][k],
-            color=potentials[t][k],
-            colorrange=ψ̆Lims,
-            colormap=:bwr,
-            strokewidth=0,
-            strokecolor=(:black, 0.0))
+                linkTriangleVectors[t][k],
+                color=potentials[t][k],
+                colorrange=ψ̆Lims,
+                colormap=:bwr,
+                strokewidth=0,
+                strokecolor=(:black, 0.0),
+            )
         else
             poly!(ax,
-            linkTriangleVectors[t][k],
-            color=(:black,0.5),
-            strokewidth=0,
-            strokecolor=(:black,0.0))
+                linkTriangleVectors[t][k],
+                color=(:black,0.5),
+                strokewidth=0,
+                strokecolor=(:black,0.0),
+            )
         end
     end
     for i = 1:length(cellPolygonVectors[t])
         if MCCs[t][i] == 1
             poly!(ax,
-            cellPolygonVectors[t][i],
-            color=(:white,0.0),
-            strokecolor=(:black, 1.0),
-            strokewidth=2)
+                cellPolygonVectors[t][i],
+                color=(:white,0.0),
+                strokecolor=(:black, 1.0),
+                strokewidth=3,
+            )
         end
     end
     reset_limits!(ax)

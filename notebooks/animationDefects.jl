@@ -22,7 +22,7 @@ function neighbourColours(x)
     end
 end
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 fig = CairoMakie.Figure(size=(1000, 1000))
 ax = Axis(fig[1, 1], aspect=DataAspect())
@@ -42,18 +42,23 @@ for t = 5:length(files)
     empty!(ax)
     cellPolygons = makeCellPolygonsOld(R, params, matrices)
     for i = 1:nCells
-        if MCCs[t][i] == 1
+        if MCCs[t][i] == 0
+            poly!(ax,
+                cellPolygons[i],
+                color=neighbourColours(neighbourCounts[i]),
+                strokecolor=(:black,0.5),
+                strokewidth=1,
+            )
+        end
+    end
+    for i = 1:nCells
+        if MCCs[t][i] != 0
             poly!(ax,
                 cellPolygons[i],
                 color=neighbourColours(neighbourCounts[i]),
                 strokecolor=(:black,1.0),
-                strokewidth=2)
-        else
-            poly!(ax,
-                cellPolygons[i],
-                color=neighbourColours(neighbourCounts[i]),
-                strokecolor=(:black,0.0),
-                strokewidth=0)
+                strokewidth=3,
+            )
         end
     end
     reset_limits!(ax)

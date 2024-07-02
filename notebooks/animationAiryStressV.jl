@@ -14,7 +14,7 @@ using Colors
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 @from "$(projectdir())/src/Potentials.jl" using Potentials
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 potentials = Vector{Float64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]

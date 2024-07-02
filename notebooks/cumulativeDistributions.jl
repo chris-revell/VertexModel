@@ -17,7 +17,7 @@ using DataFrames
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 @unpack R, matrices, params = load(files[end]; 
@@ -187,20 +187,20 @@ save(datadir("sims", folderName, "shearCumulativeDensities.png"), fig)
 #%%
 
 
-using XLSX
-XLSX.openxlsx(datadir("sims", folderName, "ecdfs.xlsx"), mode="w") do xf
-    sheet = xf[1]
-    # XLSX.rename!(sheet, "new_sheet")
-    for (i,j) in enumerate(keys(series))
-        sheet["A$(i)"] = j 
-        sheet["B$(i)"] = series[j]
-    end
-end
+# using XLSX
+# XLSX.openxlsx(datadir("sims", folderName, "ecdfs.xlsx"), mode="w") do xf
+#     sheet = xf[1]
+#     # XLSX.rename!(sheet, "new_sheet")
+#     for (i,j) in enumerate(keys(series))
+#         sheet["A$(i)"] = j 
+#         sheet["B$(i)"] = series[j]
+#     end
+# end
 
 
-#%%
+# #%%
 
-cellTypes = fill("Bulk cell", params.nCells)
-cellTypes[MCCneighbours] .= "MCC neighbour"
-dfCells = DataFrame(cellID = collect(1:params.nCells), cellType=cellTypes, pressure=matrices.cellPressures, pEff=effectivePressure, tension=matrices.cellTensions, shear=shrs)
-XLSX.writetable(datadir("sims", folderName, "MCCcellData.xlsx"), collect(eachcol(dfCells)), names(dfCells))
+# cellTypes = fill("Bulk cell", params.nCells)
+# cellTypes[MCCneighbours] .= "MCC neighbour"
+# dfCells = DataFrame(cellID = collect(1:params.nCells), cellType=cellTypes, pressure=matrices.cellPressures, pEff=effectivePressure, tension=matrices.cellTensions, shear=shrs)
+# XLSX.writetable(datadir("sims", folderName, "MCCcellData.xlsx"), collect(eachcol(dfCells)), names(dfCells))

@@ -16,7 +16,7 @@ using CairoMakie
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-folderName = "pressureExternal=0.5_stiffnessFactor=2.0_γ=0.2_24-06-18-17-39-57"
+# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
 
 # set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
 fig = Figure(size=(1000,1000))
