@@ -58,106 +58,156 @@ function myECDF!(ax, dataNeighbour, dataBulk, allSeries, label)
     return l1, l2
 end 
 
-aggregatedBulkTensions = Float64[]
-aggregatedMCCneighbourTensions = Float64[]
-aggregatedBulkPressures = Float64[]
-aggregatedMCCneighbourPressures = Float64[]
-aggregatedBulkpEffs = Float64[]
-aggregatedMCCneighbourpEffs = Float64[]
-aggregatedBulkShears = Float64[]
-aggregatedMCCneighbourShears = Float64[]
 
-allSeries = Dict()
+allShears = Float64[]
+allTensions = Float64[]
+allPressures = Float64[]
+allEffectivePressures = Float64[]
+allSimIDs = Int[]
+allCellIDs = Int[]
+allCellTypes = String[]
+allMCCStiffnessFactors = String[]
+allMCCDivisionStates = String[]
 
-for folderName in [r for r in readdir(datadir("sims", "MCCComparison")) if (occursin("stiffnessFactor=10.0_AllDividing",r) && isdir(datadir("sims", "MCCComparison",r)))]
+setupparams = [("1.0", "AllDividing"), 
+    ("10.0", "AllDividing"),
+    ("1.0", "MCCs not dividing"),
+    ("1.0", "MCCs not dividing"),
+    ("2.0", "MCCs not dividing"),
+]
 
-    files = [datadir("sims", "MCCComparison", folderName, "frameData", f) for f in readdir(datadir("sims", "MCCComparison", folderName, "frameData")) if occursin(".jld2",f)]
-    @unpack R, matrices, params = load(files[end]; 
-        typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
-        "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
+for p in setupparams
 
-    peripheralCells = [findall(z->z!=0, matrices.B[:,x])[1] for x in findall(y->y!=0, matrices.boundaryEdges)]
+    stiffnessFactor, divisionState = p
 
-    cellNeighbourMatrix = matrices.B*matrices.B'
-    MCCs = findall(x->x==1, matrices.MCCsList)
-    MCCneighbours = Int64[]
-    for i in MCCs
-        append!(MCCneighbours, [x for x in findall(x->x!=0, cellNeighbourMatrix[i,:]) if x∉MCCs] )
-    end
-    setdiff!(MCCneighbours, peripheralCells)
-    unique!(MCCneighbours)
+    "stiffnessFactor=10.0_AllDividing"
     
-    Qs = cellQs(matrices.cellPerimeters, matrices.edgeTangents, matrices.B̄)
-    shrs = cellShears(matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas, Qs)
-    effectivePressure = effectiveCellPressure(matrices.cellPressures, matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas)
-
-    append!(aggregatedBulkTensions, matrices.cellTensions[Not([MCCneighbours...,MCCs...,peripheralCells...])])
-    append!(aggregatedMCCneighbourTensions, matrices.cellTensions[MCCneighbours])
-    append!(aggregatedBulkPressures, matrices.cellPressures[Not([MCCneighbours...,MCCs...,peripheralCells...])])
-    append!(aggregatedMCCneighbourPressures, matrices.cellPressures[MCCneighbours])
-    append!(aggregatedBulkpEffs, effectivePressure[Not([MCCneighbours...,MCCs...,peripheralCells...])])
-    append!(aggregatedMCCneighbourpEffs, effectivePressure[MCCneighbours])
-    append!(aggregatedBulkShears, shrs[Not([MCCneighbours...,MCCs...,peripheralCells...])])
-    append!(aggregatedMCCneighbourShears, shrs[MCCneighbours])
-
-end
-
-#%%
-
-fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
-l1, l2 = myECDF!(ax, aggregatedMCCneighbourTensions, aggregatedBulkTensions, allSeries, "CellTensions")
-ax.ylabel = "Cumulative distribution"
-ax.xlabel = "Tension"
-Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-# axislegend(ax)
-save(datadir("sims", "MCCComparison", "tensionCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
-
-#%%
-
-fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
-l1, l2 = myECDF!(ax, aggregatedMCCneighbourpEffs, aggregatedBulkpEffs, allSeries, "CellEffectivePressures")
-ax.ylabel = "Cumulative distribution"
-ax.xlabel = "Effective pressure"
-Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-# axislegend(ax)
-save(datadir("sims", "MCCComparison", "peffCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
-
-
-#%%
-
-fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
-l1, l2 = myECDF!(ax, aggregatedMCCneighbourPressures, aggregatedBulkPressures, allSeries, "CellPressures")
-ax.ylabel = "Cumulative distribution"
-ax.xlabel = "Cell pressure"
-Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-# axislegend(ax)
-save(datadir("sims", "MCCComparison", "pressureCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
-
-#%%
-
-fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
-l1, l2 = myECDF!(ax, aggregatedMCCneighbourShears, aggregatedBulkShears, allSeries, "CellShears")
-ax.ylabel = "Cumulative distribution"
-ax.xlabel = "Cell shear"
-Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
-# axislegend(ax)
-save(datadir("sims", "MCCComparison", "shearCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
-
-#%%
-
-letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
-
-using XLSX
-XLSX.openxlsx(datadir("sims", "MCCComparison", "ecdfs_stiffnessFactor=10.0_AllDividing.xlsx"), mode="w") do xf
-    sheet = xf[1]
-    # XLSX.rename!(sheet, "new_sheet")
-    for (i,j) in enumerate(keys(allSeries))
-        sheet["$(letters[i])1"] = j 
-        sheet["$(letters[i])2", dim=1] = allSeries[j]
+    if divisionState=="AllDividing"
+        occurString = "stiffnessFactor=$(stiffnessFactor)_$(divisionState)_γ"
+    else
+        occurString = "stiffnessFactor=$(stiffnessFactor)_γ"
     end
+        
+
+    allSeries = Dict()
+    aggregatedBulkTensions = Float64[]
+    aggregatedMCCneighbourTensions = Float64[]
+    aggregatedBulkPressures = Float64[]
+    aggregatedMCCneighbourPressures = Float64[]
+    aggregatedBulkpEffs = Float64[]
+    aggregatedMCCneighbourpEffs = Float64[]
+    aggregatedBulkShears = Float64[]
+    aggregatedMCCneighbourShears = Float64[]
+
+    for folderName in [r for r in readdir(datadir("sims", "MCCComparison")) if (occursin(occurString,r) && isdir(datadir("sims", "MCCComparison",r)))]
+
+        files = [datadir("sims", "MCCComparison", folderName, "frameData", f) for f in readdir(datadir("sims", "MCCComparison", folderName, "frameData")) if occursin(".jld2",f)]
+        @unpack R, matrices, params = load(files[end]; 
+            typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
+            "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
+
+        peripheralCells = [findall(z->z!=0, matrices.B[:,x])[1] for x in findall(y->y!=0, matrices.boundaryEdges)]
+
+        cellNeighbourMatrix = matrices.B*matrices.B'
+        MCCs = findall(x->x==1, matrices.MCCsList)
+        MCCneighbours = Int64[]
+        for i in MCCs
+            append!(MCCneighbours, [x for x in findall(x->x!=0, cellNeighbourMatrix[i,:]) if x∉MCCs] )
+        end
+        setdiff!(MCCneighbours, peripheralCells)
+        unique!(MCCneighbours)
+        
+        Qs = cellQs(matrices.cellPerimeters, matrices.edgeTangents, matrices.B̄)
+        shrs = cellShears(matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas, Qs)
+        effectivePressure = effectiveCellPressure(matrices.cellPressures, matrices.cellTensions, matrices.cellPerimeters, matrices.cellAreas)
+
+        append!(aggregatedBulkTensions, matrices.cellTensions[Not([MCCneighbours...,MCCs...,peripheralCells...])])
+        append!(aggregatedMCCneighbourTensions, matrices.cellTensions[MCCneighbours])
+        append!(aggregatedBulkPressures, matrices.cellPressures[Not([MCCneighbours...,MCCs...,peripheralCells...])])
+        append!(aggregatedMCCneighbourPressures, matrices.cellPressures[MCCneighbours])
+        append!(aggregatedBulkpEffs, effectivePressure[Not([MCCneighbours...,MCCs...,peripheralCells...])])
+        append!(aggregatedMCCneighbourpEffs, effectivePressure[MCCneighbours])
+        append!(aggregatedBulkShears, shrs[Not([MCCneighbours...,MCCs...,peripheralCells...])])
+        append!(aggregatedMCCneighbourShears, shrs[MCCneighbours])
+
+        append!(allShears, shrs)
+        append!(allTensions, matrices.cellTensions)
+        append!(allPressures, matrices.cellPressures)
+        append!(allEffectivePressures, effectivePressure)
+        # append!(allSimIDs, )
+        # append!(allCellIDs, )
+        cellTypes = fill("Bulk", params.nCells)
+        for i in MCCs
+            cellTypes[i] = "MCC"
+        end
+        for i in MCCneighbours
+            cellTypes[i] = "MCC neighbour"
+        end
+        for i in peripheralCells
+            cellTypes[i] = "Peripheral cell"
+        end
+        append!(allCellTypes, cellTypes)
+        append!(allMCCStiffnessFactors, fill(stiffnessFactor, params.nCells))
+        append!(allMCCDivisionStates, fill(divisionState, params.nCells))
+    end
+
+    #%%
+
+    fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
+    l1, l2 = myECDF!(ax, aggregatedMCCneighbourTensions, aggregatedBulkTensions, allSeries, "CellTensions")
+    ax.ylabel = "Cumulative distribution"
+    ax.xlabel = "Tension"
+    Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
+    # axislegend(ax)
+    save(datadir("sims", "MCCComparison", "tensionCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+
+    #%%
+
+    fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
+    l1, l2 = myECDF!(ax, aggregatedMCCneighbourpEffs, aggregatedBulkpEffs, allSeries, "CellEffectivePressures")
+    ax.ylabel = "Cumulative distribution"
+    ax.xlabel = "Effective pressure"
+    Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
+    # axislegend(ax)
+    save(datadir("sims", "MCCComparison", "peffCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+
+
+    #%%
+
+    fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
+    l1, l2 = myECDF!(ax, aggregatedMCCneighbourPressures, aggregatedBulkPressures, allSeries, "CellPressures")
+    ax.ylabel = "Cumulative distribution"
+    ax.xlabel = "Cell pressure"
+    Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
+    # axislegend(ax)
+    save(datadir("sims", "MCCComparison", "pressureCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+
+    #%%
+
+    fig = Figure(size=(1000,1000), fontsize=24); ax = Axis(fig[1,1])
+    l1, l2 = myECDF!(ax, aggregatedMCCneighbourShears, aggregatedBulkShears, allSeries, "CellShears")
+    ax.ylabel = "Cumulative distribution"
+    ax.xlabel = "Cell shear"
+    Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
+    # axislegend(ax)
+    save(datadir("sims", "MCCComparison", "shearCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+
+    #%%
+
+    letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+
+    using XLSX
+    XLSX.openxlsx(datadir("sims", "MCCComparison", "ecdfs_stiffnessFactor=10.0_AllDividing.xlsx"), mode="w") do xf
+        sheet = xf[1]
+        # XLSX.rename!(sheet, "new_sheet")
+        for (i,j) in enumerate(keys(allSeries))
+            sheet["$(letters[i])1"] = j 
+            sheet["$(letters[i])2", dim=1] = allSeries[j]
+        end
+    end
+
+
 end
-
-
 #%%
 
 # simulationLabels = [fill(1, 800); fill(2, 800); fill(3,800)]
@@ -165,5 +215,14 @@ end
 
 # cellTypes = fill("Bulk cell", params.nCells)
 # cellTypes[MCCneighbours] .= "MCC neighbour"
-# dfCells = DataFrame(cellID = collect(1:params.nCells), cellType=cellTypes, pressure=matrices.cellPressures, pEff=effectivePressure, tension=matrices.cellTensions, shear=shrs)
-# XLSX.writetable(datadir("sims", "MCCComparison", "MCCcellData_stiffnessFactor=10.0_AllDividing.xlsx"), collect(eachcol(dfCells)), names(dfCells))
+df = DataFrame(Shears = allShears,
+    Tensions = allTensions,
+    Pressures = allPressures,
+    EffectivePressures = allEffectivePressures,
+    # CellIDs = allCellIDs,
+    CellTypes = allCellTypes,
+    MCCStiffnessFactors = allMCCStiffnessFactors,
+    MCCDivisionStates = allMCCDivisionStates,
+)
+
+XLSX.writetable(datadir("sims", "MCCComparison", "allRawData.xlsx"), collect(eachcol(df)), names(df))
