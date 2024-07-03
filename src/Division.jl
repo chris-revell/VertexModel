@@ -57,40 +57,33 @@ function division!(integrator,params,matrices)
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
 
-        ### Long/short axis from eigenvalues of shapetensor, put some sort of tolerance that if eigenvalues
-        ### are approx equal we randomly choose a division orientation, eg circ >0.95
-
-            evals, evecs=eigen(cellShapeTensor[i]) #eigenvalues/vectors listed smallest to largest eigval.
-
-            circ=abs(evals[1]/evals[2]) #circularity
-
+            # Long and short axis from eigenvectors of shapetensor
+            # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95
+            evals, evecs = eigen(matrices.cellShapeTensor[i]) # eigenvalues/vectors listed smallest to largest eigval.
+            circ = abs(evals[1]/evals[2]) # circularity
             #for very circular cells randomly choose division axis
-            if circ>0.95 
-                theta=rand()*π
-                shortvec=[cos(theta), sin(theta)]
+            if circ > 0.95 
+                theta = rand()*π
+                shortvec = [cos(theta), sin(theta)]
             else
-
-                if evecs[:,1][2]<0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
-                    shortvec=-1.0.*evecs[:,1]
+                if evecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                    shortvec = -1.0.*evecs[:,1]
                 else
-                    shortvec=evecs[:,1]
+                    shortvec = evecs[:,1]
                 end
-
             end
+            shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
-            ##test cell edges for an intersection
-            poly=LineString(Point{2, Float64}.(pushfirst!(integrator.u[cellVertexOrders[i]], integrator.u[cellVertexOrders[i][end]]))) #pushfirst so indices match for cellEdgeOrder
-            intersections=[intersects(line,Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))) for line in poly] #find which edges intersect and where
-            test_intersect=[x[1] for x in intersections] #true or false
-            intersect_pts=[x[2] for x in intersections] #coordinates
-            intersectedIndex=findall(x->x==1, test_intersect) 
+            # Test cell edges for an intersection
+            poly = LineString(Point{2, Float64}.(integrator.u[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+            intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
+            intersectedIndices = findall(x->x!=0, first.(intersections))
+            
+            intersectedEdges = cellEdgeOrders[i][intersectedIndices]
 
-
-            intersectedEdges = cellEdgeOrders[i][intersectedIndex]
-
-            newCellVertices = cellVertexOrders[i][intersectedIndex[1]:intersectedIndex[2]-1] # Not including new vertices to be added later
+            newCellVertices = cellVertexOrders[i][intersectedIndices[1]:intersectedIndices[2]-1] # Not including new vertices to be added later
             oldCellVertices = setdiff(cellVertexOrders[i], newCellVertices) # Not including new vertices to be added later
-            newCellEdges = cellEdgeOrders[i][intersectedIndex[1]+1:intersectedIndex[2]-1] # IntersectedEdges allocated to old cell, not including new edge to be added later
+            newCellEdges = cellEdgeOrders[i][intersectedIndices[1]+1:intersectedIndices[2]-1] # IntersectedEdges allocated to old cell, not including new edge to be added later
             oldCellEdges = setdiff(cellEdgeOrders[i], newCellEdges) # Not including new edge to be added later
 
             # Labels of new edges, cell, and vertices 
@@ -136,12 +129,12 @@ function division!(integrator,params,matrices)
             Atmp[1:nEdges,1:nVerts] .= A
             
             # First intersected old edge (which remains in the old cell) loses downstream vertex and gains the new vertex
-            Atmp[intersectedEdges[1],cellVertexOrders[i][intersectedIndex[1]]] = 0
-            Atmp[intersectedEdges[1],newVertices[1]] = A[intersectedEdges[1],cellVertexOrders[i][intersectedIndex[1]]]
+            Atmp[intersectedEdges[1],cellVertexOrders[i][intersectedIndices[1]]] = 0
+            Atmp[intersectedEdges[1],newVertices[1]] = A[intersectedEdges[1],cellVertexOrders[i][intersectedIndices[1]]]
 
             # Second intersected old edge (which remains in the old cell) loses upstream vertex and gains the new vertex             
-            Atmp[intersectedEdges[2],cellVertexOrders[i][intersectedIndex[2]-1]] = 0
-            Atmp[intersectedEdges[2],newVertices[2]] = A[intersectedEdges[2],cellVertexOrders[i][intersectedIndex[2]-1]]
+            Atmp[intersectedEdges[2],cellVertexOrders[i][intersectedIndices[2]-1]] = 0
+            Atmp[intersectedEdges[2],newVertices[2]] = A[intersectedEdges[2],cellVertexOrders[i][intersectedIndices[2]-1]]
 
             # First new edge gains both new vertices
             # Clockwise orientation of new edge with respect to new cell means the new edge leaves the second new vertex and enters the first new vertex
@@ -150,10 +143,10 @@ function division!(integrator,params,matrices)
 
             # Second new edge gains first new vertex upstream (-1) and downstream vertex of old first intersected edge downstream (1)
             Atmp[newEdges[2],newVertices[1]] = -1
-            Atmp[newEdges[2],cellVertexOrders[i][intersectedIndex[1]]] = 1
+            Atmp[newEdges[2],cellVertexOrders[i][intersectedIndices[1]]] = 1
             
             # Third new edge gains second new vertex downstream (1) and upstream vertex of second old intersected edge upstream (-1)
-            Atmp[newEdges[3],cellVertexOrders[i][intersectedIndex[2]-1]] = -1
+            Atmp[newEdges[3],cellVertexOrders[i][intersectedIndices[2]-1]] = -1
             Atmp[newEdges[3],newVertices[2]] = 1
 
             # Check orientation of old vertices in new cell with respect to old edges allocated to new cell now that those old edges have been made clockwise with respect to new cell
@@ -164,22 +157,16 @@ function division!(integrator,params,matrices)
 
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
-            #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            #integrator.u[end-1:end] .= intersect_pts[intersectedIndex]
-            integrator.u[end-1:end] .= [cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
-
-            #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
-            # if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
-            #     integrator.u[end-1:end] .= [cellPositions[i].+ ((0.6*t1Threshold).*(shortvec)),cellPositions[i].- ((0.6*t1Threshold).*(shortvec))]
-            # else
-            #     integrator.u[end-1:end] .= [cellPositions[i].- ((0.6*t1Threshold).*(shortvec)),cellPositions[i].+ ((0.6*t1Threshold).*(shortvec))]
-            # end
             
-
+            # integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+            # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
+            # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
+            # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
+            integrator.u[end-1:end] .= last.([intersections[intersectedIndices[1]], intersections[intersectedIndices[2]]])
 
             matrices.A = Atmp
             matrices.B = Btmp
-            resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells +1)
+            resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
@@ -189,7 +176,6 @@ function division!(integrator,params,matrices)
             divisionCount = 1
             
             break
-
         end 
     end
 

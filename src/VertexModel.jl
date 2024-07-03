@@ -148,6 +148,8 @@ function vertexModel(;
         videoToggle == 1 ? save(datadir("sims", subFolder, folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
     end
 
+    # return matrices, integrator
+    return nothing
 end
 
 # Ensure code is precompiled
