@@ -17,7 +17,7 @@ using LinearAlgebra
 using StaticArrays
 using SparseArrays
 using CircularArrays
-using DifferentialEquations
+using OrdinaryDiffEq
 using Distributions
 using Random
 

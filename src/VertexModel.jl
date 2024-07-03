@@ -12,7 +12,8 @@ module VertexModel
 using PrecompileTools
 using DrWatson
 using FromFile
-using DifferentialEquations
+# using DifferentialEquations
+using OrdinaryDiffEq
 using LinearAlgebra
 using JLD2
 using SparseArrays
