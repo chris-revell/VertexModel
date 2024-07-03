@@ -35,6 +35,7 @@ function spatialData!(R,params,matrices)
         cellPositions,
         cellPerimeters,
         cellOrientedAreas,
+        cellShapeTensor,
         cellAreas,
         cellTensions,
         cellPressures,
@@ -89,10 +90,15 @@ function spatialData!(R,params,matrices)
 
     cellPerimeters .= B̄ * edgeLengths
 
+    # Find cell areas and shape tensors 
     for i = 1:nCells
         cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
+
+        Rα = [R[kk].-matrices.cellPositions[i] for kk in cellVertexOrders[i]]
+        cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
     end
 
+    
     # Calculate cell boundary tensions
     @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
 

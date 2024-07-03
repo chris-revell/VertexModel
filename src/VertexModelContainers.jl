@@ -74,6 +74,7 @@ mutable struct MatricesContainer
     externalF        ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
+    cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
 end
 
 export ParametersContainer,MatricesContainer
