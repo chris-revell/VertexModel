@@ -21,7 +21,7 @@ MCCs = Vector{Int64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 5:length(files)
-    @show t
+    # @show t
     @unpack R, matrices, params = load(files[t]; 
         typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
         "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
@@ -29,7 +29,10 @@ for t = 5:length(files)
     push!(cellTensionVectors, matrices.cellTensions)
     notExcludedCells = fill(true, params.nCells)
     for j in findall(x -> x != 0, matrices.boundaryEdges)
-        notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
+        notExcludedCells[findall(x->x!=0, matrices.B[:, j])[1]] = false
+    end
+    for k in findall(x -> x != 0, matrices.MCCsList)
+        notExcludedCells[k] = false
     end
     push!(notExcludedCellVectors, notExcludedCells)
     cellPolygons = makeCellPolygonsOld(R, params, matrices)
@@ -42,33 +45,31 @@ ax = Axis(fig[1, 1][1, 1], aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
-globalTensionMin = minimum([minimum(cellTensionVectors[t]) for t = 1:length(cellTensionVectors)])
-globalTensionMax = maximum([maximum(cellTensionVectors[t]) for t = 1:length(cellTensionVectors)])
-pLims = (globalTensionMin, globalTensionMax)
-Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=pLims, flipaxis=true)
+globalTensionMin = minimum([minimum(cellTensionVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellTensionVectors)])
+globalTensionMax = maximum([maximum(cellTensionVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellTensionVectors)])
+lims = (globalTensionMin, globalTensionMax)
+Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=lims, flipaxis=true)
 
 for t = 1:length(cellTensionVectors)
     empty!(ax)
     for i = 1:length(cellTensionVectors[t])
-        if MCCs[t][i] == 0
+        if notExcludedCellVectors[t][i]
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellTensionVectors[t][i],
                 colormap=:batlow,
-                colorrange=pLims,
+                colorrange=lims,
                 strokecolor=(:black,0.5),
                 strokewidth=1,
             )
         end
     end
     for i = 1:length(cellTensionVectors[t])
-        if MCCs[t][i] != 0
+        if !notExcludedCellVectors[t][i]
             poly!(ax,
                 cellPolygonVectors[t][i],
-                color=cellTensionVectors[t][i],
-                colormap=:batlow,
-                colorrange=pLims,
-                strokecolor=(:black,1.0),
+                color=(:black,0.5),
+                strokecolor=(:black,(MCCs[t][i] != 0 ? 1.0 : 0.0)),
                 strokewidth=3,
             )
         end

@@ -51,8 +51,8 @@ function division!(integrator,params,matrices)
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
 
     for i=1:nCells
-        # if matrices.MCCsList[i]!=1 && cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
-        if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        if matrices.MCCsList[i]!=1 && cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
+        # if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
             # Find long axis of cell by calculating the two furthest separated vertices
             distances = zeros(Float64,1)

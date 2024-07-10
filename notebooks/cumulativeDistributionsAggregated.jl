@@ -72,7 +72,7 @@ allMCCDivisionStates = String[]
 setupparams = [("1.0", "AllDividing"), 
     ("10.0", "AllDividing"),
     ("1.0", "MCCs not dividing"),
-    ("1.0", "MCCs not dividing"),
+    ("10.0", "MCCs not dividing"),
     ("2.0", "MCCs not dividing"),
 ]
 
@@ -80,7 +80,7 @@ for p in setupparams
 
     stiffnessFactor, divisionState = p
 
-    "stiffnessFactor=10.0_AllDividing"
+    # "stiffnessFactor=1.0_AllDividing"
     
     if divisionState=="AllDividing"
         occurString = "stiffnessFactor=$(stiffnessFactor)_$(divisionState)_γ"
@@ -159,7 +159,7 @@ for p in setupparams
     ax.xlabel = "Tension"
     Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
     # axislegend(ax)
-    save(datadir("sims", "MCCComparison", "tensionCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+    save(datadir("sims", "MCCComparison", "tensionCumulativeDensities_$(occurString[1:end-2]).png"), fig)
 
     #%%
 
@@ -169,7 +169,7 @@ for p in setupparams
     ax.xlabel = "Effective pressure"
     Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
     # axislegend(ax)
-    save(datadir("sims", "MCCComparison", "peffCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+    save(datadir("sims", "MCCComparison", "peffCumulativeDensities_$(occurString[1:end-2]).png"), fig)
 
 
     #%%
@@ -180,7 +180,7 @@ for p in setupparams
     ax.xlabel = "Cell pressure"
     Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
     # axislegend(ax)
-    save(datadir("sims", "MCCComparison", "pressureCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+    save(datadir("sims", "MCCComparison", "pressureCumulativeDensities_$(occurString[1:end-2]).png"), fig)
 
     #%%
 
@@ -190,14 +190,14 @@ for p in setupparams
     ax.xlabel = "Cell shear"
     Legend(fig[1, 2], [l1, l2], ["MCC neighbours", "Bulk cells"])
     # axislegend(ax)
-    save(datadir("sims", "MCCComparison", "shearCumulativeDensities_stiffnessFactor=10.0_AllDividing.png"), fig)
+    save(datadir("sims", "MCCComparison", "shearCumulativeDensities_$(occurString[1:end-2]).png"), fig)
 
     #%%
 
     letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 
     using XLSX
-    XLSX.openxlsx(datadir("sims", "MCCComparison", "ecdfs_stiffnessFactor=10.0_AllDividing.xlsx"), mode="w") do xf
+    XLSX.openxlsx(datadir("sims", "MCCComparison", "ecdfs_$(occurString[1:end-2]).xlsx"), mode="w") do xf
         sheet = xf[1]
         # XLSX.rename!(sheet, "new_sheet")
         for (i,j) in enumerate(keys(allSeries))
