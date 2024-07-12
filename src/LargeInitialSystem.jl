@@ -23,9 +23,10 @@ using Random
 
 function largeInitialSystem()
     
-    cellPoints = [SVector(x, 0.0) for x = 1:9]
-    for j = 1:4
-        for i = 1:9-j
+    nRows = 9 # Must be an odd number
+    cellPoints = [SVector(x, 0.0) for x = 1:nRows]
+    for j = 1:(floor(Int64,nRows/2))
+        for i = 1:nRows-j
             # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
             push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
             push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, -j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
