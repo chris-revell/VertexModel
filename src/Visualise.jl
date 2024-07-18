@@ -38,6 +38,7 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
         cellAreas,
         edgeMidpoints,
         F,
+        externalF,
         edgeMidpointLinks,
         μ = matrices
     @unpack nEdges,
@@ -52,9 +53,15 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            poly!(ax1,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas)-1e-6, maximum(cellAreas)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
+            #poly!(ax1,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas)-1e-6, maximum(cellAreas)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
+            poly!(ax1,cellPolygons[i], color=cellEdgeCount[i], colorrange=(3, 10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),strokecolor=:black, strokewidth=1)
+
         end
     end
+    
+    cbar=Colorbar(fig[1,2],limits=(3,10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),flipaxis=true)
+    cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])
+
 
     # Scatter vertices
     if scatterVertices == 1
@@ -78,6 +85,8 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
     # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
     if plotForces == 1
         arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
+        arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(externalF, dims=2)), color=:red)
+
     end
 
     if plotEdgeMidpointLinks == 1
