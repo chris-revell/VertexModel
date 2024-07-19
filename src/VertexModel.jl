@@ -52,8 +52,8 @@ function conditionSteadyState(u, t, integrator)
     # norm.() calculates magnitudes of all gradients as Floats; 
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
-    #@show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 1e-7   ? true : false
+    @show maximum(norm.(get_du(integrator)))
+    (maximum(norm.(get_du(integrator))) < 1e-6 )&(integrator.p[1].nCells >= 512) ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -116,10 +116,12 @@ function vertexModel(;
 
     prob=ODEProblem(model!,R,(0.0,Inf),(params,matrices))
 
-    integrator = init(prob,solver,abstol=1e-10, reltol=1e-8, callback=cb, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-12, reltol=1e-10, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default)
+
+    #while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # Output data to file 
         if integrator.t % params.outputInterval < integrator.dt
@@ -133,10 +135,12 @@ function vertexModel(;
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
 
                 e_tot=energy(params,matrices)
-                csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
-                println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
-                close(csvfile)
+                # csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
+                # println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
+                # close(csvfile)
                 print(e_tot ,'\n')
+                @show params.nCells
+
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
@@ -159,7 +163,7 @@ function vertexModel(;
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
        
-        if params.nCells < 100
+        if params.nCells < 512
             if division!(integrator,params,matrices)>0
                 u_modified!(integrator,true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
