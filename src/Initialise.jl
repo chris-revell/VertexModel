@@ -67,7 +67,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         R = importedData["R"]
     end
 
-    #cellTimeToDivide = ones(size(B, 1)).*nonDimCycleTime  # Random initial cell ages
+    cellTimeToDivide = ones(size(B, 1)).*nonDimCycleTime  # Random initial cell ages
 
 
     nCells = size(B, 1)
@@ -136,7 +136,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold,
         peripheralTension,
         seed,
-        LogNormal(0.0, 0.2)
+        LogNormal(0.0, 0.05)
     )
 
     # Initial evaluation of matrices based on system topology

@@ -165,8 +165,8 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            #integrator.u[end-1:end] .= intersect_pts[intersectedIndex]
-            integrator.u[end-1:end] .= [cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(0.6*t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
+            integrator.u[end-1:end] .= intersect_pts[intersectedIndex]
+            #integrator.u[end-1:end] .= [cellPositions[i].+(t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
 
             #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             # if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
@@ -183,6 +183,7 @@ function division!(integrator,params,matrices)
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
+            
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
 
