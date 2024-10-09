@@ -17,7 +17,7 @@ using LinearAlgebra
 using JLD2
 using SparseArrays
 using StaticArrays
-using CairoMakie
+using GLMakie
 using Printf
 
 # Local modules
@@ -75,7 +75,7 @@ function vertexModel(;
         folderName = createRunDirectory(R, params, matrices, subFolder)
         if frameImageToggle==1 || videoToggle==1
             # Create plot object for later use 
-            fig, ax1, mov = plotSetup(R, params, matrices, subFolder, folderName)
+            fig, ax, mov = plotSetup() #R, params, matrices, subFolder, folderName)
         end
     end
 
@@ -97,7 +97,7 @@ function vertexModel(;
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
-                visualise(integrator.u, integrator.t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
             end
             # Save still image of this time step 
             frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
@@ -139,7 +139,7 @@ function vertexModel(;
         jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
         if frameImageToggle == 1 || videoToggle == 1
             # Render visualisation of system and add frame to movie
-            visualise(integrator.u, integrator.t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+            visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
         end
         # Save still image of this time step 
         frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
@@ -152,9 +152,9 @@ function vertexModel(;
 end
 
 # Ensure code is precompiled
-@compile_workload begin
-    vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
-end
+# @compile_workload begin
+#     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
+# end
 
 export vertexModel
 

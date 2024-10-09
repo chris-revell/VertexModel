@@ -170,7 +170,7 @@ end
 # {divᶜb}ᵢ
 # Calculate div on each cell
 function calculateCellDivs(R,params,matrices)
-    @unpack B,C,F,cellPositions,edgeMidpoints,edgeTangents,cellAreas,ϵ = matrices
+    @unpack B,C,F,cellPositions,edgeMidpoints,edgeTangents,cellAreas = matrices
     @unpack nCells = params
     cellDivs = Float64[]
     for c=1:nCells

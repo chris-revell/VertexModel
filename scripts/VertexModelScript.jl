@@ -10,13 +10,18 @@
 using PrecompileTools
 using DrWatson
 using FromFile
-using DifferentialEquations
+using OrdinaryDiffEq
 using LinearAlgebra
 using JLD2
 using SparseArrays
 using StaticArrays
-using CairoMakie
+using GLMakie
 using Printf
+using Dates
+using Random
+using Distributions
+using CircularArrays
+using GeometryBasics
 
 # Local modules
 @from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
@@ -30,17 +35,21 @@ using Printf
 @from "$(srcdir("Division.jl"))" using Division
 @from "$(srcdir("SenseCheck.jl"))" using SenseCheck
 @from "$(srcdir("EdgeAblation.jl"))" using EdgeAblation
+@from "$(srcdir("VertexModelContainers.jl"))" using VertexModelContainers
+@from "$(srcdir("LargeInitialSystem.jl"))" using LargeInitialSystem
+@from "$(srcdir("RotationMatrix.jl"))" using RotationMatrix
+@from "$(srcdir("ResizeMatrices.jl"))" using ResizeMatrices
 
 
 initialSystem="large"
-nCycles=1.0
-realCycleTime=86400.0
+nCycles=0.1
+realCycleTime=300.0
 realTimetMax=nCycles*realCycleTime
 γ=0.2
 L₀=0.75
 A₀=1.0
 viscousTimeScale=1000.0
-pressureExternal=0.0
+pressureExternal=0.1
 peripheralTension=0.0
 t1Threshold=0.05
 solver=Tsit5()
@@ -64,15 +73,31 @@ setRandomSeed = 0
 
 # realTimetMax=nCycles*realCycleTime
 # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
+# Calculate derived parameters
+tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
+outputInterval = tMax / outputTotal     # Time interval for storing system data (non dimensionalised)
+λ = -2.0 * L₀ * γ
+nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
+
+# Set random seed value and allocate random number generator
+# Random seed set from current unix time, 
+# unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
+seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
+Random.seed!(seed)
+
 R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
+
+# Initial evaluation of matrices based on system topology
+topologyChange!(matrices)
+spatialData!(R, params, matrices)
 
 # Set up output if outputToggle argument == 1
 if outputToggle==1
     # Create fun directory, save parameters, and store directory name for later use.
-    folderName = createRunDirectory(R, params, matrices, subFolder)
+    folderName = createRunDirectory(R,params,matrices,subFolder)
     if frameImageToggle==1 || videoToggle==1
         # Create plot object for later use 
-        fig, ax1, mov = plotSetup(R, params, matrices, subFolder, folderName)
+        fig, ax, mov = plotSetup()
     end
 end
 
@@ -80,6 +105,11 @@ end
 prob = ODEProblem(model!, R, (0.0, Inf), (params, matrices))
 integrator = init(prob, solver, abstol=1e-7, reltol=1e-4, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
+counter=[0]
+visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
+frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", counter[1])).png"), fig) : nothing
+
+#%% 
 # Iterate until integrator time reaches max system time 
 while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
 
@@ -94,10 +124,11 @@ while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Defaul
         end
         if frameImageToggle == 1 || videoToggle == 1
             # Render visualisation of system and add frame to movie
-            visualise(integrator.u, integrator.t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+            visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
         end
         # Save still image of this time step 
-        frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
+        frameImageToggle == 1 ? counter[1]+=1 : nothing 
+        frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", counter[1])).png"), fig) : nothing
     end
 
     # Step integrator forwards in time to update vertex positions 
@@ -136,11 +167,10 @@ if outputToggle == 1
     jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
     if frameImageToggle == 1 || videoToggle == 1
         # Render visualisation of system and add frame to movie
-        visualise(integrator.u, integrator.t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+        visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
     end
     # Save still image of this time step 
     frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
     # Save movie of simulation if videoToggle==1
     videoToggle == 1 ? save(datadir("sims", subFolder, folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 end
-

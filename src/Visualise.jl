@@ -18,18 +18,20 @@ using UnPack
 using GeometryBasics
 using Random
 using Makie
-using CairoMakie
+using GLMakie
 using StaticArrays
 using SparseArrays
 using CircularArrays
 using FromFile
 using DrWatson
+using Random
+using Distributions
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax, mov, params, matrices)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -43,55 +45,34 @@ function visualise(R, t, fig, ax1, mov, params, matrices, plotCells, scatterEdge
         nVerts,
         nCells = params
 
-    empty!(ax1)
+    empty!(ax)
 
-    ax1.title = "t = $(@sprintf("%.2f", t))"
+    # ax.title = "t = $(@sprintf("%.2f", t))"
 
-    # Plot cells
-    if plotCells == 1
-        cellPolygons = makeCellPolygons(R, params, matrices)
-        for i = 1:nCells
-            poly!(ax1, cellPolygons[i], color=(getRandomColor(i), 0.5), strokecolor=(:black, 1.0), strokewidth=2)
+    for i=1:nCells
+        verts = Float64[]
+        for k=1:length(cellVertexOrders[i])
+            append!(verts, R[cellVertexOrders[i][k]])
+            append!(verts, R[cellVertexOrders[i][k+1]])
+            append!(verts, cellPositions[i])
         end
-    end
+        connectedVerts = connect(verts, Point{3})
+        connectedFaces = connect(1:length(connectedVerts), TriangleFace)
 
-    # Scatter vertices
-    if scatterVertices == 1
-        scatter!(ax1, Point{2,Float64}.(R), color=:green)
-        annotations!(ax1, string.(collect(1:length(R))), Point{2,Float64}.(R), color=:green)
-    end
+        # @show (getRandomColor(i))
+        mesh!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...), shading=NoShading)
+        # poly!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...))
+        # poly!(ax, connectedVerts, connectedFaces; color=(:black, 0.5), strokecolor=(:black, 1.0), strokewidth=2)
 
-    # Scatter edge midpoints
-    if scatterEdges == 1
-        scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
-    end
+    end    
 
-    # Scatter cell positions
-    if scatterCells == 1
-        scatter!(ax1, Point{2,Float64}.(cellPositions), color=:red)
-        annotations!(ax1, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions), color=:red)
-    end
-
-    # Plot resultant forces on vertices (excluding external pressure)
-    # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
-    if plotForces == 1
-        arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
-    end
-
-    if plotEdgeMidpointLinks == 1
-        for i = 1:nCells
-            for j = 1:cellEdgeCount[i]
-                lines!(ax1,
-                    Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]] .+ edgeMidpointLinks[i, cellVertexOrders[i][j]])]),
-                    linestyle=:dot,
-                    color=:black)
-            end
-        end
-    end
+    # for i=1:nCells
+    #     lines!(Point{3,Float64}.(R[cellVertexOrders[i][1:cellEdgeCount[i]+1]]))
+    # end
 
     # Set limits
-    reset_limits!(ax1)
+    reset_limits!(ax)
+    zlims!(ax, (-0.5,0.5))
 
     recordframe!(mov)
 

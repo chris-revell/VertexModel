@@ -19,6 +19,7 @@ using SparseArrays
 using GeometryBasics
 
 @from "OrderAroundCell.jl" using OrderAroundCell
+@from "RotationMatrix.jl" using RotationMatrix
 # @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 function spatialData!(R,params,matrices)
@@ -35,10 +36,11 @@ function spatialData!(R,params,matrices)
         cellPositions,
         cellPerimeters,
         cellOrientedAreas,
-        cellShapeTensor,
+        # cellShapeTensor,
         cellAreas,
         cellTensions,
         cellPressures,
+        cellPerpAxes,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
@@ -61,7 +63,7 @@ function spatialData!(R,params,matrices)
 
     edgeMidpoints  .= 0.5.*Ā*R
     
-    fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
+    fill!(edgeMidpointLinks, SVector{3,Float64}(zeros(3)))
     dropzeros!(edgeMidpointLinks)
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1], nzC[2])
@@ -76,33 +78,49 @@ function spatialData!(R,params,matrices)
         k_is = findall(x -> x != 0, @view C[:, k])
         if length(k_is) == 1
             k_js = findall(x -> x != 0, A[:, k])
-            vertexAreas[k] = 0.5^3 * norm([edgeTangents[k_js[1]]..., 0.0] × [edgeTangents[k_js[2]]..., 0.0])
+            vertexAreas[k] = 0.5^3 * norm(edgeTangents[k_js[1]] × edgeTangents[k_js[2]])
         elseif length(k_is) == 2
             edgesSharedBy_i1_And_k = findall(x -> x != 0, B[k_is[1], :] .* A[:, k])
-            vertexAreas[k] = 0.5^3 * norm([edgeTangents[edgesSharedBy_i1_And_k[1]]..., 0.0] × [edgeTangents[edgesSharedBy_i1_And_k[2]]..., 0.0])
+            vertexAreas[k] = 0.5^3 * norm(edgeTangents[edgesSharedBy_i1_And_k[1]] × edgeTangents[edgesSharedBy_i1_And_k[2]])
             edgesSharedBy_i2_And_k = findall(x -> x != 0, B[k_is[2], :] .* A[:, k])
-            vertexAreas[k] += 0.5^3 * norm([edgeTangents[edgesSharedBy_i2_And_k[1]]..., 0.0] × [edgeTangents[edgesSharedBy_i2_And_k[2]]..., 0.0])
+            vertexAreas[k] += 0.5^3 * norm(edgeTangents[edgesSharedBy_i2_And_k[1]] × edgeTangents[edgesSharedBy_i2_And_k[2]])
         else
-            vertexAreas[k] = 0.5 * norm([edgeMidpointLinks[k_is[1], k]..., 0.0] × [edgeMidpointLinks[k_is[2], k]..., 0.0])
+            vertexAreas[k] = 0.5 * norm(edgeMidpointLinks[k_is[1], k] × edgeMidpointLinks[k_is[2], k])
         end
     end
 
     cellPerimeters .= B̄ * edgeLengths
 
-    # Find cell areas and shape tensors 
-    for i = 1:nCells
-        cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
+    # Clockwise ordering of edges and vertices around cell face used in B 
+    # means that the cross product of adjacent edge tangents defines a perpendicular 
+    # vector into the cell face, with edge ordering then following the right hand rule 
+    # around this perpendicular vector. 
+    for i=1:nCells 
+        cellPerpAxes[i] = (B[i,cellEdgeOrders[i][1]].*edgeTangents[cellEdgeOrders[i][1]])×(B[i,cellEdgeOrders[i][2]].*edgeTangents[cellEdgeOrders[i][2]]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+    end
 
-        Rα = [R[kk].-matrices.cellPositions[i] for kk in cellVertexOrders[i]]
-        cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
+    ϵFlatten = zeros(3,3)
+    # Find cell areas
+    for i = 1:nCells
+        # cellAreas[i] = 0.0
+        # for k=1:length(cellVertexOrders)
+        #     cellAreas[i] += abs(area(Point{3,Float64}.( [cellPositions[i], R[cellVertexOrders[i][k]], R[cellVertexOrders[i][k+1]] ] )))
+        # end
+        crossVec = matrices.cellPerpAxes[i]×[1,0,0]
+        ϵFlatten .= ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
+        rotatedPoints = [Point{2,Float64}((ϵFlatten*pt)[2:end]) for pt in R[cellVertexOrders[i][0:end]]]
+        cellAreas[i] = abs(area(rotatedPoints))
+        # cellAreas[i] = abs(area(Point{3,Float64}.(R[cellVertexOrders[i]])))
     end
 
     
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    # @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    @.. thread = false cellTensions .= Γ .* L₀ .* log.(L₀./cellPerimeters)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    # @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    @.. thread = false cellPressures .= A₀ .* μ .* log.(A₀./cellAreas)
 
     return nothing
 

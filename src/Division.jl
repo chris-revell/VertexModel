@@ -25,6 +25,7 @@ using Random
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "ResizeMatrices.jl" using ResizeMatrices
+@from "RotationMatrix.jl" using RotationMatrix
 
 function division!(integrator,params,matrices)
 
@@ -42,40 +43,44 @@ function division!(integrator,params,matrices)
         cellEdgeCount, 
         cellVertexOrders, 
         cellEdgeOrders,
-        cellShapeTensor, 
+        cellPerpAxes, 
         boundaryEdges, 
         edgeTangents,
-        ϵ, 
         μ, 
         Γ = matrices
 
     divisionCount = 0
 
-    newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
+    newRs = SVector{3,Float64}[] # Positions of new vertices created by division
 
     for i=1:nCells
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
-
+            spokes = [integrator.u[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
+            
+            crossVec = matrices.cellPerpAxes[i]×[1,0,0]
+            ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
+            rotatedSpokes = [(ϵCoordinates*s)[2:end] for s in spokes]
+            cellShapeTensor = sum(rotatedSpokes.*transpose.(rotatedSpokes))./matrices.cellEdgeCount[i]
+            
             # Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95
-            evals, evecs = eigen(matrices.cellShapeTensor[i]) # eigenvalues/vectors listed smallest to largest eigval.
-            circ = abs(evals[1]/evals[2]) # circularity
+            eigenVals, eigenVecs = eigen(cellShapeTensor) # eigenvalues/vectors listed smallest to largest eigval.
+            circ = abs(eigenVals[1]/eigenVals[2]) # circularity
             #for very circular cells randomly choose division axis
             if circ > 0.95 
                 theta = rand()*π
                 shortvec = [cos(theta), sin(theta)]
+            elseif eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                shortvec = -1.0.*eigenVecs[:,1]
             else
-                if evecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
-                    shortvec = -1.0.*evecs[:,1]
-                else
-                    shortvec = evecs[:,1]
-                end
+                shortvec = eigenVecs[:,1]
             end
-            shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
+            # end
+            shortAxisLine = Line(Point{2,Float64}(shortvec), Point{2,Float64}(-shortvec))
 
             # Test cell edges for an intersection
-            poly = LineString(Point{2, Float64}.(integrator.u[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+            poly = LineString(Point{2, Float64}.(rotatedSpokes)) # Start and end with the same vertex by indexing circular array from 0 to end
             intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
             
@@ -162,7 +167,11 @@ function division!(integrator,params,matrices)
             # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
             # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
-            integrator.u[end-1:end] .= last.([intersections[intersectedIndices[1]], intersections[intersectedIndices[2]]])
+            ϵCoordinates⁻¹ = inv(ϵCoordinates)
+            newVertPos1 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[1]])...] .+ cellPositions[i]
+            newVertPos2 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[2]])...] .+ cellPositions[i]
+            integrator.u[end-1] = newVertPos1
+            integrator.u[end] = newVertPos2
 
             matrices.A = Atmp
             matrices.B = Btmp
