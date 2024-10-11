@@ -96,31 +96,26 @@ function spatialData!(R,params,matrices)
     # vector into the cell face, with edge ordering then following the right hand rule 
     # around this perpendicular vector. 
     for i=1:nCells 
-        cellPerpAxes[i] = (B[i,cellEdgeOrders[i][1]].*edgeTangents[cellEdgeOrders[i][1]])×(B[i,cellEdgeOrders[i][2]].*edgeTangents[cellEdgeOrders[i][2]]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+        j = cellEdgeOrders[i][1]
+        jj = cellEdgeOrders[i][2]
+        cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
     end
 
     ϵFlatten = zeros(3,3)
     # Find cell areas
     for i = 1:nCells
-        # cellAreas[i] = 0.0
-        # for k=1:length(cellVertexOrders)
-        #     cellAreas[i] += abs(area(Point{3,Float64}.( [cellPositions[i], R[cellVertexOrders[i][k]], R[cellVertexOrders[i][k+1]] ] )))
-        # end
         crossVec = matrices.cellPerpAxes[i]×[1,0,0]
         ϵFlatten .= ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
-        rotatedPoints = [Point{2,Float64}((ϵFlatten*pt)[2:end]) for pt in R[cellVertexOrders[i][0:end]]]
+        rotatedPoints = [Point{2,Float64}((ϵFlatten*pt)[2:end]) for pt in R[cellVertexOrders[i]]]
         cellAreas[i] = abs(area(rotatedPoints))
-        # cellAreas[i] = abs(area(Point{3,Float64}.(R[cellVertexOrders[i]])))
     end
 
     
     # Calculate cell boundary tensions
-    # @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
-    @.. thread = false cellTensions .= Γ .* L₀ .* log.(L₀./cellPerimeters)
+    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
 
     # Calculate cell internal pressures
-    # @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(A₀./cellAreas)
+    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
 
     return nothing
 

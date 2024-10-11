@@ -49,7 +49,7 @@ realTimetMax=nCycles*realCycleTime
 L₀=0.75
 A₀=1.0
 viscousTimeScale=1000.0
-pressureExternal=0.1
+pressureExternal=0.0
 peripheralTension=0.0
 t1Threshold=0.05
 solver=Tsit5()
@@ -68,6 +68,7 @@ scatterCells = 0
 plotForces = 0
 plotEdgeMidpointLinks = 0
 setRandomSeed = 0
+sphericalRadius = 10
 
 # BLAS.set_num_threads(nBlasThreads)
 
@@ -85,7 +86,7 @@ nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cy
 seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
 Random.seed!(seed)
 
-R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
+R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, sphericalRadius)
 
 # Initial evaluation of matrices based on system topology
 topologyChange!(matrices)

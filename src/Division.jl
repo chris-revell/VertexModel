@@ -61,7 +61,7 @@ function division!(integrator,params,matrices)
             crossVec = matrices.cellPerpAxes[i]×[1,0,0]
             ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
             rotatedSpokes = [(ϵCoordinates*s)[2:end] for s in spokes]
-            cellShapeTensor = sum(rotatedSpokes.*transpose.(rotatedSpokes))./matrices.cellEdgeCount[i]
+            cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i]
             
             # Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95

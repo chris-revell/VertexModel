@@ -58,21 +58,13 @@ function visualise(R, t, fig, ax, mov, params, matrices)
         end
         connectedVerts = connect(verts, Point{3})
         connectedFaces = connect(1:length(connectedVerts), TriangleFace)
-
-        # @show (getRandomColor(i))
         mesh!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...), shading=NoShading)
-        # poly!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...))
-        # poly!(ax, connectedVerts, connectedFaces; color=(:black, 0.5), strokecolor=(:black, 1.0), strokewidth=2)
-
+        # mesh!(ax, connectedVerts, connectedFaces, color=(i==61 ? :red : :black))
     end    
-
-    # for i=1:nCells
-    #     lines!(Point{3,Float64}.(R[cellVertexOrders[i][1:cellEdgeCount[i]+1]]))
-    # end
 
     # Set limits
     reset_limits!(ax)
-    zlims!(ax, (-0.5,0.5))
+    zlims!(ax, (-params.surfaceRadius/10.0,0.1))
 
     recordframe!(mov)
 
