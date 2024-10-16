@@ -20,7 +20,10 @@ mutable struct ParametersContainer
     nCells             ::Int64              # Number of cells
     nEdges             ::Int64              # Number of edges
     nVerts             ::Int64              # Number of vertices
-    γ                  ::Float64            # Parameter in energy relaxation
+    Γa                 ::Float64            # surface area tension strength
+    ΓA                 ::Float64            # face tension strength
+    ΓL                 ::Float64            # line tension strength
+    H                  ::Float64            # layer height
     λ                  ::Float64            # Parameter in energy relaxation
     L₀                 ::Float64            # Cell preferred perimeter length L₀ = -λ/(2*γ)
     A₀                 ::Float64            # Cell preferred area
