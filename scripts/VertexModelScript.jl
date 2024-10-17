@@ -139,7 +139,7 @@ while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Defaul
     spatialData!(integrator.u, params, matrices)
 
     # Check system for T1 transitions 
-    if t1Transitions!(integrator.u, params, matrices) > 0
+    if t1Transitions!(integrator, params, matrices) > 0
         u_modified!(integrator, true)
         # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
         topologyChange!(matrices) # Update system matrices after T1 transition

@@ -85,12 +85,12 @@ end
 function makeLinkTriangles(R,params,matrices)
     @unpack A,C,boundaryVertices,boundaryEdges,cellPositions,cellEdgeOrders,edgeMidpoints = matrices
     @unpack nVerts = params
-    linkTriangles = Vector{Point{2,Float64}}[]
+    linkTriangles = Vector{Point{3,Float64}}[]
     for k=1:nVerts
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
             vertexCells = findall(x->x!=0, @view C[:,k])
-            push!(linkTriangles, Point{2,Float64}.(cellPositions[vertexCells]))
+            push!(linkTriangles, Point{3,Float64}.(cellPositions[vertexCells]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
             vertexCells = findall(x->x!=0, @view C[:,k])
@@ -103,7 +103,7 @@ function makeLinkTriangles(R,params,matrices)
             else 
                 kiteVertices = [R[k], edgeMidpoints[boundaryVertexEdges[1]], cellPositions[vertexCells[1]], edgeMidpoints[boundaryVertexEdges[2]]]
             end
-            push!(linkTriangles,Point{2,Float64}.(kiteVertices))
+            push!(linkTriangles,Point{3,Float64}.(kiteVertices))
         end
     end
     return linkTriangles
@@ -112,14 +112,14 @@ end
 function makeEdgeTrapezia(R,params,matrices)
     @unpack A,B,cellPositions = matrices
     @unpack nEdges = params
-    edgeTrapezia = Vector{Point{2,Float64}}[]
+    edgeTrapezia = Vector{Point{3,Float64}}[]
     for j=1:nEdges
         edgeCells = findall(x->x!=0, @view B[:,j])
         edgeVertices = findall(x->x!=0, @view A[j,:])
         if length(edgeCells) > 1
-            push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
+            push!(edgeTrapezia,Point{3,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]],cellPositions[edgeCells[2]]]))
         else
-            push!(edgeTrapezia,Point{2,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]]]))
+            push!(edgeTrapezia,Point{3,Float64}.([R[edgeVertices[1]],cellPositions[edgeCells[1]],R[edgeVertices[2]]]))
         end
     end
     return edgeTrapezia

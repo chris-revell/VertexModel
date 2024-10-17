@@ -18,9 +18,11 @@ function plotSetup() #R,params,matrices,subFolder,folderName)
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
     fig = Figure(size=(1000,1000))
-    ax = Axis3(fig[1,1])
+    ax = Axis3(fig[1,1], aspect=:data)
     # hidedecorations!(ax)
     # hidespines!(ax)
+    # limits!(ax, (-2,2), (-2,2), (-2,2))
+
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     

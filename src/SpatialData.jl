@@ -35,8 +35,9 @@ function spatialData!(R,params,matrices)
         cellEdgeOrders,
         cellPositions,
         cellPerimeters,
-        cellOrientedAreas,
+        # cellOrientedAreas,
         # cellShapeTensor,
+        cellϵs,
         cellAreas,
         cellTensions,
         cellPressures,
@@ -101,13 +102,17 @@ function spatialData!(R,params,matrices)
         cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
     end
 
-    ϵFlatten = zeros(3,3)
+    
     # Find cell areas
+    crossVec = zeros(3)
     for i = 1:nCells
-        crossVec = matrices.cellPerpAxes[i]×[1,0,0]
-        ϵFlatten .= ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
-        rotatedPoints = [Point{2,Float64}((ϵFlatten*pt)[2:end]) for pt in R[cellVertexOrders[i]]]
-        cellAreas[i] = abs(area(rotatedPoints))
+        # crossVec .= matrices.cellPerpAxes[i]×[1,0,0]
+        # cellϵs[i] = SMatrix{3,3,Float64}(ϵ(v=crossVec, θ=-asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i])))))
+        # rotatedPoints = [Point{2,Float64}((cellϵs[i]*(pt.-cellPositions[i]))[2:end]) for pt in R[cellVertexOrders[i]]]
+        # rotatedPoints = [Point{2,Float64}((cellϵs[i]*pt)[2:end]) for pt in R[cellVertexOrders[i]]]
+        # cellAreas[i] = abs(area(rotatedPoints))
+        cellAreas[i] = abs(area(Point{3,Float64}.(R[cellVertexOrders[i]])))
+        cellϵs[i] = SMatrix{3,3,Float64}(ϵ(v=cellPerpAxes[i]))
     end
 
     

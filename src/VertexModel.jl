@@ -45,7 +45,7 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    sphericalRadius = 10.0,
+    sphericalRadius = 20.0,
     solver=Tsit5(),
     nBlasThreads=1,
     subFolder="",
@@ -82,7 +82,7 @@ function vertexModel(;
     while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # Output data to file 
-        if integrator.t % params.outputInterval < integrator.dt
+        if integrator.t % params.outputInterval < integrator.dt && outputToggle==1
             # Update progress on command line 
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(Int64(integrator.t*outputTotal÷params.tMax))/$outputTotal") : nothing
             if frameDataToggle == 1
@@ -105,7 +105,7 @@ function vertexModel(;
         spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
-        if t1Transitions!(integrator.u, params, matrices) > 0
+        if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition

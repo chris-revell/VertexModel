@@ -57,12 +57,13 @@ end
     boundaryEdges    ::Vector{Int64}                                # Vector of 1s and 0s denoting edges that lie on the system boundary
     cellPositions    ::Vector{SVector{3, Float64}}                  # Vector of 2D static vectors for each cell centre of mass
     cellPerimeters   ::Vector{Float64}                              # Vector of scalar cell perimeter lengths
-    cellOrientedAreas::Vector{SMatrix{3, 3, Float64}}               # Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area
+    # cellOrientedAreas::Vector{SMatrix{3, 3, Float64}}               # Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area
     cellAreas        ::Vector{Float64}                              # Vector of scalar cell areas
     cellTensions     ::Vector{Float64}                              # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
-    cellPerpAxes     ::Vector{SVector{3, Float64}}                   # Vector of vectors perpendicular to each cell face
+    cellPerpAxes     ::Vector{SVector{3, Float64}}                  # Vector of vectors perpendicular to each cell face
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
+    cellϵs           ::Vector{SMatrix{3, 3, Float64}}               # Vector of matrices required to rotate dimensions such that each cell is 2D
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
     Γ                ::Vector{Float64}                              # Vector of cell tension factors 
     edgeLengths      ::Vector{Float64}                              # Vector of lengths for each edge in the system

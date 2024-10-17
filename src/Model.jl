@@ -32,6 +32,7 @@ function model!(du, u, p, t)
         cellTensions,
         cellPressures,
         cellPerpAxes,
+        cellϵs,
         edgeLengths,
         edgeTangents,
         F,
@@ -59,11 +60,11 @@ function model!(du, u, p, t)
         for j in nzrange(A, k)
             for i in nzrange(B, rowvals(A)[j])
                 # Force components from cell pressure perpendicular to edge tangents 
-                F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ(v=cellPerpAxes[rowvals(B)[i]]) * edgeTangents[rowvals(A)[j]])
+                F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* ( cellϵs[rowvals(B)[i]] * edgeTangents[rowvals(A)[j]] )
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure 
-                # externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ(v=cellPerpAxes[rowvals(B)[i]]) * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+                # externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (cellϵs[rowvals(B)[i]] * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
             end
             # Force on vertex from peripheral tension
             # externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]

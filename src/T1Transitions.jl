@@ -12,15 +12,20 @@ module T1Transitions
 # Julia packages
 using LinearAlgebra
 using UnPack
+using FromFile
 
-function t1Transitions!(R,params,matrices)
+@from "RotationMatrix.jl" using RotationMatrix
+
+function t1Transitions!(integrator,params,matrices)
 
     @unpack A,
         B,
         C,
         edgeLengths,
         timeSinceT1,
-        boundaryEdges = matrices
+        boundaryEdges,
+        edgeTangents,
+        edgeMidpoints = matrices
     @unpack nEdges,
         t1Threshold,
         nonDimCycleTime = params
@@ -35,6 +40,7 @@ function t1Transitions!(R,params,matrices)
             # Find vertices a and b at either end of the short edge j
             a = findall(j -> j > 0, @view A[j, :])[1]
             b = findall(j -> j < 0, @view A[j, :])[1]
+
             # Find cells around vertices a and b
             aCells = findall(i -> i != 0, @view C[:, a])
             bCells = findall(i -> i != 0, @view C[:, b])
@@ -51,7 +57,7 @@ function t1Transitions!(R,params,matrices)
                     P = setdiff(aCells, [Q, S]) # NB This is an array that may have 1 element or be empty since cell P may not exist if vertex a is at the periphery, but the algorithm is generalised to accommodate this
                     # Assume cell R shares vertex b, which has negative orientation with respect to edge j
                     R = setdiff(bCells, [Q, S]) # NB This is an array that may have 1 element or be empty since cell R may not exist if vertex b is at the periphery, but the algorithm is generalised to accommodate this    
-                    # Remove edge j from cells Q and S, assuming orientation from clockwise rotation of edge j
+                    # Remove edge j from cells Q and S
                     B[Q, j] = 0
                     B[S, j] = 0
                     # Add edge j to cells R and P, assuming orientation from clockwise rotation of edge j
@@ -93,6 +99,10 @@ function t1Transitions!(R,params,matrices)
                     # Remove vertex b from edge m 
                     A[m, b] = 0
                 end
+
+                integrator.u[b] = integrator.u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
+                integrator.u[a] = integrator.u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
+
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
