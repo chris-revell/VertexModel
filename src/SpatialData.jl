@@ -79,12 +79,12 @@ function spatialData!(R,params,matrices)
         k_is = findall(x -> x != 0, @view C[:, k])
         if length(k_is) == 1
             k_js = findall(x -> x != 0, A[:, k])
-            vertexAreas[k] = 0.5^3 * norm(edgeTangents[k_js[1]] × edgeTangents[k_js[2]])
+            vertexAreas[k] = 0.125 * norm(edgeTangents[k_js[1]] × edgeTangents[k_js[2]]) # 0.125 = 0.5^3
         elseif length(k_is) == 2
             edgesSharedBy_i1_And_k = findall(x -> x != 0, B[k_is[1], :] .* A[:, k])
-            vertexAreas[k] = 0.5^3 * norm(edgeTangents[edgesSharedBy_i1_And_k[1]] × edgeTangents[edgesSharedBy_i1_And_k[2]])
+            vertexAreas[k] = 0.125 * norm(edgeTangents[edgesSharedBy_i1_And_k[1]] × edgeTangents[edgesSharedBy_i1_And_k[2]]) # 0.125 = 0.5^3
             edgesSharedBy_i2_And_k = findall(x -> x != 0, B[k_is[2], :] .* A[:, k])
-            vertexAreas[k] += 0.5^3 * norm(edgeTangents[edgesSharedBy_i2_And_k[1]] × edgeTangents[edgesSharedBy_i2_And_k[2]])
+            vertexAreas[k] += 0.125 * norm(edgeTangents[edgesSharedBy_i2_And_k[1]] × edgeTangents[edgesSharedBy_i2_And_k[2]]) # 0.125 = 0.5^3
         else
             vertexAreas[k] = 0.5 * norm(edgeMidpointLinks[k_is[1], k] × edgeMidpointLinks[k_is[2], k])
         end

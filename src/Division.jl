@@ -56,6 +56,8 @@ function division!(integrator,params,matrices)
     for i=1:nCells
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
+            # println("Division cell $i")
+
             spokes = [integrator.u[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
             
             crossVec = matrices.cellPerpAxes[i]×[1,0,0]

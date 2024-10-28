@@ -46,7 +46,8 @@ function model!(du, u, p, t)
         pressureExternal,
         peripheralTension,
         surfaceCentre,
-        surfaceRadius = params
+        surfaceRadius,
+        surfaceReturnAmplitude = params
 
     spatialData!(u, params, matrices)
 
@@ -69,7 +70,8 @@ function model!(du, u, p, t)
             # Force on vertex from peripheral tension
             # externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
-        externalF[k] -= 100.0.*(norm(u[k] .- surfaceCentre)-surfaceRadius).*normalize(u[k].-surfaceCentre)
+        externalF[k] -= surfaceReturnAmplitude.*(norm(u[k] .- surfaceCentre)-surfaceRadius).*normalize(u[k].-surfaceCentre)
+        # externalF[k] -= 100.0.*(norm(u[k] .- surfaceCentre)-surfaceRadius)^2.0.*normalize(u[k].-surfaceCentre)
         # externalF[k] -= 100.0.*u[k]⋅[0.0,0.0,1.0].*[0.0,0.0,1.0]
         du[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
     end

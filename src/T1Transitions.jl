@@ -45,6 +45,7 @@ function t1Transitions!(integrator,params,matrices)
             aCells = findall(i -> i != 0, @view C[:, a])
             bCells = findall(i -> i != 0, @view C[:, b])
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
+                println("T1 edge $j")
                 if boundaryEdges[j] == 0
                     # Find cells P, Q, R, S surrounding vertices a and b
                     Q = findall(i -> i > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q

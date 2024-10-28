@@ -68,7 +68,7 @@ scatterCells = 0
 plotForces = 0
 plotEdgeMidpointLinks = 0
 setRandomSeed = 0
-sphericalRadius = 10
+surfaceRadius = 10
 
 # BLAS.set_num_threads(nBlasThreads)
 
@@ -86,7 +86,7 @@ nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cy
 seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
 Random.seed!(seed)
 
-R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, sphericalRadius)
+R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, surfaceRadius)
 
 # Initial evaluation of matrices based on system topology
 topologyChange!(matrices)

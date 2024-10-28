@@ -45,7 +45,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    sphericalRadius = 20.0,
+    surfaceRadius = 20.0,
+    surfaceReturnAmplitude = 100.0,
     solver=Tsit5(),
     nBlasThreads=1,
     subFolder="",
@@ -56,13 +57,15 @@ function vertexModel(;
     printToggle=1,
     videoToggle=1,
     setRandomSeed = 0,
+    abstol=1e-7, 
+    reltol=1e-4,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
 
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, sphericalRadius)
+    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, surfaceRadius, surfaceReturnAmplitude)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -146,10 +149,15 @@ function vertexModel(;
     return nothing
 end
 
+function loadData(subFolder; outputNumber=100)
+    data = load(datadir("sims", subFolder, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
+    return data["R"], data["matrices"], data["params"]
+end
+
 # Ensure code is precompiled
-# @compile_workload begin
-#     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
-# end
+@compile_workload begin
+    vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
+end
 
 export vertexModel
 
