@@ -160,5 +160,10 @@ end
 end
 
 export vertexModel
+export loadData
+export visualise3DInstance
+export visualiseSet
+export ParametersContainer
+export MatricesContainer
 
 end

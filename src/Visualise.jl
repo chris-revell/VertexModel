@@ -78,7 +78,7 @@ function visualise(R, t, fig, ax, mov, params, matrices)
 end
 
 
-function visualise3DInstance(R, params, matrices; labels=true)
+function visualise3DInstance(R, params, matrices; labels=false)
     @unpack cellEdgeCount,
         cellVertexOrders,
         cellEdgeOrders,
@@ -92,7 +92,7 @@ function visualise3DInstance(R, params, matrices; labels=true)
         nCells = params
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
     fig = GLMakie.Figure(size=(1000,1000))
-    ax = Axis3(fig[1,1], aspect=:data)
+    ax = LScene(fig[1,1])
 
     for i=1:nCells
         verts = Float64[]
@@ -117,7 +117,46 @@ function visualise3DInstance(R, params, matrices; labels=true)
     return fig
 end
 
+
+function visualiseSet(subFolder)
+
+    files = [f for f in readdir(datadir("sims", subFolder, "frameData")) if occursin(".jld2", f)]
+    all_R = []
+    all_matrices = []
+    all_params = []
+    for f in files
+        data = load(datadir("sims", subFolder, "frameData", f))
+        push!(all_R, data["R"])
+        push!(all_matrices, data["matrices"])
+        push!(all_params, data["params"])
+    end
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    fig = Figure(size=(1000,1000))
+    ax = Axis3(fig[1,1], aspect=:data)
+    mov = VideoStream(fig, framerate=5)
+    for t=1:length(all_R)
+        empty!(ax)
+        for i=1:all_params[t].nCells
+            verts = Float64[]
+            for k=1:length(all_matrices[t].cellVertexOrders[i])
+                append!(verts, all_R[t][all_matrices[t].cellVertexOrders[i][k]])
+                append!(verts, all_R[t][all_matrices[t].cellVertexOrders[i][k+1]])
+                append!(verts, all_matrices[t].cellPositions[i])
+            end
+            connectedVerts = connect(verts, Point{3})
+            connectedFaces = connect(1:length(connectedVerts), TriangleFace)
+            mesh!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...), shading=NoShading)
+        end   
+        reset_limits!(ax)
+        recordframe!(mov)
+    end
+    save(datadir("sims", subFolder, "$(splitpath(subFolder)[end]).mp4"), mov)
+    return nothing
+end
+
 export visualise
 export visualise3DInstance
+export visualiseSet 
 
 end
