@@ -13,7 +13,7 @@ using UnPack
 using FromFile
 using CairoMakie
 
-function plotSetup(R,params,matrices,subFolder,folderName)
+function plotSetup()
 
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")

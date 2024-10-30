@@ -17,7 +17,7 @@ using UnPack
 using JLD2
 using DrWatson
 
-function createRunDirectory(R,params,matrices,subFolder)
+function createRunDirectory(params,subFolder)
 
     @unpack initialSystem,
         realTimetMax,
@@ -39,10 +39,10 @@ function createRunDirectory(R,params,matrices,subFolder)
 
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax
-    folderName = "$(paramsName)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
+    folderName = "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
     # Create frames subdirectory to store system state at each output time
-    mkpath(datadir("sims",subFolder,folderName,"frameImages"))
-    mkpath(datadir("sims",subFolder,folderName,"frameData"))
+    mkpath(datadir("sims", subFolder, folderName, "frameImages"))
+    mkpath(datadir("sims", subFolder, folderName, "frameData"))
 
     return folderName
 

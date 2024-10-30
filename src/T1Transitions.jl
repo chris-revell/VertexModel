@@ -13,14 +13,16 @@ module T1Transitions
 using LinearAlgebra
 using UnPack
 
-function t1Transitions!(R,params,matrices)
+function t1Transitions!(integrator, params, matrices)
 
     @unpack A,
         B,
         C,
         edgeLengths,
+        edgeTangents,
         timeSinceT1,
-        boundaryEdges = matrices
+        boundaryEdges,
+        ϵ = matrices
     @unpack nEdges,
         t1Threshold,
         nonDimCycleTime = params
@@ -93,6 +95,10 @@ function t1Transitions!(R,params,matrices)
                     # Remove vertex b from edge m 
                     A[m, b] = 0
                 end
+
+                integrator.u[b] = integrator.u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                integrator.u[a] = integrator.u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break

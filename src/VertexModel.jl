@@ -72,10 +72,10 @@ function vertexModel(;
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
-        folderName = createRunDirectory(R, params, matrices, subFolder)
+        folderName = createRunDirectory(params,subFolder)
         if frameImageToggle==1 || videoToggle==1
             # Create plot object for later use 
-            fig, ax1, mov = plotSetup(R, params, matrices, subFolder, folderName)
+            fig, ax1, mov = plotSetup()
         end
     end
 
@@ -110,7 +110,7 @@ function vertexModel(;
         spatialData!(integrator.u, params, matrices)
 
         # Check system for T1 transitions 
-        if t1Transitions!(integrator.u, params, matrices) > 0
+        if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition
@@ -151,11 +151,17 @@ function vertexModel(;
     return nothing
 end
 
+function loadData(subFolder; outputNumber=100)
+    data = load(datadir("sims", subFolder, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
+    return data["R"], data["matrices"], data["params"]
+end
+
 # Ensure code is precompiled
 @compile_workload begin
     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
 end
 
 export vertexModel
+export loadData 
 
 end
