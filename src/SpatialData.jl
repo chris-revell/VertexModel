@@ -17,11 +17,12 @@ using UnPack
 using FastBroadcast
 using SparseArrays
 using GeometryBasics
+using Statistics
 
 @from "OrderAroundCell.jl" using OrderAroundCell
 # @from "AnalysisFunctions.jl" using AnalysisFunctions
 
-function spatialData!(R,params,matrices)
+function spatialData!(RH,params,matrices)
 
     @unpack A,
         B,
@@ -39,6 +40,7 @@ function spatialData!(R,params,matrices)
         cellAreas,
         cellTensions,
         cellPressures,
+        cellHeights,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
@@ -49,10 +51,15 @@ function spatialData!(R,params,matrices)
     @unpack nCells,
         nEdges,
         nVerts,
-        γ,
+        Γa,
+        ΓA,
+        ΓL,
         L₀,
         A₀ = params
 
+    R=RH[1:nVerts]
+    
+    
     cellPositions  .= C*R./cellEdgeCount
     
     edgeTangents   .= A*R
@@ -96,15 +103,18 @@ function spatialData!(R,params,matrices)
         Rα=[R[cellVertexOrders[i]][y]-matrices.cellPositions[i] for y in 1:length(cellVertexOrders[i])]
         cellShapeTensor[i]=sum(Rα.*transpose.(Rα))/Float64.(cellEdgeCount[i])
     end
-
-    
-
-
+    #@show(RH[nVerts+1])
+    if length(RH)>nVerts
+        cellHeights .= RH[nVerts+1][1]
+    else
+        cellHeights .= 1.0
+    end
+    #@show H
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= Γ .*(cellPerimeters .- L₀)
+    @.. thread = false cellTensions .= (Γa.*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights.-1.0) .+ (0.5*ΓA)).*cellHeights .+ (2*ΓL).*(cellPerimeters-L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= (cellAreas.-A₀ )
+    @.. thread = false cellPressures .= cellHeights.*(cellAreas.*cellHeights-1) .+ (2*Γa).*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights-1)
 
     return nothing
 
