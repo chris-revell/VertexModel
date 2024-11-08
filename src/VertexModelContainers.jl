@@ -23,7 +23,6 @@ mutable struct ParametersContainer
     Γa                 ::Float64            # surface area tension strength
     ΓA                 ::Float64            # face tension strength
     ΓL                 ::Float64            # line tension strength
-    H                  ::Float64            # layer height
     λ                  ::Float64            # Parameter in energy relaxation
     L₀                 ::Float64            # Cell preferred perimeter length L₀ = -λ/(2*γ)
     A₀                 ::Float64            # Cell preferred area
@@ -76,6 +75,7 @@ mutable struct MatricesContainer
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}           # Shape tensor of a cell
+    cellHeights      ::Vector{Float64}                              # Vector of scalar cell heights
 end
 
 export ParametersContainer,MatricesContainer

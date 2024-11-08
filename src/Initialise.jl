@@ -34,7 +34,7 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval = tMax / outputTotal     # Time interval for storing system data (non dimensionalised)
-    λ = -2.0 * L₀ * γ
+    λ = -2.0 * L₀ * Γa
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
 
     # Set random seed value and allocate random number generator
@@ -99,7 +99,7 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         zeros(nCells),                                        # cellPressures
         cellTimeToDivide,                                     # cellTimeToDivide
         ones(nCells),                                         # μ
-        γ.*ones(nCells),                                      # Γ
+        Γa.*ones(nCells),                                      # Γ
         zeros(nEdges),                                        # edgeLengths
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeTangents
         fill(SVector{2,Float64}(zeros(2)), nEdges),           # edgeMidpoints
@@ -113,7 +113,8 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         0.0 1.0
         -1.0 0.0
         ]),
-        fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)       # cellShapeTensor
+        fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),       # cellShapeTensor
+        zeros(nCells)                                          # cell heights
         )
 
     # Pack parameters into a struct for convenience
@@ -125,7 +126,6 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         Γa,
         ΓA,
         ΓL,
-        H,
         λ,
         L₀,
         A₀,
