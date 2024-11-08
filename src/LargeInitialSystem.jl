@@ -23,9 +23,9 @@ using Random
 
 function largeInitialSystem()
 
-    cellPoints = [SVector(x, 0.0) for x=1:9]
-    for j=1:4
-        for i=1:9-j
+    cellPoints = [SVector(x, 0.0) for x=1:15]
+    for j=1:7
+        for i=1:15-j
             # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
             push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
             push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, -j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
@@ -140,6 +140,8 @@ function largeInitialSystem()
  R = R[setdiff(1:size(R,1),verticesToRemove)]
 
     senseCheck(A, B; marker="Removing peropheral vertices")
+
+#R=R./5.0
 
     return A, B, R
 
