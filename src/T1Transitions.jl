@@ -35,16 +35,16 @@ function t1Transitions!(integrator, params, matrices)
             timeSinceT1[j] = 0
 
             # Find vertices a and b at either end of the short edge j
-            a = findall(j -> j > 0, @view A[j, :])[1]
-            b = findall(j -> j < 0, @view A[j, :])[1]
+            a = findall(x -> x > 0, @view A[j, :])[1]
+            b = findall(x -> x < 0, @view A[j, :])[1]
             # Find cells around vertices a and b
-            aCells = findall(i -> i != 0, @view C[:, a])
-            bCells = findall(i -> i != 0, @view C[:, b])
+            aCells = findall(x -> x != 0, @view C[:, a])
+            bCells = findall(x -> x != 0, @view C[:, b])
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
                 if boundaryEdges[j] == 0
                     # Find cells P, Q, R, S surrounding vertices a and b
-                    Q = findall(i -> i > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
-                    S = findall(i -> i < 0, @view B[:, j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
+                    Q = findall(x -> x > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
+                    S = findall(x -> x < 0, @view B[:, j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
                     aEdges = findall(x -> x != 0, @view A[:, a])                # Find all edges around vertex a
                     k = setdiff(aEdges, findall(x -> x != 0, @view B[Q, :]))[1]  # Find edge k around vertex a that is not shared by cell Q
                     bEdges = findall(x -> x != 0, @view A[:, b])                # Find all edges around vertex b
@@ -70,7 +70,7 @@ function t1Transitions!(integrator, params, matrices)
                 else
                     # Boundary edge 
                     # Find cells P, Q, R surrounding vertices a and b. There is no cell S.
-                    Q = findall(i -> i != 0, @view B[:, j])[1]
+                    Q = findall(x -> x != 0, @view B[:, j])[1]
                     # Assume cell P shares vertex a, which has positive orientation with respect to edge j
                     P = setdiff(aCells, [Q])[1]
                     # Assume cell R shares vertex b, which has negative orientation with respec to edge j
