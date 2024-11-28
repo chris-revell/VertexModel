@@ -40,6 +40,7 @@ function division!(integrator,params,matrices)
         cellPositions, 
         edgeMidpoints, 
         cellEdgeCount, 
+        cellPerimeters,
         cellVertexOrders, 
         cellEdgeOrders,
         cellShapeTensor, 
@@ -59,18 +60,18 @@ function division!(integrator,params,matrices)
 
             # Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95
-            evals, evecs = eigen(matrices.cellShapeTensor[i]) # eigenvalues/vectors listed smallest to largest eigval.
-            circ = abs(evals[1]/evals[2]) # circularity
-            #for very circular cells randomly choose division axis
-            if circ > 0.95 
-                theta = rand()*π
-                shortvec = [cos(theta), sin(theta)]
+            eigenVals, eigenVecs = eigen(matrices.cellShapeTensor[i]) # eigenvalues/vectors listed smallest to largest eigval.
+            
+            # circ = abs(eigenVals[1]/eigenVals[2]) # circularity
+            # #for very circular cells randomly choose division axis
+            # if circ > 0.95 
+            #     theta = rand()*π
+            #     shortvec = [cos(theta), sin(theta)]
+            # else
+            if eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                shortvec = -1.0*cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
             else
-                if evecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
-                    shortvec = -1.0.*evecs[:,1]
-                else
-                    shortvec = evecs[:,1]
-                end
+                shortvec = cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
             end
             shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
