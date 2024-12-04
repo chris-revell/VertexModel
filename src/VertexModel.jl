@@ -21,44 +21,44 @@ using GLMakie
 using Printf
 
 # Local modules
-@from "CreateRunDirectory.jl" using CreateRunDirectory
-@from "Visualise.jl" using Visualise
-@from "Initialise.jl" using Initialise
-@from "SpatialData.jl" using SpatialData
-@from "PlotSetup.jl" using PlotSetup
-@from "Model.jl" using Model
-@from "T1Transitions.jl" using T1Transitions
-@from "TopologyChange.jl" using TopologyChange
-@from "Division.jl" using Division
-@from "SenseCheck.jl" using SenseCheck
-@from "EdgeAblation.jl" using EdgeAblation
+@from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
+@from "$(srcdir("Visualise.jl"))" using Visualise
+@from "$(srcdir("Initialise.jl"))" using Initialise
+@from "$(srcdir("SpatialData.jl"))" using SpatialData
+@from "$(srcdir("PlotSetup.jl"))" using PlotSetup
+@from "$(srcdir("Model.jl"))" using Model
+@from "$(srcdir("T1Transitions.jl"))" using T1Transitions
+@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
+@from "$(srcdir("Division.jl"))" using Division
+@from "$(srcdir("SenseCheck.jl"))" using SenseCheck
+@from "$(srcdir("EdgeAblation.jl"))" using EdgeAblation
 
 function vertexModel(;
-    initialSystem="large",
-    nCycles=1,
-    realCycleTime=86400.0,
-    realTimetMax=nCycles*realCycleTime,
-    γ=0.2,
-    L₀=0.75,
-    A₀=1.0,
-    viscousTimeScale=1000.0,
-    pressureExternal=0.0,
-    peripheralTension=0.0,
-    t1Threshold=0.05,
+    initialSystem = "large",
+    nCycles = 1,
+    realCycleTime = 86400.0,
+    realTimetMax = nCycles*realCycleTime,
+    γ = 0.2,
+    L₀ = 0.75,
+    A₀ = 1.0,
+    viscousTimeScale = 1000.0,
+    pressureExternal = 0.0,
+    peripheralTension = 0.0,
+    t1Threshold = 0.01,
     surfaceRadius = 20.0,
     surfaceReturnAmplitude = 100.0,
-    solver=Tsit5(),
-    nBlasThreads=1,
-    subFolder="",
-    outputTotal=100,
-    outputToggle=1,
-    frameDataToggle=1,
-    frameImageToggle=1,
-    printToggle=1,
-    videoToggle=1,
+    solver = Tsit5(),
+    nBlasThreads = 1,
+    subFolder = "",
+    outputTotal = 100,
+    outputToggle = 1,
+    frameDataToggle = 1,
+    frameImageToggle = 1,
+    printToggle = 1,
+    videoToggle = 1,
     setRandomSeed = 0,
-    abstol=1e-7, 
-    reltol=1e-4,
+    abstol = 1e-7, 
+    reltol = 1e-4,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -79,7 +79,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!, R, (0.0, Inf), (params, matrices))
-    integrator = init(prob, solver, abstol=1e-7, reltol=1e-4, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob, solver, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
@@ -113,12 +113,20 @@ function vertexModel(;
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
+            # R = @view integrator.u[:]
+            # jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax))PostT1.jld2"); matrices, params, R)
+            # visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
+            # frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
         if division!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u, params, matrices) # Update spatial data after division 
+            # R = @view integrator.u[:]
+            # jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax))PostDivision.jld2"); matrices, params, R)
+            # visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
+            # frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
 
         # Update cell ages with (variable) timestep used in integration step
@@ -149,8 +157,8 @@ function vertexModel(;
     return nothing
 end
 
-function loadData(subFolder; outputNumber=100)
-    data = load(datadir("sims", subFolder, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
+function loadData(subFolder; outputNumber=100, outType="")
+    data = load(datadir("sims", subFolder, "frameData", "systemData$(@sprintf("%03d", outputNumber))$(outType).jld2"))
     return data["R"], data["matrices"], data["params"]
 end
 

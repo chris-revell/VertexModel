@@ -42,6 +42,7 @@ function division!(integrator,params,matrices)
         edgeMidpoints, 
         cellEdgeCount, 
         cellVertexOrders, 
+        cellPerimeters,
         cellEdgeOrders,
         cellPerpAxes, 
         boundaryEdges, 
@@ -68,23 +69,28 @@ function division!(integrator,params,matrices)
             # Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95
             eigenVals, eigenVecs = eigen(cellShapeTensor) # eigenvalues/vectors listed smallest to largest eigval.
-            circ = abs(eigenVals[1]/eigenVals[2]) # circularity
-            #for very circular cells randomly choose division axis
-            if circ > 0.95 
-                theta = rand()*π
-                shortvec = [cos(theta), sin(theta)]
-            elseif eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
-                shortvec = -1.0.*eigenVecs[:,1]
+            
+            # circ = abs(eigenVals[1]/eigenVals[2]) # circularity
+            # #for very circular cells randomly choose division axis
+            # if circ > 0.95 
+            #     theta = rand()*π
+            #     shortvec = [cos(theta), sin(theta)]
+            # else
+            if eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                shortvec = -1.0*cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
             else
-                shortvec = eigenVecs[:,1]
+                shortvec = cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
             end
-            # end
             shortAxisLine = Line(Point{2,Float64}(shortvec), Point{2,Float64}(-shortvec))
 
             # Test cell edges for an intersection
             poly = LineString(Point{2, Float64}.(rotatedSpokes)) # Start and end with the same vertex by indexing circular array from 0 to end
             intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
+
+            # if abs(intersectedIndices[2]-intersectedIndices[1]) < 2
+            #     intersectedIndices[2] = intersectedIndices[2]+1     # Ensures that division of 4-sided cell will not produce a triangle
+            # end
             
             intersectedEdges = cellEdgeOrders[i][intersectedIndices]
 
@@ -115,18 +121,18 @@ function division!(integrator,params,matrices)
             # Add new edges to these neighbour cells
             # These edges are clockwise in the new cell, so must be anticlockwise in these neighbour cells                      
             if boundaryEdges[intersectedEdges[1]] == 0
-                neighbourCell = setdiff(findall(j->j!=0, @view B[:,intersectedEdges[1]]),[i])[1]
+                neighbourCell = setdiff(findall(x->x!=0, @view B[:,intersectedEdges[1]]),[i])[1]
                 Btmp[neighbourCell,newEdges[2]] = -1
             end
             if boundaryEdges[intersectedEdges[2]] == 0
-                neighbourCell = setdiff(findall(j->j!=0, @view B[:,intersectedEdges[2]]),[i])[1]
+                neighbourCell = setdiff(findall(x->x!=0, @view B[:,intersectedEdges[2]]),[i])[1]
                 Btmp[neighbourCell,newEdges[3]] = -1
             end
 
             # Ensure orientations with respect to other cells of all edges in new cell are correct
             for edge in [newCellEdges...]
                 if boundaryEdges[edge] == 0
-                    neighbourCell = setdiff(findall(j->j!=0, @view B[:,edge]),[i])[1]
+                    neighbourCell = setdiff(findall(x->x!=0, @view B[:,edge]),[i])[1]
                     Btmp[neighbourCell,edge] = -1
                 end
             end
@@ -165,15 +171,17 @@ function division!(integrator,params,matrices)
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+2)
             
-            # integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
+            integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
             # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
             # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
-            ϵCoordinates⁻¹ = inv(ϵCoordinates)
-            newVertPos1 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[1]])...] .+ cellPositions[i]
-            newVertPos2 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[2]])...] .+ cellPositions[i]
-            integrator.u[end-1] = newVertPos1
-            integrator.u[end] = newVertPos2
+            # ϵCoordinates⁻¹ = inv(ϵCoordinates)
+            # newVertPos1 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[1]])...] .+ cellPositions[i]
+            # newVertPos1 = edgeMidpoints[intersectedEdges[1]]
+            # newVertPos2 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[2]])...] .+ cellPositions[i]
+            # newVertPos2 = edgeMidpoints[intersectedEdges[2]]
+            # integrator.u[end-1] = newVertPos1
+            # integrator.u[end] = newVertPos2
 
             matrices.A = Atmp
             matrices.B = Btmp

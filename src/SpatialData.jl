@@ -39,6 +39,7 @@ function spatialData!(R,params,matrices)
         # cellShapeTensor,
         cellϵs,
         cellAreas,
+        cellA₀s,
         cellTensions,
         cellPressures,
         cellPerpAxes,
@@ -57,6 +58,10 @@ function spatialData!(R,params,matrices)
         A₀ = params
 
     cellPositions  .= C*R./cellEdgeCount
+
+    for i=1:nCells
+        cellA₀s[i] =  A₀#*(1.0 + 0.1*norm(cellPositions[i][1:2]))
+    end
     
     edgeTangents   .= A*R
     
@@ -100,6 +105,13 @@ function spatialData!(R,params,matrices)
         j = cellEdgeOrders[i][1]
         jj = cellEdgeOrders[i][2]
         cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+        # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+        j = cellEdgeOrders[i][2]
+        jj = cellEdgeOrders[i][3]
+        cellPerpAxes[i] += (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+        # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+
+        # Note: doing this cross product with 2 pairs of edges ensures that the process still works even if the edges in one pair are parallel
     end
 
     
@@ -118,9 +130,11 @@ function spatialData!(R,params,matrices)
     
     # Calculate cell boundary tensions
     @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    # @.. thread = false cellTensions .= Γ .* L₀ .* (cellPerimeters .- L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    @.. thread = false cellPressures .= cellA₀s .* μ .* log.(cellAreas ./ cellA₀s)
+    # @.. thread = false cellPressures .= cellA₀s .* μ .* (cellAreas .- cellA₀s)
 
     return nothing
 

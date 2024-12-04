@@ -33,19 +33,24 @@ function t1Transitions!(integrator,params,matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > nonDimCycleTime / 100.0
+        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > nonDimCycleTime/10.0
+
+            # Find vertices a and b at either end of the short edge j
+            a = findall(x -> x > 0, @view A[j, :])[1]
+            b = findall(x -> x < 0, @view A[j, :])[1]
+
+            # Find cells around vertices a and b
+            aCells = findall(x -> x != 0, @view C[:, a])
+            bCells = findall(x -> x != 0, @view C[:, b])
+
+            
+
+            # if true ∉ (matrices.cellTimeToDivide[aCells∪bCells] .> params.nonDimCycleTime*0.95)
 
             timeSinceT1[j] = 0
 
-            # Find vertices a and b at either end of the short edge j
-            a = findall(j -> j > 0, @view A[j, :])[1]
-            b = findall(j -> j < 0, @view A[j, :])[1]
-
-            # Find cells around vertices a and b
-            aCells = findall(i -> i != 0, @view C[:, a])
-            bCells = findall(i -> i != 0, @view C[:, b])
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
-                println("T1 edge $j")
+                
                 if boundaryEdges[j] == 0
                     # Find cells P, Q, R, S surrounding vertices a and b
                     Q = findall(i -> i > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
@@ -72,6 +77,8 @@ function t1Transitions!(integrator,params,matrices)
                     A[m, a] = A[m, b]
                     # Remove vertex b from edge m 
                     A[m, b] = 0
+
+                    # println("T1 edge $j, cells $P, $Q, $R, $S")
                 else
                     # Boundary edge 
                     # Find cells P, Q, R surrounding vertices a and b. There is no cell S.
@@ -99,15 +106,22 @@ function t1Transitions!(integrator,params,matrices)
                     A[m, a] = A[m, b]
                     # Remove vertex b from edge m 
                     A[m, b] = 0
+                    
+                    # println("T1 edge $j, cells $P, $Q, $R")
                 end
 
-                integrator.u[b] = integrator.u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
-                integrator.u[a] = integrator.u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
+
+                a = findall(x -> x > 0, @view A[j, :])[1]
+                b = findall(x -> x < 0, @view A[j, :])[1]
+
+                integrator.u[b] = integrator.u[b] .+ 0.49.*edgeTangents[j] #.+ 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
+                integrator.u[a] = integrator.u[a] .- 0.49.*edgeTangents[j] #.- 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
 
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
             end 
+            # end
         end
     end
 
