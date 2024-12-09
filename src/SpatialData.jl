@@ -40,6 +40,7 @@ function spatialData!(R,params,matrices)
         cellϵs,
         cellAreas,
         cellA₀s,
+        cellL₀s,
         cellTensions,
         cellPressures,
         cellPerpAxes,
@@ -60,7 +61,8 @@ function spatialData!(R,params,matrices)
     cellPositions  .= C*R./cellEdgeCount
 
     for i=1:nCells
-        cellA₀s[i] =  A₀#*(1.0 + 0.1*norm(cellPositions[i][1:2]))
+        cellA₀s[i] =  A₀ #*(1.0 + 0.1*norm(cellPositions[i][1:2]))
+        cellL₀s[i] =  L₀*(1.0 + 0.2*params.surfaceRadius*asin(norm(cellPositions[i][1:2])/params.surfaceRadius))
     end
     
     edgeTangents   .= A*R
@@ -129,7 +131,7 @@ function spatialData!(R,params,matrices)
 
     
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    @.. thread = false cellTensions .= Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
     # @.. thread = false cellTensions .= Γ .* L₀ .* (cellPerimeters .- L₀)
 
     # Calculate cell internal pressures

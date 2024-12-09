@@ -61,6 +61,7 @@ end
     # cellOrientedAreas::Vector{SMatrix{3, 3, Float64}}               # Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area
     cellAreas        ::Vector{Float64}                              # Vector of scalar cell areas
     cellA₀s          ::Vector{Float64}                              # Vector of scalar cell preferred areas
+    cellL₀s          ::Vector{Float64}                              # Vector of scalar cell preferred perimeters
     cellTensions     ::Vector{Float64}                              # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
     cellPerpAxes     ::Vector{SVector{3, Float64}}                  # Vector of vectors perpendicular to each cell face

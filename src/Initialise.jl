@@ -86,6 +86,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),       # cellOrientedAreas
         cellAreas           = zeros(nCells),                                        # cellAreas
         cellA₀s             = A₀.*ones(nCells),                                     # cellA₀s
+        cellL₀s             = L₀.*ones(nCells),                                     # cellL₀s
         cellTensions        = zeros(nCells),                                        # cellTensions
         cellPressures       = zeros(nCells),                                        # cellPressures
         cellPerpAxes        = fill(SVector{3,Float64}(zeros(3)), nCells),           # cellPerpAxes
