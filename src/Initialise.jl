@@ -48,32 +48,55 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         # Create matrices for one, three, or seven cells geometrically
         A, B, R = initialHexagons(initialSystem)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+        cellHeights=ones(nCells)
     elseif initialSystem == "large"
         A, B, R = largeInitialSystem()
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+        cellHeights=ones(nCells)
     elseif initialSystem=="cells_100"
         A,B,R = cellInitialSystem()
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+        cellHeights=ones(nCells)
     elseif initialSystem=="random"
         A,B,R = randomInitialSystem()
         cellAges = rand(size(B,1)).*nonDimCycleTime  # Random initial cell ages
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+        cellHeights=ones(nCells)
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
-        @unpack A,B = importedData["matrices"]
+        @unpack A,B, cellHeights= importedData["matrices"]
+        #@unpack A,B= importedData["matrices"]
         cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+        #cellHeights=ones(nCells)
     end
 
-    cellTimeToDivide = ones(size(B, 1)).*nonDimCycleTime  # Random initial cell ages
+    #cellTimeToDivide = ones(size(B, 1)).*nonDimCycleTime  # Random initial cell ages
 
+    cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
 
-    nCells = size(B, 1)
-    nEdges = size(A, 1)
-    nVerts = size(A, 2)
-    H=1.0
+    # nCells = size(B, 1)
+    # nEdges = size(A, 1)
+    # nVerts = size(A, 2)
+    # cellHeights=ones(nCells)
+    #H=1.0
 
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
@@ -114,7 +137,7 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         -1.0 0.0
         ]),
         fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),       # cellShapeTensor
-        zeros(nCells)                                          # cell heights
+        cellHeights                                          # cell heights
         )
 
     # Pack parameters into a struct for convenience

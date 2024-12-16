@@ -33,7 +33,7 @@ function division!(integrator,params,matrices)
         nVerts,
         nonDimCycleTime,
         distLogNormal,
-        γ, t1Threshold = params
+        t1Threshold = params
     @unpack A, 
         B, 
         cellTimeToDivide, 
@@ -163,10 +163,17 @@ function division!(integrator,params,matrices)
             end
 
             # Add new vertex positions
+
+
+            H=integrator.u[end]
+          
             resize!(integrator,length(integrator.u)+2)
             #integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            integrator.u[end-1:end] .= intersect_pts[intersectedIndex]
+            integrator.u[end-2:end-1] .= intersect_pts[intersectedIndex] #rearange so H still last equation
+         
             #integrator.u[end-1:end] .= [cellPositions[i].+(t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
+            #integrator.u[end-2:end-1] .= [cellPositions[i].+(2*t1Threshold).*(intersect_pts[intersectedIndex][1]-cellPositions[i]),cellPositions[i].+(t1Threshold).*(intersect_pts[intersectedIndex][2]-cellPositions[i])]
+            integrator.u[end] = H
 
             #Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             # if (edgeMidpoints[intersectedEdges[1]].-cellPositions[i])[2]>=0
@@ -184,8 +191,8 @@ function division!(integrator,params,matrices)
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             
-            push!(matrices.μ, 1.0)
-            push!(matrices.Γ, params.γ)
+            #push!(matrices.μ, 1.0)
+            #push!(matrices.Γ, params.γ)
 
             divisionCount = 1
             

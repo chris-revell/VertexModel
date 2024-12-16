@@ -43,6 +43,10 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.cellAreas, nCellsNew)
     resize!(matrices.cellTensions, nCellsNew)
     resize!(matrices.cellPressures, nCellsNew)
+
+    resize!(matrices.cellHeights, nCellsNew)
+    resize!(matrices.cellShapeTensor, nCellsNew)
+
     resize!(matrices.edgeLengths, nEdgesNew)
     resize!(matrices.edgeTangents, nEdgesNew)
     resize!(matrices.edgeMidpoints, nEdgesNew)

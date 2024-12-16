@@ -106,8 +106,6 @@ function spatialData!(RH,params,matrices)
     #@show(RH[nVerts+1])
     if length(RH)>nVerts
         cellHeights .= RH[nVerts+1][1]
-    else
-        cellHeights .= 1.0
     end
     #@show H
     # Calculate cell boundary tensions

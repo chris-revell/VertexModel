@@ -14,7 +14,6 @@ using DrWatson
 using FromFile
 using DifferentialEquations
 using DiffEqCallbacks
-using BoundaryValueDiffEq
 using DelimitedFiles
 using LinearAlgebra
 using JLD2
@@ -23,7 +22,7 @@ using StaticArrays
 using CairoMakie
 using Printf
 using CSV
-using NonlinearSolve
+using Statistics
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -55,13 +54,13 @@ function conditionSteadyState(u, t, integrator)
     # norm.() calculates magnitudes of all gradients as Floats; 
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
-    #@show maximum(norm.(get_du(integrator)))
-    (maximum(norm.(get_du(integrator))) < 1e-6) & (integrator.p[1].nCells>=1)   ? true : false
+    @show maximum(norm.(get_du(integrator)))
+    (maximum(norm.(get_du(integrator))) < 1e-5) & (integrator.p[1].nCells>=1)   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
 function conditionMaxCells(u, t, integrator)
-    (integrator.p[1].nCells>=1)   ? true : false
+    (integrator.p[1].nCells>=500)   ? true : false
 end
 
 function affectTerminate!(integrator)
@@ -110,9 +109,9 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,    
-    #solver= Vern7(lazy=false),
+    solver= Vern7(lazy=false),
     #solver= DP8(),
-    solver= Tsit5(),
+    #solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -146,18 +145,20 @@ function vertexModel(;
         end
     end
     R=R.*(1.0) #needed to allow me to pusH to R
-    H=SVector(0.5,0.0)
+
+    #H=SVector(2.0,0.0)
+    H=SVector(mean(matrices.cellHeights),0.0)
 
     RH=push!(R,H)    
 
-    @show(RH)
+    #@show(RH)
     
     prob=ODEProblem(model!,RH,(0.0,Inf),(params,matrices))
     #bvp1=BVProblem(model!,bc1!,R,(0.0,Inf),(params,matrices) )
 
     #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=CallbackSet(cb, cb2)) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
-    integrator = init(prob,solver,abstol=1e-8, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob,solver,abstol=1e-9, reltol=1e-9, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
     #integrator = init(bvp1,Shooting(solver),abstol=1e-10, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
     # Iterate until integrator time reaches max system time 
@@ -184,6 +185,7 @@ function vertexModel(;
                 @show params.nCells
                 @show mean(matrices.cellAreas)
                 @show mean(matrices.cellHeights)
+                @show maximum(norm.(get_du(integrator)))
                 #@show integrator.u[end]
 
 
@@ -198,15 +200,15 @@ function vertexModel(;
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
-        #=
+        
         #Check system for T1 transitions 
-        if t1Transitions!(integrator.u[1:params.nVerts], params, matrices) > 0
+        if t1Transitions!(integrator.u, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
         end
-       
+ 
         if params.nCells < 1
             if division!(integrator,params,matrices)>0
                 u_modified!(integrator,true)
@@ -217,7 +219,7 @@ function vertexModel(;
         end
         #@show params.nCells
 
-        =#
+        
        
         
         # Update cell ages with (variable) timestep used in integration step
