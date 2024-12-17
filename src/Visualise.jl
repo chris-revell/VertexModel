@@ -19,6 +19,7 @@ using GeometryBasics
 using Random
 using Makie
 using GLMakie
+using CairoMakie
 using StaticArrays
 using SparseArrays
 using CircularArrays
@@ -91,6 +92,7 @@ function visualise3DInstance(R, params, matrices; labels=false)
         nVerts,
         nCells = params
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    GLMakie.activate!()
     fig = GLMakie.Figure(size=(1000,1000))
     ax = LScene(fig[1,1])
 
@@ -105,7 +107,7 @@ function visualise3DInstance(R, params, matrices; labels=false)
         connectedFaces = connect(1:length(connectedVerts), TriangleFace)
         mesh!(ax, connectedVerts, connectedFaces, color=RGB(rand(Xoshiro(i),3)...), shading=NoShading)
     end    
-    if labels
+    if labels 
         text!(ax, Point{3,Float64}.([p.+[0.0,0.0,0.1] for p in matrices.cellPositions]), text = string.(collect(1:nCells)), color=:red)
         scatter!(ax, Point{3,Float64}.([p.+[0.0,0.0,0.1] for p in matrices.cellPositions]), color=:red)
         text!(ax, Point{3,Float64}.([p.+[0.0,0.0,0.1] for p in matrices.edgeMidpoints]), text = string.(collect(1:nEdges)), color=:green)

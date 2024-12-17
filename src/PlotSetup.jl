@@ -11,10 +11,12 @@ module PlotSetup
 # Julia packages
 using UnPack
 using FromFile
-using GLMakie
+# using GLMakie
+using CairoMakie    
 
 function plotSetup() #R,params,matrices,subFolder,folderName)
 
+    CairoMakie.activate!()
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
     fig = Figure(size=(1000,1000))

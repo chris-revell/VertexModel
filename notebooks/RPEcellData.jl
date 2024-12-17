@@ -129,9 +129,9 @@ using StatsBase
 @from "$(srcdir("VertexModel.jl"))" using VertexModel
 @from "$(srcdir("RotationMatrix.jl"))" using RotationMatrix
 
-folderName = "24-12-06-09-26-14_L₀=0.75_nCells=61_realTimetMax=346000.0_γ=0.2"
+folderName = "24-12-13-21-57-06_L₀=0.75_nCells=61_realTimetMax=346000.0_γ=0.2"
 
-R, matrices, params = loadData(folderName, outputNumber=94)
+R, matrices, params = loadData(folderName, outputNumber=100)
 
 CairoMakie.activate!()
 

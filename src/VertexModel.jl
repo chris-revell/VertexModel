@@ -18,6 +18,7 @@ using JLD2
 using SparseArrays
 using StaticArrays
 using GLMakie
+using CairoMakie
 using Printf
 
 # Local modules
