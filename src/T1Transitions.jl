@@ -22,6 +22,7 @@ function t1Transitions!(integrator,params,matrices)
         B,
         C,
         edgeLengths,
+        edgeTangents,
         timeSinceT1,
         boundaryEdges,
         edgeTangents,
@@ -53,8 +54,8 @@ function t1Transitions!(integrator,params,matrices)
                 
                 if boundaryEdges[j] == 0
                     # Find cells P, Q, R, S surrounding vertices a and b
-                    Q = findall(i -> i > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
-                    S = findall(i -> i < 0, @view B[:, j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
+                    Q = findall(x -> x > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
+                    S = findall(x -> x < 0, @view B[:, j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                
                     aEdges = findall(x -> x != 0, @view A[:, a])                # Find all edges around vertex a
                     k = setdiff(aEdges, findall(x -> x != 0, @view B[Q, :]))[1]  # Find edge k around vertex a that is not shared by cell Q
                     bEdges = findall(x -> x != 0, @view A[:, b])                # Find all edges around vertex b
@@ -82,7 +83,7 @@ function t1Transitions!(integrator,params,matrices)
                 else
                     # Boundary edge 
                     # Find cells P, Q, R surrounding vertices a and b. There is no cell S.
-                    Q = findall(i -> i != 0, @view B[:, j])[1]
+                    Q = findall(x -> x != 0, @view B[:, j])[1]
                     # Assume cell P shares vertex a, which has positive orientation with respect to edge j
                     P = setdiff(aCells, [Q])[1]
                     # Assume cell R shares vertex b, which has negative orientation with respec to edge j
@@ -110,9 +111,8 @@ function t1Transitions!(integrator,params,matrices)
                     # println("T1 edge $j, cells $P, $Q, $R")
                 end
 
-
-                a = findall(x -> x > 0, @view A[j, :])[1]
-                b = findall(x -> x < 0, @view A[j, :])[1]
+                # a = findall(x -> x > 0, @view A[j, :])[1]
+                # b = findall(x -> x < 0, @view A[j, :])[1]
 
                 integrator.u[b] = integrator.u[b] .+ 0.49.*edgeTangents[j] #.+ 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
                 integrator.u[a] = integrator.u[a] .- 0.49.*edgeTangents[j] #.- 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]

@@ -22,13 +22,13 @@ using Dates
 using CircularArrays
 
 # Local modules
-@from "InitialHexagons.jl" using InitialHexagons
-@from "largeInitialSystem.jl" using LargeInitialSystem
+# @from "InitialHexagons.jl" using InitialHexagons
+@from "initialSystemLayout.jl" using InitialSystemLayout
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, surfaceRadius, surfaceReturnAmplitude)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, surfaceRadius, surfaceReturnAmplitude; nRows=9)
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -42,13 +42,16 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
     Random.seed!(seed)
 
-    # Initialise system matrices from function or file
-    if initialSystem in ["one", "three", "seven", "seven_original"]
-        # Create matrices for one, three, or seven cells geometrically
-        A, B, R = initialHexagons(initialSystem)
-        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-    elseif initialSystem == "large"
-        A, B, R = largeInitialSystem(2*L₀/6)
+    # # Initialise system matrices from function or file
+    # if initialSystem in ["one", "three", "seven", "seven_original"]
+    #     # Create matrices for one, three, or seven cells geometrically
+    #     A, B, R = initialHexagons(initialSystem)
+    #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    # elseif initialSystem == "large"
+    #     A, B, R = initialSystemLayout()
+    #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    if initialSystem == "new"
+        A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=2*L₀/6)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run

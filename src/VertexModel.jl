@@ -35,28 +35,35 @@ using Printf
 @from "$(srcdir("EdgeAblation.jl"))" using EdgeAblation
 
 function vertexModel(;
-    initialSystem = "large",
-    nCycles = 1,
-    realCycleTime = 86400.0,
-    realTimetMax = nCycles*realCycleTime,
-    γ = 0.2,
-    L₀ = 0.75,
-    A₀ = 1.0,
-    viscousTimeScale = 1000.0,
-    pressureExternal = 0.0,
-    peripheralTension = 0.0,
+    initialSystem="new",
+    nRows=9,
+    nCycles=1,
+    realCycleTime=86400.0,
+    realTimetMax=nCycles*realCycleTime,
+    γ=0.2,
+    L₀=0.75,
+    A₀=1.0,
+    viscousTimeScale=1000.0,
+    pressureExternal=0.0,
+    peripheralTension=0.0,
     t1Threshold = 0.01,
     surfaceRadius = 20.0,
     surfaceReturnAmplitude = 100.0,
-    solver = Tsit5(),
-    nBlasThreads = 1,
-    subFolder = "",
-    outputTotal = 100,
-    outputToggle = 1,
-    frameDataToggle = 1,
-    frameImageToggle = 1,
-    printToggle = 1,
-    videoToggle = 1,
+    solver=Tsit5(),
+    nBlasThreads=1,
+    subFolder="",
+    outputTotal=100,
+    outputToggle=1,
+    frameDataToggle=1,
+    frameImageToggle=1,
+    printToggle=1,
+    videoToggle=1,
+    plotCells = 1,
+    scatterEdges = 0,
+    scatterVertices = 0,
+    scatterCells = 0,
+    plotForces = 0,
+    plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
@@ -64,14 +71,16 @@ function vertexModel(;
 
     BLAS.set_num_threads(nBlasThreads)
 
+    isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
+
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, surfaceRadius, surfaceReturnAmplitude)
+    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, surfaceRadius, surfaceReturnAmplitude; nRows=nRows)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
         # Create fun directory, save parameters, and store directory name for later use.
-        folderName = createRunDirectory(R, params, matrices, subFolder)
+        folderName = createRunDirectory(params,subFolder)
         if frameImageToggle==1 || videoToggle==1
             # Create plot object for later use 
             fig, ax, mov = plotSetup() #R, params, matrices, subFolder, folderName)

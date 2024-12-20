@@ -14,7 +14,7 @@ using FromFile
 # using GLMakie
 using CairoMakie    
 
-function plotSetup() #R,params,matrices,subFolder,folderName)
+function plotSetup()
 
     CairoMakie.activate!()
     # Create plot canvas

@@ -41,6 +41,7 @@ function division!(integrator,params,matrices)
         cellPositions, 
         edgeMidpoints, 
         cellEdgeCount, 
+        cellPerimeters,
         cellVertexOrders, 
         cellPerimeters,
         cellEdgeOrders,
