@@ -34,7 +34,8 @@ using Printf
 @from "EdgeAblation.jl" using EdgeAblation
 
 function vertexModel(;
-    initialSystem="large",
+    initialSystem="new",
+    nRows=9,
     nCycles=1,
     realCycleTime=86400.0,
     realTimetMax=nCycles*realCycleTime,
@@ -65,9 +66,11 @@ function vertexModel(;
 
     BLAS.set_num_threads(nBlasThreads)
 
+    isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
+
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
+    R, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1

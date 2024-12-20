@@ -5,7 +5,9 @@
 #  Created by Christopher Revell on 06/09/2023.
 #
 #
-# Function to create an initial system of 1 or 3 hexagonal cells.
+# Function to create a hexagonal grid of cells. 
+# Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
+# Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
 module LargeInitialSystem
 
@@ -21,9 +23,9 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function largeInitialSystem()
-    
-    nRows = 9 # Must be an odd number
+function largeInitialSystem(nRows)
+
+    # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
     for j = 1:(floor(Int64,nRows/2))
         for i = 1:nRows-j
