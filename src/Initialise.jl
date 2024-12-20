@@ -23,7 +23,7 @@ using CircularArrays
 
 # Local modules
 # @from "InitialHexagons.jl" using InitialHexagons
-@from "largeInitialSystem.jl" using LargeInitialSystem
+@from "initialSystemLayout.jl" using InitialSystemLayout
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
@@ -48,10 +48,10 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     #     A, B, R = initialHexagons(initialSystem)
     #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     # elseif initialSystem == "large"
-    #     A, B, R = largeInitialSystem()
+    #     A, B, R = initialSystemLayout()
     #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     if initialSystem == "new"
-        A, B, R = largeInitialSystem(nRows)
+        A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run

@@ -1,5 +1,5 @@
 #
-#  LargeInitialSystem.jl
+#  InitialSystemLayout.jl
 #  VertexModel
 #
 #  Created by Christopher Revell on 06/09/2023.
@@ -9,7 +9,7 @@
 # Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
 # Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
-module LargeInitialSystem
+module InitialSystemLayout
 
 # Julia packages
 using LinearAlgebra
@@ -23,7 +23,7 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function largeInitialSystem(nRows)
+function initialSystemLayout(nRows)
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -125,6 +125,6 @@ function largeInitialSystem(nRows)
 
 end
 
-export largeInitialSystem 
+export initialSystemLayout 
 
 end
