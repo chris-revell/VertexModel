@@ -23,7 +23,7 @@ using CircularArrays
 
 # Local modules
 # @from "InitialHexagons.jl" using InitialHexagons
-@from "initialSystemLayout.jl" using InitialSystemLayout
+@from "InitialSystemLayout.jl" using InitialSystemLayout
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData

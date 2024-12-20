@@ -23,7 +23,7 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function largeInitialSystem(;nRows=0, initialEdgeLength=1.0)
+function initialSystemLayout(;nRows=0, initialEdgeLength=1.0)
     
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
     for j = 1:(floor(Int64,nRows/2))
