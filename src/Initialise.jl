@@ -89,13 +89,14 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellL₀s             = L₀.*ones(nCells),                                     # cellL₀s
         cellTensions        = zeros(nCells),                                        # cellTensions
         cellPressures       = zeros(nCells),                                        # cellPressures
-        cellPerpAxes        = fill(SVector{3,Float64}(zeros(3)), nCells),           # cellPerpAxes
+        # cellPerpAxes        = fill(SVector{3,Float64}(zeros(3)), nCells),           # cellPerpAxes
         cellTimeToDivide    = cellTimeToDivide,                                     # cellTimeToDivide
         μ                   = ones(nCells),                                         # μ
         Γ                   = γ.*ones(nCells),                                      # Γ
         edgeLengths         = zeros(nEdges),                                        # edgeLengths
         edgeTangents        = fill(SVector{3,Float64}(zeros(3)), nEdges),           # edgeTangents
         edgeMidpoints       = fill(SVector{3,Float64}(zeros(3)), nEdges),           # edgeMidpoints
+        edgeϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nEdges),           # edgeϵs
         edgeMidpointLinks   = spzeros(SVector{3,Float64}, nCells, nVerts),          # edgeMidpointLinks
         timeSinceT1         = zeros(nEdges),                                        # timeSinceT1
         vertexAreas         = ones(nVerts),                                         # vertexAreas

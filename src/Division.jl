@@ -44,7 +44,7 @@ function division!(integrator,params,matrices)
         cellVertexOrders, 
         cellPerimeters,
         cellEdgeOrders,
-        cellPerpAxes, 
+        # cellPerpAxes, 
         boundaryEdges, 
         edgeTangents,
         μ, 
@@ -61,8 +61,9 @@ function division!(integrator,params,matrices)
 
             spokes = [integrator.u[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
             
-            crossVec = matrices.cellPerpAxes[i]×[1,0,0]
-            ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
+            cellPerpAxis = normalize(params.surfaceCentre.-matrices.cellPositions[i])
+            crossVec = cellPerpAxis×[1,0,0]
+            ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(cellPerpAxis))))
             rotatedSpokes = [(ϵCoordinates*s)[2:end] for s in spokes]
             cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i]
             
@@ -88,9 +89,9 @@ function division!(integrator,params,matrices)
             intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
 
-            # if abs(intersectedIndices[2]-intersectedIndices[1]) < 2
-            #     intersectedIndices[2] = intersectedIndices[2]+1     # Ensures that division of 4-sided cell will not produce a triangle
-            # end
+            if abs(intersectedIndices[2]-intersectedIndices[1]) < 2
+                intersectedIndices[2] = intersectedIndices[2]+1     # Ensures that division of 4-sided cell will not produce a triangle
+            end
             
             intersectedEdges = cellEdgeOrders[i][intersectedIndices]
 

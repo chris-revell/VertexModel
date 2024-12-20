@@ -27,7 +27,7 @@ cellEdgeCount,
 cellPerimeters,
 cellVertexOrders, 
 cellEdgeOrders,
-cellPerpAxes, 
+# cellPerpAxes, 
 boundaryEdges, 
 edgeTangents,
 μ, 
@@ -44,8 +44,10 @@ ax = Axis(fig[1,1], aspect=DataAspect())
 for i=1:nCells
     spokes = [R[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
     
-    crossVec = matrices.cellPerpAxes[i]×[1,0,0]
-    ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i]))))
+    # crossVec = matrices.cellPerpAxes[i]×[1,0,0]
+    cellPerpAxis = matrices.cellPositions[i].-params.surfaceCentre
+    crossVec = cellPerpAxis×[1,0,0]
+    ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(cellPerpAxis))))
     rotatedSpokes = [(ϵCoordinates*s)[2:end] for s in spokes]
     cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i]
     

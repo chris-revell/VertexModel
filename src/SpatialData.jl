@@ -17,6 +17,7 @@ using UnPack
 using FastBroadcast
 using SparseArrays
 using GeometryBasics
+using StaticArrays
 
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "RotationMatrix.jl" using RotationMatrix
@@ -43,7 +44,7 @@ function spatialData!(R,params,matrices)
         cellL₀s,
         cellTensions,
         cellPressures,
-        cellPerpAxes,
+        # cellPerpAxes,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
@@ -64,7 +65,7 @@ function spatialData!(R,params,matrices)
 
     for i=1:nCells
         cellA₀s[i] =  A₀ #*(1.0 + 0.1*norm(cellPositions[i][1:2]))
-        cellL₀s[i] =  L₀*(1.0 + 10.0*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
+        cellL₀s[i] =  L₀ #*(1.0 + 10.0*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
     end
     
     edgeTangents   .= A*R
@@ -101,26 +102,30 @@ function spatialData!(R,params,matrices)
 
     cellPerimeters .= B̄ * edgeLengths
 
+    # for i=1:nCells 
+    #     cellPerpAxes[i] = cellPositions[i].-params.surfaceCentre
+    # end
+
     # Clockwise ordering of edges and vertices around cell face used in B 
     # means that the cross product of adjacent edge tangents defines a perpendicular 
     # vector into the cell face, with edge ordering then following the right hand rule 
     # around this perpendicular vector. 
-    for i=1:nCells 
-        j = cellEdgeOrders[i][1]
-        jj = cellEdgeOrders[i][2]
-        cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
-        # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
-        j = cellEdgeOrders[i][2]
-        jj = cellEdgeOrders[i][3]
-        cellPerpAxes[i] += (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
-        # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+    # for i=1:nCells 
+    #     j = cellEdgeOrders[i][1]
+    #     jj = cellEdgeOrders[i][2]
+    #     cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+    #     j = cellEdgeOrders[i][2]
+    #     jj = cellEdgeOrders[i][3]
+    #     cellPerpAxes[i] += (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
 
-        # Note: doing this cross product with 2 pairs of edges ensures that the process still works even if the edges in one pair are parallel
-    end
+    #     # Note: doing this cross product with 2 pairs of edges ensures that the process still works even if the edges in one pair are parallel
+    # end
 
     
     # Find cell areas
-    crossVec = zeros(3)
+    # crossVec = zeros(3)
     for i = 1:nCells
         # crossVec .= matrices.cellPerpAxes[i]×[1,0,0]
         # cellϵs[i] = SMatrix{3,3,Float64}(ϵ(v=crossVec, θ=-asin(norm(crossVec)/(norm(matrices.cellPerpAxes[i])))))
@@ -128,9 +133,14 @@ function spatialData!(R,params,matrices)
         # rotatedPoints = [Point{2,Float64}((cellϵs[i]*pt)[2:end]) for pt in R[cellVertexOrders[i]]]
         # cellAreas[i] = abs(area(rotatedPoints))
         cellAreas[i] = abs(area(Point{3,Float64}.(R[cellVertexOrders[i]])))
-        cellϵs[i] = SMatrix{3,3,Float64}(ϵ(v=cellPerpAxes[i]))
+        # cellϵs[i] = SMatrix{3,3,Float64}(ϵ(v=cellPerpAxes[i]))
     end
 
+    perpAxis = zeros(3)
+    for j = 1:nEdges
+        perpAxis .= params.surfaceCentre.-edgeMidpoints[j]
+        matrices.edgeϵs[j] = SMatrix{3,3,Float64}(ϵ(v=perpAxis))
+    end
     
     # Calculate cell boundary tensions
     @.. thread = false cellTensions .= Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
