@@ -129,7 +129,7 @@ using StatsBase
 @from "$(srcdir("VertexModel.jl"))" using VertexModel
 @from "$(srcdir("RotationMatrix.jl"))" using RotationMatrix
 
-folderName = "24-12-13-21-57-06_L₀=0.75_nCells=61_realTimetMax=346000.0_γ=0.2"
+folderName = "24-12-21-08-19-55_L₀=0.75_nCells=91_realTimetMax=173000.0_γ=0.2"
 
 R, matrices, params = loadData(folderName, outputNumber=100)
 

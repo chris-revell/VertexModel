@@ -16,6 +16,7 @@ using DelimitedFiles
 using UnPack
 using JLD2
 using DrWatson
+using LibGit2
 
 function createRunDirectory(params,subFolder)
 
@@ -37,9 +38,11 @@ function createRunDirectory(params,subFolder)
         tMax,
         nonDimCycleTime = params
 
+    prepo = LibGit2.GitRepo(projectdir())
+    branchname = LibGit2.shortname(LibGit2.head(prepo))
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax
-    folderName = "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
+    folderName = "$(branchname)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
     # Create frames subdirectory to store system state at each output time
     mkpath(datadir("sims", subFolder, folderName, "frameImages"))
     mkpath(datadir("sims", subFolder, folderName, "frameData"))

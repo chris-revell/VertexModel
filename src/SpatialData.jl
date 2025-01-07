@@ -65,7 +65,7 @@ function spatialData!(R,params,matrices)
 
     for i=1:nCells
         cellA₀s[i] =  A₀ #*(1.0 + 0.1*norm(cellPositions[i][1:2]))
-        cellL₀s[i] =  L₀ #*(1.0 + 10.0*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
+        cellL₀s[i] =  L₀*(1.0 + 0.3*params.surfaceRadius*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
     end
     
     edgeTangents   .= A*R
