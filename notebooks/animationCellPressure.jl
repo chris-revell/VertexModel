@@ -21,7 +21,7 @@ MCCs = Vector{Int64}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 5:length(files)
-    @show t
+    # @show t
     @unpack R, matrices, params = load(files[t]; 
         typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
         "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
@@ -29,7 +29,10 @@ for t = 5:length(files)
     push!(cellPressureVectors, matrices.cellPressures)
     notExcludedCells = fill(true, params.nCells)
     for j in findall(x -> x != 0, matrices.boundaryEdges)
-        notExcludedCells[findnz(matrices.B[:, j])[1][1]] = false
+        notExcludedCells[findall(x->x!=0, matrices.B[:, j])[1]] = false
+    end
+    for i in findall(x -> x != 0, matrices.MCCsList)
+        notExcludedCells[i] = false
     end
     push!(notExcludedCellVectors, notExcludedCells)
     cellPolygons = makeCellPolygonsOld(R, params, matrices)
@@ -42,37 +45,34 @@ ax = Axis(fig[1, 1][1, 1], aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
 mov = VideoStream(fig, framerate=5)
-# globalPressuresMin = minimum([minimum(cellPressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellPressureVectors)])
-globalPressuresMin = minimum([minimum(cellPressureVectors[t]) for t = 1:length(cellPressureVectors)])
-# globalPressuresMax = maximum([maximum(cellPressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellPressureVectors)])
-globalPressuresMax = maximum([maximum(cellPressureVectors[t]) for t = 1:length(cellPressureVectors)])
-# globalLimit = max(abs(globalPeffMin), abs(globalPeffMax))
-# pLims = (-globalLimit, globalLimit)
-pLims = (globalPressuresMin, globalPressuresMax)
-Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=pLims, flipaxis=true)
+globalPressuresMin = minimum([minimum(cellPressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellPressureVectors)])
+# globalPressuresMin = minimum([minimum(cellPressureVectors[t]) for t = 1:length(cellPressureVectors)])
+globalPressuresMax = maximum([maximum(cellPressureVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellPressureVectors)])
+# globalPressuresMax = maximum([maximum(cellPressureVectors[t]) for t = 1:length(cellPressureVectors)])
+lims = (globalPressuresMin, globalPressuresMax)
+
+Colorbar(fig[1, 1][1, 2], colormap=Reverse(:batlow), limits=lims, flipaxis=true)
 
 for t = 1:length(cellPressureVectors)
     empty!(ax)
     for i = 1:length(cellPressureVectors[t])
-        if MCCs[t][i] == 0
+        if notExcludedCellVectors[t][i]
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellPressureVectors[t][i],
-                colormap=:batlow,
-                colorrange=pLims,
+                colormap=Reverse(:batlow),
+                colorrange=lims,
                 strokecolor=(:black,0.5),
                 strokewidth=1,
             )
         end
     end
     for i = 1:length(cellPressureVectors[t])
-        if MCCs[t][i] != 0
+        if !notExcludedCellVectors[t][i]
             poly!(ax,
                 cellPolygonVectors[t][i],
-                color=cellPressureVectors[t][i],
-                colormap=:batlow,
-                colorrange=pLims,
-                strokecolor=(:black,1.0),
+                color=(:black,0.5),
+                strokecolor=(:black,(MCCs[t][i] != 0 ? 1.0 : 0.0)),
                 strokewidth=3,
             )
         end
