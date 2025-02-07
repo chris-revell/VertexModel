@@ -48,7 +48,7 @@ mov = VideoStream(fig, framerate=5)
 globalTensionMin = minimum([minimum(cellTensionVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellTensionVectors)])
 globalTensionMax = maximum([maximum(cellTensionVectors[t][notExcludedCellVectors[t]]) for t = 1:length(cellTensionVectors)])
 lims = (globalTensionMin, globalTensionMax)
-Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=lims, flipaxis=true)
+Colorbar(fig[1, 1][1, 2], colormap=cgrad(:batlow, rev = true), limits=lims, flipaxis=true)
 
 for t = 1:length(cellTensionVectors)
     empty!(ax)
@@ -57,7 +57,7 @@ for t = 1:length(cellTensionVectors)
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=cellTensionVectors[t][i],
-                colormap=:batlow,
+                colormap=cgrad(:batlow, rev = true),
                 colorrange=lims,
                 strokecolor=(:black,0.5),
                 strokewidth=1,

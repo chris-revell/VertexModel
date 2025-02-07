@@ -20,6 +20,7 @@ tensionVectors = Vector{Float64}[]
 notExcludedEdgeVectors = Vector{Bool}[]
 cellPolygonVectors = Vector{Vector{Point{2,Float64}}}[]
 edgeTrapeziumVectors = Vector{Vector{Point{2,Float64}}}[]
+MCCs = Vector{Int64}[]
 files = [datadir("sims", folderName, "frameData", f) for f in readdir(datadir("sims", folderName, "frameData")) if occursin(".jld2",f)]
 for t = 5:length(files)
     @show t
@@ -40,6 +41,7 @@ for t = 5:length(files)
     push!(cellPolygonVectors, cellPolygons)
     edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
     push!(edgeTrapeziumVectors, edgeTrapezia)
+    push!(MCCs, matrices.MCCsList)
 end
 
 fig = CairoMakie.Figure(size=(1000, 1000))
