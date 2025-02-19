@@ -101,14 +101,14 @@ function vertexModel(;
             if frameDataToggle == 1
                 # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
                 R = @view integrator.u[:]
-                jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
+                jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
                 visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
             end
             # Save still image of this time step 
-            frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
+            frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
 
         # Step integrator forwards in time to update vertex positions 
@@ -138,7 +138,6 @@ function vertexModel(;
             # visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
             # frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
-
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
@@ -152,15 +151,15 @@ function vertexModel(;
         # Save final data file regardless of whether other timepoint data files are saved
         # In order to label vertex locations as "R" in data output, create a view of (reference to) integrator.u named R 
         R = @view integrator.u[:]
-        jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
+        jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2"); matrices, params, R)
         if frameImageToggle == 1 || videoToggle == 1
             # Render visualisation of system and add frame to movie
             visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
         end
         # Save still image of this time step 
-        frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
+        frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         # Save movie of simulation if videoToggle==1
-        videoToggle == 1 ? save(datadir("sims", subFolder, folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
+        videoToggle == 1 ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
     end
 
     # return matrices, integrator
