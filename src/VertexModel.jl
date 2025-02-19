@@ -155,8 +155,8 @@ function vertexModel(;
     return nothing
 end
 
-function loadData(subFolder; outputNumber=100)
-    data = load(datadir("sims", subFolder, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
+function loadData(relativePath; outputNumber=100)
+    data = load(projectdir(relativePath, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
     return data["R"], data["matrices"], data["params"]
 end
 
