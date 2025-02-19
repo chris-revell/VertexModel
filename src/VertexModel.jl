@@ -89,7 +89,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!, R, (0.0, Inf), (params, matrices))
-    integrator = init(prob, solver, tstops=collect(0.0:params.outputInterval:params.tMax), abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob, solver, tstops=collect(0.0:params.outputInterval:params.tMax), abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
