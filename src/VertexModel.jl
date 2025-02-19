@@ -62,6 +62,8 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
+    abstol = 1e-7, 
+    reltol = 1e-4,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -84,7 +86,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!, R, (0.0, Inf), (params, matrices))
-    integrator = init(prob, solver, tstops=collect(0.0:params.outputInterval:params.tMax), abstol=1e-7, reltol=1e-4, save_on=false, save_start=false, save_end=true) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    integrator = init(prob, solver, tstops=collect(0.0:params.outputInterval:params.tMax), abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
 
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
