@@ -13,7 +13,7 @@ using Colors
 @from "$(projectdir())/src/VertexModelContainers.jl" using VertexModelContainers
 @from "$(projectdir())/src/AnalysisFunctions.jl" using AnalysisFunctions
 
-# folderName = "MCCComparison/pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-21-29-00"
+folderName = "pressureExternal=0.5_stiffnessFactor=10.0_γ=0.2_24-06-24-16-05-11"
 
 effectivePressureVectors = Vector{Float64}[]
 notExcludedCellVectors = Vector{Bool}[]
@@ -52,7 +52,7 @@ globalPeffMax = maximum([maximum(effectivePressureVectors[t][notExcludedCellVect
 
 lims = (globalPeffMin, globalPeffMax)
 
-Colorbar(fig[1, 1][1, 2], colormap=Reverse(:batlow), limits=lims, flipaxis=true)
+Colorbar(fig[1, 1][1, 2], colormap=:batlow, limits=lims, flipaxis=true)
 
 for t = 1:length(effectivePressureVectors)
     empty!(ax)
@@ -61,7 +61,7 @@ for t = 1:length(effectivePressureVectors)
             poly!(ax,
                 cellPolygonVectors[t][i],
                 color=effectivePressureVectors[t][i],
-                colormap=Reverse(:batlow),
+                colormap=:batlow,
                 colorrange=lims,
                 strokecolor=(:black,0.5),
                 strokewidth=1,
