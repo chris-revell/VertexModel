@@ -129,9 +129,9 @@ using StatsBase
 @from "$(srcdir("VertexModel.jl"))" using VertexModel
 @from "$(srcdir("RotationMatrix.jl"))" using RotationMatrix
 
-folderName = "24-12-21-08-19-55_L₀=0.75_nCells=91_realTimetMax=173000.0_γ=0.2"
+folderName = "curved-surface/25-04-01-17-27-43_L₀=0.75_nCells=271_realTimetMax=173000.0_γ=0.2"
 
-R, matrices, params = loadData(folderName, outputNumber=100)
+R, matrices, params = loadData(datadir("sims",folderName), outputNumber=99)
 
 CairoMakie.activate!()
 
@@ -143,6 +143,18 @@ binsEdges = collect(range(minimum(cellRadii), maximum(cellRadii), nBins+1))
 binCentres = (binsEdges[1:end-1].+binsEdges[2:end])./2.0
 
 fig = CairoMakie.Figure(size=(1000,1000))
+
+ax0 = Axis(fig[0,1])
+for i=2:length(binsEdges)
+    indices = findall(x->x>=binsEdges[i-1] && x<binsEdges[i], cellRadii)
+    push!(cellAreaMeans, mean(matrices.cellAreas[indices]))
+    push!(cellAreaErrors, sem(matrices.cellAreas[indices]))
+end
+scatter!(ax0, cellRadii, matrices.cellL₀s, color=(:blue, 0.1))
+# lines!(ax1, binCentres, cellAreaMeans, color=(:black, 1.0))
+# errorbars!(ax1, binCentres, cellAreaMeans, cellAreaErrors, color=(:black, 1.0))
+ax0.xlabel = "Cell radius from system centre"
+ax0.ylabel = "Cell L₀s"
 
 ax1 = Axis(fig[1,1])
 cellAreaMeans = Float64[]
