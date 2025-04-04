@@ -32,7 +32,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
-    outputInterval = tMax / outputTotal     # Time interval for storing system data (non dimensionalised)
+    outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
     λ = -2.0 * L₀ * γ
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
 
