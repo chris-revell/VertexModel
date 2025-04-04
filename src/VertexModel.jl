@@ -125,19 +125,12 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(integrator.u, params, matrices) # Update spatial data after T1 transition  
             # R = @view integrator.u[:]
-            # jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax))PostT1.jld2"); matrices, params, R)
-            # visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
-            # frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
         if division!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
             topologyChange!(matrices) # Update system matrices after division 
             spatialData!(integrator.u, params, matrices) # Update spatial data after division 
-            # R = @view integrator.u[:]
-            # jldsave(datadir("sims", subFolder, folderName, "frameData", "systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax))PostDivision.jld2"); matrices, params, R)
-            # visualise(integrator.u, integrator.t, fig, ax, mov, params, matrices)
-            # frameImageToggle == 1 ? save(datadir("sims", subFolder, folderName, "frameImages", "frameImage$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).png"), fig) : nothing
         end
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
