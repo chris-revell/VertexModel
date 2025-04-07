@@ -61,12 +61,12 @@ function spatialData!(R,params,matrices)
 
     cellPositions  .= C*R./cellEdgeCount
 
-    # println("\n \n \n")
-
-    for i=1:nCells
-        cellA₀s[i] =  A₀ #*(1.0 + 0.1*norm(cellPositions[i][1:2]))
-        cellL₀s[i] =  L₀*(1.0 + 0.3*params.surfaceRadius*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
-    end
+    # for i=1:nCells
+    #     cellA₀s[i] =  A₀ #*(1.0 + 0.1*norm(cellPositions[i][1:2]))
+    #     cellL₀s[i] =  L₀ #*(1.0 + 0.3*params.surfaceRadius*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
+    #     # Γ[i] = γ#/(1.0 + 0.001*params.surfaceRadius*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
+    #     # μ[i] = 1.0#/(1.0 + 0.001*params.surfaceRadius*acos(((cellPositions[i]-params.surfaceCentre)[3]/norm(cellPositions[i]-params.surfaceCentre))))
+    # end
     
     edgeTangents   .= A*R
     
@@ -139,7 +139,8 @@ function spatialData!(R,params,matrices)
     perpAxis = zeros(3)
     for j = 1:nEdges
         perpAxis .= params.surfaceCentre.-edgeMidpoints[j]
-        matrices.edgeϵs[j] = SMatrix{3,3,Float64}(ϵ(v=perpAxis))
+        # matrices.edgeϵs[j] = SMatrix{3,3,Float64}(ϵ(v=perpAxis))
+        ϵ!(matrices.edgeϵs[j], v=perpAxis)
     end
     
     # Calculate cell boundary tensions
