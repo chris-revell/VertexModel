@@ -44,7 +44,11 @@ function model!(du, u, p, t)
         pressureExternal,
         peripheralTension = params
 
-    spatialData!(u, params, matrices)
+    # Reinterpret state vector as a vector of SVectors 
+    R = reinterpret(SVector{2,Float64}, u)
+    dR = reinterpret(SVector{2,Float64}, du)
+
+    spatialData!(R, params, matrices)
 
     fill!(F, @SVector zeros(2))
     dropzeros!(F)
@@ -66,9 +70,10 @@ function model!(du, u, p, t)
             externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
 
-        du[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
+        dR[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
     end
     
+    # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
     return du
 end
 

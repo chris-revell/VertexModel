@@ -12,6 +12,7 @@ module T1Transitions
 # Julia packages
 using LinearAlgebra
 using UnPack
+using StaticArrays
 
 function t1Transitions!(integrator, params, matrices)
 
@@ -26,6 +27,9 @@ function t1Transitions!(integrator, params, matrices)
     @unpack nEdges,
         t1Threshold,
         nonDimCycleTime = params
+
+    # Reinterpret state vector as a vector of SVectors 
+    R_u = reinterpret(SVector{2,Float64}, integrator.u)
 
     transitionCount = 0
 
@@ -96,8 +100,8 @@ function t1Transitions!(integrator, params, matrices)
                     A[m, b] = 0
                 end
 
-                integrator.u[b] = integrator.u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
-                integrator.u[a] = integrator.u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+                R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.

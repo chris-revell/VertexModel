@@ -129,7 +129,14 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     topologyChange!(matrices)
     spatialData!(R, params, matrices)
 
-    return R, params, matrices
+    # Convert vector of SVectors to flat vector of Float64
+    u0 = Float64[]
+    for r in R
+        push!(u0, r[1])
+        push!(u0, r[2])
+    end
+
+    return u0, params, matrices
 
 end
 

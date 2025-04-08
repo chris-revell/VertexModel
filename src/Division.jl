@@ -50,6 +50,9 @@ function division!(integrator,params,matrices)
         μ, 
         Γ = matrices
 
+    # Reinterpret state vector as a vector of SVectors 
+    R = reinterpret(SVector{2,Float64}, integrator.u)
+
     divisionCount = 0
 
     newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
@@ -76,7 +79,7 @@ function division!(integrator,params,matrices)
             shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
             # Test cell edges for an intersection
-            poly = LineString(Point{2, Float64}.(integrator.u[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+            poly = LineString(Point{2, Float64}.(R[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
             intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
             
@@ -157,14 +160,18 @@ function division!(integrator,params,matrices)
             end
 
             # Add new vertex positions
-            resize!(integrator,length(integrator.u)+2)
+            resize!(integrator,length(integrator.u)+4)
             
             # integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
             # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
             # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
             # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
-            integrator.u[end-1:end] .= last.([intersections[intersectedIndices[1]], intersections[intersectedIndices[2]]])
-
+            # integrator.u[end-1:end] .= last.([intersections[intersectedIndices[1]], intersections[intersectedIndices[2]]])
+            integrator.u[end-3] = intersections[intersectedIndices[1]][2][1]
+            integrator.u[end-2] = intersections[intersectedIndices[1]][2][2]
+            integrator.u[end-1] = intersections[intersectedIndices[2]][2][1]
+            integrator.u[end]   = intersections[intersectedIndices[2]][2][2]
+            
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
