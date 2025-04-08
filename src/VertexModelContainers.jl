@@ -15,7 +15,7 @@ using Random
 using Distributions
 using CircularArrays
 
-mutable struct ParametersContainer
+@kwdef mutable struct ParametersContainer
     initialSystem      ::String             # System used for initialising simulations
     nCells             ::Int64              # Number of cells
     nEdges             ::Int64              # Number of edges
@@ -38,7 +38,7 @@ mutable struct ParametersContainer
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end
 
-mutable struct MatricesContainer
+@kwdef mutable struct MatricesContainer
     A                ::SparseMatrixCSC{Int64, Int64}                # Incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
     B                ::SparseMatrixCSC{Int64, Int64}                # Incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
     Aᵀ               ::SparseMatrixCSC{Int64, Int64}                # Transpose of incidence matrix A
