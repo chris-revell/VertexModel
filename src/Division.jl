@@ -51,6 +51,9 @@ function division!(integrator,params,matrices)
         μ, 
         Γ = matrices
 
+    # Reinterpret state vector as a vector of SVectors 
+    R = reinterpret(SVector{3,Float64}, integrator.u)
+
     divisionCount = 0
 
     newRs = SVector{3,Float64}[] # Positions of new vertices created by division
@@ -60,7 +63,7 @@ function division!(integrator,params,matrices)
 
             # println("Division cell $i")
 
-            spokes = [integrator.u[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
+            spokes = [R[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
             
             cellPerpAxis = normalize(params.surfaceCentre.-matrices.cellPositions[i])
             crossVec = cellPerpAxis×[1,0,0]
@@ -171,20 +174,17 @@ function division!(integrator,params,matrices)
             end
 
             # Add new vertex positions
-            resize!(integrator,length(integrator.u)+2)
+            resize!(integrator,length(integrator.u)+4)
             
-            integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
-            # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
-            # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
-            # ϵCoordinates⁻¹ = inv(ϵCoordinates)
-            # newVertPos1 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[1]])...] .+ cellPositions[i]
-            # newVertPos1 = edgeMidpoints[intersectedEdges[1]]
-            # newVertPos2 = ϵCoordinates⁻¹*[0.0, last(intersections[intersectedIndices[2]])...] .+ cellPositions[i]
-            # newVertPos2 = edgeMidpoints[intersectedEdges[2]]
-            # integrator.u[end-1] = newVertPos1
-            # integrator.u[end] = newVertPos2
-
+            integrator.u[end-3] = edgeMidpoints[intersectedIndices[1]][1]
+            integrator.u[end-2] = edgeMidpoints[intersectedIndices[1]][2]
+            integrator.u[end-1] = edgeMidpoints[intersectedIndices[2]][1]
+            integrator.u[end]   = edgeMidpoints[intersectedIndices[2]][2]
+            # integrator.u[end-3] = intersections[intersectedIndices[1]][2][1]
+            # integrator.u[end-2] = intersections[intersectedIndices[1]][2][2]
+            # integrator.u[end-1] = intersections[intersectedIndices[2]][2][1]
+            # integrator.u[end]   = intersections[intersectedIndices[2]][2][2]
+            
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)

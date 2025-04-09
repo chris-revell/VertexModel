@@ -72,6 +72,7 @@ function visualise(R, t, fig, ax, mov, params, matrices)
     # Set limits
     reset_limits!(ax)
 
+    # Add frame to movie 
     recordframe!(mov)
 
     return nothing

@@ -63,7 +63,6 @@ end
     cellL₀s          ::Vector{Float64}                              # Vector of scalar cell preferred perimeters
     cellTensions     ::Vector{Float64}                              # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
-    # cellPerpAxes     ::Vector{SVector{3, Float64}}                  # Vector of vectors perpendicular to each cell face
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
     cellϵs           ::Vector{SMatrix{3, 3, Float64}}               # Vector of matrices required to rotate dimensions such that each cell is 2D
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
@@ -78,7 +77,6 @@ end
     F                ::SparseMatrixCSC{SVector{3, Float64}, Int64}  # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
     externalF        ::Vector{SVector{3, Float64}}                  # Vector of 2D static vectors containing total force applied to each vertex by external pressure
     totalF           ::Vector{SVector{3, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
-    # cellShapeTensor  ::Vector{SMatrix{3, 3, Float64}}               # Shape tensor of a cell
 end
 
 export ParametersContainer, MatricesContainer

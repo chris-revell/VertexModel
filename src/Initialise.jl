@@ -42,14 +42,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
     Random.seed!(seed)
 
-    # # Initialise system matrices from function or file
-    # if initialSystem in ["one", "three", "seven", "seven_original"]
-    #     # Create matrices for one, three, or seven cells geometrically
-    #     A, B, R = initialHexagons(initialSystem)
-    #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-    # elseif initialSystem == "large"
-    #     A, B, R = initialSystemLayout()
-    #     cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    # Initialise system matrices from function or file
     if initialSystem == "new"
         A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=2*L₀/6)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
@@ -71,42 +64,39 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     matrices = MatricesContainer(
         A                   = A,
         B                   = B,
-        Aᵀ                  = spzeros(Int64, nVerts, nEdges),                       # Aᵀ
-        Ā                   = spzeros(Int64, nEdges, nVerts),                       # Ā
-        Āᵀ                  = spzeros(Int64, nVerts, nEdges),                       # Āᵀ
-        Bᵀ                  = spzeros(Int64, nEdges, nCells),                       # Bᵀ
-        B̄                   = spzeros(Int64, nCells, nEdges),                       # B̄
-        B̄ᵀ                  = spzeros(Int64, nEdges, nCells),                       # B̄ᵀ
-        C                   = spzeros(Int64, nCells, nVerts),                       # C
-        cellEdgeCount       = zeros(Int64, nCells),                                 # cellEdgeCount
-        cellVertexOrders    = fill(CircularVector(Int64[]), nCells),                # cellVertexOrders
-        cellEdgeOrders      = fill(CircularVector(Int64[]), nCells),                # cellEdgeOrders
-        boundaryVertices    = zeros(Int64, nVerts),                                 # boundaryVertices
-        boundaryEdges       = zeros(Int64, nEdges),                                 # boundaryEdges
-        cellPositions       = fill(SVector{3,Float64}(zeros(3)), nCells),           # cellPositions
-        cellPerimeters      = zeros(nCells),                                        # cellPerimeters
-        # cellOrientedAreas   = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),     # cellOrientedAreas
-        cellϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),       # cellOrientedAreas
-        cellAreas           = zeros(nCells),                                        # cellAreas
-        cellA₀s             = A₀.*ones(nCells),                                     # cellA₀s
-        cellL₀s             = L₀.*ones(nCells),                                     # cellL₀s
-        cellTensions        = zeros(nCells),                                        # cellTensions
-        cellPressures       = zeros(nCells),                                        # cellPressures
-        # cellPerpAxes        = fill(SVector{3,Float64}(zeros(3)), nCells),           # cellPerpAxes
-        cellTimeToDivide    = cellTimeToDivide,                                     # cellTimeToDivide
-        μ                   = ones(nCells),                                         # μ
-        Γ                   = γ.*ones(nCells),                                      # Γ
-        edgeLengths         = zeros(nEdges),                                        # edgeLengths
-        edgeTangents        = fill(SVector{3,Float64}(zeros(3)), nEdges),           # edgeTangents
-        edgeMidpoints       = fill(SVector{3,Float64}(zeros(3)), nEdges),           # edgeMidpoints
-        edgeϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nEdges),           # edgeϵs
-        edgeMidpointLinks   = spzeros(SVector{3,Float64}, nCells, nVerts),          # edgeMidpointLinks
-        timeSinceT1         = zeros(nEdges),                                        # timeSinceT1
-        vertexAreas         = ones(nVerts),                                         # vertexAreas
-        F                   = spzeros(SVector{3,Float64}, nVerts, nCells),          # F
-        externalF           = fill(SVector{3,Float64}(zeros(3)), nVerts),           # externalF
-        totalF              = fill(SVector{3,Float64}(zeros(3)), nVerts),           # totalF
-        # cellShapeTensor     = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),       # cellShapeTensor
+        Aᵀ                  = spzeros(Int64, nVerts, nEdges),
+        Ā                   = spzeros(Int64, nEdges, nVerts),
+        Āᵀ                  = spzeros(Int64, nVerts, nEdges),
+        Bᵀ                  = spzeros(Int64, nEdges, nCells),
+        B̄                   = spzeros(Int64, nCells, nEdges),
+        B̄ᵀ                  = spzeros(Int64, nEdges, nCells),
+        C                   = spzeros(Int64, nCells, nVerts),
+        cellEdgeCount       = zeros(Int64, nCells),
+        cellVertexOrders    = fill(CircularVector(Int64[]), nCells),
+        cellEdgeOrders      = fill(CircularVector(Int64[]), nCells),
+        boundaryVertices    = zeros(Int64, nVerts),
+        boundaryEdges       = zeros(Int64, nEdges),
+        cellPositions       = fill(SVector{3,Float64}(zeros(3)), nCells),
+        cellPerimeters      = zeros(nCells),
+        cellϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),
+        cellAreas           = zeros(nCells),
+        cellA₀s             = A₀.*ones(nCells),
+        cellL₀s             = L₀.*ones(nCells),
+        cellTensions        = zeros(nCells),
+        cellPressures       = zeros(nCells),
+        cellTimeToDivide    = cellTimeToDivide,
+        μ                   = ones(nCells),
+        Γ                   = γ.*ones(nCells),
+        edgeLengths         = zeros(nEdges),
+        edgeTangents        = fill(SVector{3,Float64}(zeros(3)), nEdges),
+        edgeMidpoints       = fill(SVector{3,Float64}(zeros(3)), nEdges),
+        edgeϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nEdges),
+        edgeMidpointLinks   = spzeros(SVector{3,Float64}, nCells, nVerts),
+        timeSinceT1         = zeros(nEdges),
+        vertexAreas         = ones(nVerts),
+        F                   = spzeros(SVector{3,Float64}, nVerts, nCells),
+        externalF           = fill(SVector{3,Float64}(zeros(3)), nVerts),
+        totalF              = fill(SVector{3,Float64}(zeros(3)), nVerts),
     )
 
     # Pack parameters into a struct for convenience
@@ -140,7 +130,14 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     topologyChange!(matrices)
     spatialData!(R, params, matrices)
 
-    return R, params, matrices
+    # Convert vector of SVectors to flat vector of Float64
+    u0 = Float64[]
+    for r in R
+        push!(u0, r[1])
+        push!(u0, r[2])
+    end
+
+    return u0, params, matrices
 
 end
 

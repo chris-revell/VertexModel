@@ -13,6 +13,7 @@ module T1Transitions
 using LinearAlgebra
 using UnPack
 using FromFile
+using StaticArrays
 
 @from "RotationMatrix.jl" using RotationMatrix
 
@@ -30,6 +31,9 @@ function t1Transitions!(integrator,params,matrices)
     @unpack nEdges,
         t1Threshold,
         nonDimCycleTime = params
+
+    # Reinterpret state vector as a vector of SVectors 
+    R_u = reinterpret(SVector{2,Float64}, integrator.u)
 
     transitionCount = 0
 
@@ -111,11 +115,8 @@ function t1Transitions!(integrator,params,matrices)
                     # println("T1 edge $j, cells $P, $Q, $R")
                 end
 
-                # a = findall(x -> x > 0, @view A[j, :])[1]
-                # b = findall(x -> x < 0, @view A[j, :])[1]
-
-                integrator.u[b] = integrator.u[b] .+ 0.49.*edgeTangents[j] #.+ 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
-                integrator.u[a] = integrator.u[a] .- 0.49.*edgeTangents[j] #.- 0.5.*ϵ(v=edgeMidpoints[j])*edgeTangents[j]
+                R_u[b] = R_u[b] .+ 0.49.*edgeTangents[j] #0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                R_u[a] = R_u[a] .- 0.49.*edgeTangents[j] #0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.

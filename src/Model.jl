@@ -50,7 +50,11 @@ function model!(du, u, p, t)
         surfaceRadius,
         surfaceReturnAmplitude = params
 
-    spatialData!(u, params, matrices)
+    # Reinterpret state vector as a vector of SVectors 
+    R = reinterpret(SVector{3,Float64}, u)
+    dR = reinterpret(SVector{3,Float64}, du)
+
+    spatialData!(R, params, matrices)
 
     fill!(F, @SVector zeros(3))
     dropzeros!(F)
@@ -75,12 +79,10 @@ function model!(du, u, p, t)
             # externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
         externalF[k] -= surfaceReturnAmplitude.*(norm(u[k] .- surfaceCentre)-surfaceRadius).*normalize(u[k].-surfaceCentre)
-        # externalF[k] -= 100.0.*(norm(u[k] .- surfaceCentre)-surfaceRadius)^2.0.*normalize(u[k].-surfaceCentre)
-        # externalF[k] -= 100.0.*u[k]⋅[0.0,0.0,1.0].*[0.0,0.0,1.0]
-        tmpF = sum(@view F[k, :])
-        du[k] = (tmpF .+ externalF[k]) ./ vertexAreas[k]
+        dR[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
     end
     
+    # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
     return du
 end
 
