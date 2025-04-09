@@ -12,7 +12,7 @@ module VertexModel
 using PrecompileTools
 using DrWatson
 using FromFile
-using OrdinaryDiffEq
+using StochasticDiffEq
 using LinearAlgebra
 using JLD2
 using SparseArrays
@@ -46,7 +46,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    solver=Tsit5(),
+    β = 0.01,
+    solver=SRIW1(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -71,7 +72,7 @@ function vertexModel(;
     isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows)
+    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, β, setRandomSeed; nRows=nRows)
 
     # Create fun directory, save parameters, and store directory name for later use.
     if outputToggle == 1
@@ -83,7 +84,7 @@ function vertexModel(;
     end
 
     # Set up ODE integrator 
-    prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
+    prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax)
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]

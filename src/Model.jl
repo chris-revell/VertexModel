@@ -17,6 +17,7 @@ using SparseArrays
 using .Threads
 using FromFile 
 using DrWatson
+using Distributions
 
 # Local modules
 @from "SpatialData.jl" using SpatialData
@@ -77,6 +78,12 @@ function model!(du, u, p, t)
     return du
 end
 
+function g!(du, u, p, t)
+    params, matrices = p
+    du .= params.β
+end
+
 export model!
+export g!
 
 end

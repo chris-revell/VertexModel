@@ -34,6 +34,7 @@ using CircularArrays
     nonDimCycleTime    ::Float64            # Non dimensionalised cell cycle time
     t1Threshold        ::Float64            # Length of edge below which a T1 transition occurs
     peripheralTension  ::Float64            # Tension at system periphery
+    β                  ::Float64            # Amplitude of stochasticity
     seed               ::Int64              # Random number seed 
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
 end

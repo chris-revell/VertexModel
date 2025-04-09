@@ -17,7 +17,7 @@ using DrWatson
 using FromFile
 using FromFile
 using Random
-using OrdinaryDiffEq
+using StochasticDiffEq
 
 @from "SenseCheck.jl" using SenseCheck
 @from "ResizeMatrices.jl" using ResizeMatrices
