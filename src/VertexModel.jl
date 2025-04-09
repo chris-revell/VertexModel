@@ -73,7 +73,7 @@ function vertexModel(;
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows)
 
-    # Create fun directory, save parameters, and store directory name for later use.
+    # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
         folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
@@ -84,7 +84,7 @@ function vertexModel(;
 
     # Set up ODE integrator 
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
-    alltStops = collect(0.0:params.outputInterval:params.tMax)
+    alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]
 
@@ -98,8 +98,9 @@ function vertexModel(;
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]
             # Update progress on command line 
-            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing
+            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
             if frameDataToggle == 1
+                # Save system data to file 
                 jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
             end
             if frameImageToggle == 1 || videoToggle == 1
@@ -138,10 +139,10 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
-    # return matrices, integrator
     return integrator
 end
 
+# Function to load previously saved simulation data 
 function loadData(relativePath; outputNumber=100)
     data = load(projectdir(relativePath, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
     return data["R"], data["matrices"], data["params"]

@@ -93,6 +93,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     # Set limits
     reset_limits!(ax)
 
+    # Add frame to movie 
     recordframe!(mov)
 
     return nothing
