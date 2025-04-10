@@ -22,7 +22,6 @@ using Dates
 using CircularArrays
 
 # Local modules
-# @from "InitialHexagons.jl" using InitialHexagons
 @from "initialSystemLayout.jl" using InitialSystemLayout
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange

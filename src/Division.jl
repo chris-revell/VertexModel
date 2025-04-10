@@ -55,8 +55,6 @@ function division!(integrator,params,matrices)
 
     divisionCount = 0
 
-    newRs = Array{SVector{2,Float64}}(undef,0) # Positions of new vertices created by division
-
     for i=1:nCells
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
@@ -161,16 +159,9 @@ function division!(integrator,params,matrices)
 
             # Add new vertex positions
             resize!(integrator,length(integrator.u)+4)
-            
-            # integrator.u[end-1:end] .= [edgeMidpoints[intersectedEdges[1]],edgeMidpoints[intersectedEdges[2]]]
-            # Make new edge along short axis, slightly above T1 threshold, to mimic force due to cytokinesis
-            # newEdgeVec = 1.2*t1Threshold.*normalize(Vec(last(intersections[intersectedIndices[1]]).-last(intersections[intersectedIndices[2]])))
-            # integrator.u[end-1:end] .= [cellPositions[i].+0.5.*newEdgeVec, cellPositions[i].-0.5.*newEdgeVec]            
-            # integrator.u[end-1:end] .= last.([intersections[intersectedIndices[1]], intersections[intersectedIndices[2]]])
-            integrator.u[end-3] = intersections[intersectedIndices[1]][2][1]
-            integrator.u[end-2] = intersections[intersectedIndices[1]][2][2]
-            integrator.u[end-1] = intersections[intersectedIndices[2]][2][1]
-            integrator.u[end]   = intersections[intersectedIndices[2]][2][2]
+                        
+            integrator.u[end-3:end-2] .= intersections[intersectedIndices[1]][2]
+            integrator.u[end-1:end] .= intersections[intersectedIndices[2]][2]
             
             matrices.A = Atmp
             matrices.B = Btmp
