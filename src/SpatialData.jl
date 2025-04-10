@@ -36,15 +36,12 @@ function spatialData!(R,params,matrices)
         cellEdgeOrders,
         cellPositions,
         cellPerimeters,
-        # cellOrientedAreas,
-        # cellShapeTensor,
         cellϵs,
         cellAreas,
         cellA₀s,
         cellL₀s,
         cellTensions,
         cellPressures,
-        # cellPerpAxes,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
@@ -101,28 +98,6 @@ function spatialData!(R,params,matrices)
     end
 
     cellPerimeters .= B̄ * edgeLengths
-
-    # for i=1:nCells 
-    #     cellPerpAxes[i] = cellPositions[i].-params.surfaceCentre
-    # end
-
-    # Clockwise ordering of edges and vertices around cell face used in B 
-    # means that the cross product of adjacent edge tangents defines a perpendicular 
-    # vector into the cell face, with edge ordering then following the right hand rule 
-    # around this perpendicular vector. 
-    # for i=1:nCells 
-    #     j = cellEdgeOrders[i][1]
-    #     jj = cellEdgeOrders[i][2]
-    #     cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
-    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
-    #     j = cellEdgeOrders[i][2]
-    #     jj = cellEdgeOrders[i][3]
-    #     cellPerpAxes[i] += (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
-    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
-
-    #     # Note: doing this cross product with 2 pairs of edges ensures that the process still works even if the edges in one pair are parallel
-    # end
-
     
     # Find cell areas
     # crossVec = zeros(3)
@@ -139,8 +114,8 @@ function spatialData!(R,params,matrices)
     perpAxis = zeros(3)
     for j = 1:nEdges
         perpAxis .= params.surfaceCentre.-edgeMidpoints[j]
-        # matrices.edgeϵs[j] = SMatrix{3,3,Float64}(ϵ(v=perpAxis))
-        ϵ!(matrices.edgeϵs[j], v=perpAxis)
+        matrices.edgeϵs[j] = MMatrix{3,3,Float64}(ϵ(v=perpAxis))
+        # ϵ!(matrices.edgeϵs[j], v=perpAxis)
     end
     
     # Calculate cell boundary tensions
@@ -168,3 +143,24 @@ end
 #     end
 #     cellAreas[i] = cellOrientedAreas[i][1,2]
 # end
+
+    # for i=1:nCells 
+    #     cellPerpAxes[i] = cellPositions[i].-params.surfaceCentre
+    # end
+
+    # Clockwise ordering of edges and vertices around cell face used in B 
+    # means that the cross product of adjacent edge tangents defines a perpendicular 
+    # vector into the cell face, with edge ordering then following the right hand rule 
+    # around this perpendicular vector. 
+    # for i=1:nCells 
+    #     j = cellEdgeOrders[i][1]
+    #     jj = cellEdgeOrders[i][2]
+    #     cellPerpAxes[i] = (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+    #     j = cellEdgeOrders[i][2]
+    #     jj = cellEdgeOrders[i][3]
+    #     cellPerpAxes[i] += (B[i,j].*edgeTangents[j])×(B[i,jj].*edgeTangents[jj]) # Don't need to normalize() this vector now because that is done later in the calculation of the rotation matrix
+    #     # cellPerpAxes[i]⋅cellPositions[i] < 0 ? error("Flipped cell") : nothing
+
+    #     # Note: doing this cross product with 2 pairs of edges ensures that the process still works even if the edges in one pair are parallel
+    # end

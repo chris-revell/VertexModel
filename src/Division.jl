@@ -45,7 +45,6 @@ function division!(integrator,params,matrices)
         cellVertexOrders, 
         cellPerimeters,
         cellEdgeOrders,
-        # cellPerpAxes, 
         boundaryEdges, 
         edgeTangents,
         μ, 
@@ -56,19 +55,15 @@ function division!(integrator,params,matrices)
 
     divisionCount = 0
 
-    newRs = SVector{3,Float64}[] # Positions of new vertices created by division
-
     for i=1:nCells
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
-
-            # println("Division cell $i")
 
             spokes = [R[kk].-matrices.cellPositions[i] for kk in matrices.cellVertexOrders[i][0:end]]
             
             cellPerpAxis = normalize(params.surfaceCentre.-matrices.cellPositions[i])
             crossVec = cellPerpAxis×[1,0,0]
             ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(cellPerpAxis))))
-            rotatedSpokes = [(ϵCoordinates*s)[2:end] for s in spokes]
+            rotatedSpokes = [(ϵCoordinates*s) for s in spokes]
             cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i]
             
             # Long and short axis from eigenvectors of shapetensor
@@ -174,17 +169,11 @@ function division!(integrator,params,matrices)
             end
 
             # Add new vertex positions
-            resize!(integrator,length(integrator.u)+4)
+            resize!(integrator,length(integrator.u)+6)
             
-            integrator.u[end-3] = edgeMidpoints[intersectedIndices[1]][1]
-            integrator.u[end-2] = edgeMidpoints[intersectedIndices[1]][2]
-            integrator.u[end-1] = edgeMidpoints[intersectedIndices[2]][1]
-            integrator.u[end]   = edgeMidpoints[intersectedIndices[2]][2]
-            # integrator.u[end-3] = intersections[intersectedIndices[1]][2][1]
-            # integrator.u[end-2] = intersections[intersectedIndices[1]][2][2]
-            # integrator.u[end-1] = intersections[intersectedIndices[2]][2][1]
-            # integrator.u[end]   = intersections[intersectedIndices[2]][2][2]
-            
+            integrator.u[end-5:end-3] .= edgeMidpoints[intersectedEdges[1]]
+            integrator.u[end-2:end] .= edgeMidpoints[intersectedEdges[2]]
+
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)

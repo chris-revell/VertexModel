@@ -133,8 +133,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # Convert vector of SVectors to flat vector of Float64
     u0 = Float64[]
     for r in R
-        push!(u0, r[1])
-        push!(u0, r[2])
+        append!(u0, r)
     end
 
     return u0, params, matrices

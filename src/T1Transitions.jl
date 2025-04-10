@@ -33,7 +33,7 @@ function t1Transitions!(integrator,params,matrices)
         nonDimCycleTime = params
 
     # Reinterpret state vector as a vector of SVectors 
-    R_u = reinterpret(SVector{2,Float64}, integrator.u)
+    R_u = reinterpret(SVector{3,Float64}, integrator.u)
 
     transitionCount = 0
 
@@ -46,11 +46,7 @@ function t1Transitions!(integrator,params,matrices)
 
             # Find cells around vertices a and b
             aCells = findall(x -> x != 0, @view C[:, a])
-            bCells = findall(x -> x != 0, @view C[:, b])
-
-            
-
-            # if true ∉ (matrices.cellTimeToDivide[aCells∪bCells] .> params.nonDimCycleTime*0.95)
+            bCells = findall(x -> x != 0, @view C[:, b])  
 
             timeSinceT1[j] = 0
 
@@ -82,7 +78,6 @@ function t1Transitions!(integrator,params,matrices)
                     A[m, a] = A[m, b]
                     # Remove vertex b from edge m 
                     A[m, b] = 0
-
                     # println("T1 edge $j, cells $P, $Q, $R, $S")
                 else
                     # Boundary edge 
@@ -97,7 +92,6 @@ function t1Transitions!(integrator,params,matrices)
                     k = setdiff(aEdges, findall(x -> x != 0, @view B[Q, :]))[1]              # Find edge k around vertex a that is not shared by cell Q
                     bEdges = findall(x -> x != 0, @view A[:, b])                            # Find all edges around vertex b
                     m = (findall(x -> x != 0, @view B[Q, :])∩findall(x -> x != 0, @view B[R, :]))[1]    # Find edge m around vertex b that is shared by Q and R
-
                     # Add edge j to cells R and P
                     B[R, j] = B[Q, j]
                     B[P, j] = -B[Q, j]
@@ -111,7 +105,6 @@ function t1Transitions!(integrator,params,matrices)
                     A[m, a] = A[m, b]
                     # Remove vertex b from edge m 
                     A[m, b] = 0
-                    
                     # println("T1 edge $j, cells $P, $Q, $R")
                 end
 
@@ -122,12 +115,9 @@ function t1Transitions!(integrator,params,matrices)
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
             end 
-            # end
         end
     end
-
     return transitionCount
-
 end
 
 export t1Transitions!

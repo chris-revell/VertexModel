@@ -60,16 +60,13 @@ function model!(du, u, p, t)
     dropzeros!(F)
     fill!(externalF, @SVector zeros(3))
 
-    peripheryLength = sum(boundaryEdges .* edgeLengths)
-
-    tmpF = @SVector zeros(3)
+    # peripheryLength = sum(boundaryEdges .* edgeLengths)
 
     for k = 1:nVerts
         for j in nzrange(A, k)
             for i in nzrange(B, rowvals(A)[j])
                 # Force components from cell pressure perpendicular to edge tangents 
-                tmpF = ( matrices.edgeϵs[rowvals(A)[j]] * edgeTangents[rowvals(A)[j]] )
-                F[k, rowvals(B)[i]] += 0.5 .* cellPressures[rowvals(B)[i]] .* B[rowvals(B)[i], rowvals(A)[j]] .* Ā[rowvals(A)[j], k] .* tmpF
+                F[k, rowvals(B)[i]] += 0.5 .* cellPressures[rowvals(B)[i]] .* B[rowvals(B)[i], rowvals(A)[j]] .* Ā[rowvals(A)[j], k] .* ( matrices.edgeϵs[rowvals(A)[j]] * edgeTangents[rowvals(A)[j]] )
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] .* B̄[rowvals(B)[i], rowvals(A)[j]] .* A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure 
@@ -78,10 +75,10 @@ function model!(du, u, p, t)
             # Force on vertex from peripheral tension
             # externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
-        externalF[k] -= surfaceReturnAmplitude.*(norm(u[k] .- surfaceCentre)-surfaceRadius).*normalize(u[k].-surfaceCentre)
+        externalF[k] -= surfaceReturnAmplitude.*(norm(R[k] .- surfaceCentre)-surfaceRadius).*normalize(R[k].-surfaceCentre)
         dR[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
     end
-    
+
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
     return du
 end
