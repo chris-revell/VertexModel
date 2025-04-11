@@ -22,7 +22,6 @@ using Dates
 using CircularArrays
 
 # Local modules
-# @from "InitialHexagons.jl" using InitialHexagons
 @from "initialSystemLayout.jl" using InitialSystemLayout
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
@@ -123,7 +122,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         peripheralTension = peripheralTension,
         β                 = β,
         seed              = seed,
-        distLogNormal     = LogNormal(0.0, 0.2)
+        distLogNormal     = LogNormal(0.0, 0.2),
     )
 
     # Initial evaluation of matrices based on system topology
@@ -133,8 +132,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # Convert vector of SVectors to flat vector of Float64
     u0 = Float64[]
     for r in R
-        push!(u0, r[1])
-        push!(u0, r[2])
+        append!(u0, r)
     end
 
     return u0, params, matrices
