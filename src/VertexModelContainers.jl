@@ -61,11 +61,11 @@ end
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
-    Γ                ::Vector{Float64}                              # Vector of cell tension factors 
+    Γ                ::Vector{Float64}                              # Vector of factors determinind relative strength of cell tension and internal pressure per cell 
     edgeLengths      ::Vector{Float64}                              # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing edge midpoints as (x,y) positions
-    edgeMidpointLinks::SparseMatrixCSC{SVector{2, Float64}, Int64}
+    edgeMidpointLinks::SparseMatrixCSC{SVector{2, Float64}, Int64}  # Sparse array of vectors connecting adjacent edge midpoints, indexed by adjacent vertex and cell for each midpoint link 
     timeSinceT1      ::Vector{Float64}                              # Vector of times since each edge last underwent a T1 transition
     vertexAreas      ::Vector{Float64}                              # Vector of areas of triangles surrounding vertices    
     F                ::SparseMatrixCSC{SVector{2, Float64}, Int64}  # Matrix of 2D static vectors containing force vectors acting on each vertex and cell
