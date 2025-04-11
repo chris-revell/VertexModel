@@ -63,8 +63,8 @@ function division!(integrator,params,matrices)
             cellPerpAxis = normalize(params.surfaceCentre.-matrices.cellPositions[i])
             crossVec = cellPerpAxis×[1,0,0]
             ϵCoordinates = ϵ(v=crossVec, θ=asin(norm(crossVec)/(norm(cellPerpAxis))))
-            rotatedSpokes = [(ϵCoordinates*s) for s in spokes]
-            cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i]
+            rotatedSpokes = [(ϵCoordinates*s)[2:3] for s in spokes] # Flatten to 2D by taking [2:3] dimensions for subsequent shape tensor calculation
+            cellShapeTensor = sum(rotatedSpokes[2:end].*transpose.(rotatedSpokes[2:end]))./matrices.cellEdgeCount[i] # Do not include first spoke because it is identical to the last one
             
             # Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95

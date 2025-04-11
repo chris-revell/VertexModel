@@ -66,7 +66,7 @@ end
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
     cellϵs           ::Vector{SMatrix{3, 3, Float64}}               # Vector of matrices required to rotate dimensions such that each cell is 2D
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
-    Γ                ::Vector{Float64}                              # Vector of cell tension factors 
+    Γ                ::Vector{Float64}                              # Vector of factors determinind relative strength of cell tension and internal pressure per cell 
     edgeLengths      ::Vector{Float64}                              # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{3, Float64}}                  # Vector of 2D static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{3, Float64}}                  # Vector of 2D static vectors containing edge midpoints as (x,y) positions
