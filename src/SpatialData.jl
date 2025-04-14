@@ -99,10 +99,10 @@ function spatialData!(R,params,matrices)
 
     
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    @.. thread = false cellTensions .= μ .* Γ .* L₀ .* log.(cellPerimeters ./ L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    @.. thread = false cellPressures .= μ .* A₀ .* log.(cellAreas ./ A₀)
 
     return nothing
 
