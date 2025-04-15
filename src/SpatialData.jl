@@ -37,6 +37,8 @@ function spatialData!(R,params,matrices)
         cellOrientedAreas,
         cellShapeTensor,
         cellAreas,
+        cellL₀s,
+        cellA₀s,
         cellTensions,
         cellPressures,
         edgeLengths,
