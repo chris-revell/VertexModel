@@ -37,6 +37,8 @@ function spatialData!(R,params,matrices)
         cellOrientedAreas,
         cellShapeTensor,
         cellAreas,
+        cellL₀s,
+        cellA₀s,
         cellTensions,
         cellPressures,
         edgeLengths,
@@ -99,10 +101,10 @@ function spatialData!(R,params,matrices)
 
     
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= Γ .* L₀ .* log.(cellPerimeters ./ L₀)
+    @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= A₀ .* μ .* log.(cellAreas ./ A₀)
+    @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
 
     return nothing
 
