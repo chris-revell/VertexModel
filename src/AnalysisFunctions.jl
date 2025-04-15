@@ -344,6 +344,159 @@ function calculateCellMidpointCurls(params,matrices,intersections,q)
     return cellMidpointCurls
 end
 
+function makeLf(params,matrices,trapeziumAreas)
+    @unpack B,Bᵀ,cellAreas,edgeLengths = matrices
+    @unpack nCells = params
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    H = Diagonal(cellAreas)
+    boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
+    diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths.^2)./(2.0.*trapeziumAreas)))[:,1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
+    Tₑ = Diagonal(diagonalComponent)
+    invH = inv(H)
+    Lf = invH*B*Tₑ*Bᵀ
+    dropzeros!(Lf)    
+    return Lf
+end
+
+function makeLc(params,matrices,T,trapeziumAreas)
+    @unpack B,Bᵀ,cellAreas = matrices
+    @unpack nCells = params
+    onesVec = ones(1,nCells)
+    boundaryEdges = abs.(onesVec*B)
+    boundaryEdgesFactor = abs.(boundaryEdges.-1)# =1 for internal vertices, =0 for boundary vertices
+    H = Diagonal(cellAreas)
+    Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
+    invTₗ = inv(Tₗ)
+    boundaryEdgesFactorMat = Diagonal(@view boundaryEdgesFactor[1,:])
+    Lc = (H\B)*boundaryEdgesFactorMat*invTₗ*Bᵀ
+    dropzeros!(Lc)
+    return Lc
+end
+
+function makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
+    @unpack A,Aᵀ,edgeLengths = matrices
+    E = Diagonal(linkTriangleAreas)
+    Tₑ = Diagonal((edgeLengths.^2)./(2.0.*trapeziumAreas))
+    Lᵥ = (E\Aᵀ)*(Tₑ\A)
+    dropzeros!(Lᵥ)
+    return Lᵥ
+end
+
+function makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
+    @unpack A,Aᵀ = matrices
+    E = Diagonal(linkTriangleAreas)
+    Tₗ = Diagonal(((norm.(T)).^2)./(2.0.*trapeziumAreas))
+    Lₜ = (E\Aᵀ)*Tₗ*A
+    dropzeros!(Lₜ)
+    return Lₜ
+end
+
+function eigenmodesLt(R,matrices,params)    
+    T = makeCellLinks(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    linkTriangles = makeLinkTriangles(R,params,matrices)
+    linkTriangleAreas = abs.(area.(linkTriangles))
+    Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
+    decomposition = (eigen(Matrix(Lₜ))).vectors
+    return decomposition
+end
+
+function eigenmodesLf(R,matrices,params)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    Lf = makeLf(params,matrices,trapeziumAreas)
+    decomposition = (eigen(Matrix(Lf))).vectors
+    return decomposition
+end
+
+function eigenmodesLv(R,matrices,params)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    linkTriangles = makeLinkTriangles(R,params,matrices)
+    linkTriangleAreas = abs.(area.(linkTriangles))    
+    Lᵥ = makeLv(params,matrices,linkTriangleAreas,trapeziumAreas)
+    decomposition = (eigen(Matrix(Lᵥ))).vectors
+end 
+
+function psicPotential(R,params,matrices)
+    T = makeCellLinks(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    linkTriangles = makeLinkTriangles(R,params,matrices)
+    linkTriangleAreas = abs.(area.(linkTriangles))
+    Lf = makeLf(params,matrices,trapeziumAreas)
+    cellDivs = -1.0.*calculateCellDivs(R,params,matrices)
+    onesVec = ones(params.nCells)
+    H = Diagonal(matrices.cellAreas)
+    eigenvectors = (eigen(Matrix(Lf))).vectors
+    eigenvalues = (eigen(Matrix(Lf))).values
+    ḡ = ((onesVec'*H*cellDivs)/(onesVec'*H*ones(params.nCells))).*onesVec
+    ğ = cellDivs.-ḡ
+    ψ̆ = zeros(params.nCells)
+    spectrum = Float64[]
+    for k=2:params.nCells
+        numerator = eigenvectors[:,k]'*H*ğ
+        denominator = eigenvalues[k]*(eigenvectors[:,k]'*H*eigenvectors[:,k])
+        ψ̆ .-= (numerator/denominator).*eigenvectors[:,k]
+        push!(spectrum,(numerator/denominator))
+    end
+    return ψ̆, spectrum
+end
+
+function psivPotential(R,params,matrices)
+    T = makeCellLinks(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    linkTriangles = makeLinkTriangles(R,params,matrices)
+    linkTriangleAreas = abs.(area.(linkTriangles))
+    q = calculateSpokes(R,params,matrices)
+    Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
+    eigenvectors = (eigen(Matrix(Lₜ))).vectors
+    eigenvalues = (eigen(Matrix(Lₜ))).values
+    vertexDivs = -1.0.*calculateVertexDivs(R,params,matrices,q,linkTriangleAreas)
+    onesVec = ones(params.nVerts)
+    E = Diagonal(linkTriangleAreas)
+    ḡ = ((onesVec'*E*vertexDivs)/(onesVec'*E*ones(params.nVerts))).*onesVec
+    ğ = vertexDivs.-ḡ
+    ψ̆ = zeros(params.nVerts)
+    spectrum = Float64[]
+    for k=2:params.nVerts
+        numerator = -eigenvectors[:,k]'*E*ğ
+        denominator = eigenvalues[k]*(eigenvectors[:,k]'*E*eigenvectors[:,k])
+        ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
+        push!(spectrum,(numerator/denominator))
+    end
+    return ψ̆, spectrum
+end
+
+function capitalPsivPotential(R,params,matrices)
+    T = makeCellLinks(params,matrices)
+    edgeTrapezia = makeEdgeTrapezia(R,params,matrices)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    linkTriangles = makeLinkTriangles(R,params,matrices)
+    linkTriangleAreas = abs.(area.(linkTriangles))
+    Lₜ = makeLt(params,matrices,T,linkTriangleAreas,trapeziumAreas)
+    eigenvectors = (eigen(Matrix(Lₜ))).vectors
+    eigenvalues = (eigen(Matrix(Lₜ))).values
+    q = calculateSpokes(R,params,matrices)
+    vertexCurls = calculateVertexCurls(R,params,matrices,q,linkTriangleAreas)
+    onesVec = ones(params.nVerts)
+    E = Diagonal(linkTriangleAreas)
+    ḡ = ((onesVec'*E*vertexCurls)/(onesVec'*E*ones(params.nVerts))).*onesVec
+    ğ = vertexCurls.-ḡ
+    ψ̆ = zeros(params.nVerts)
+    spectrum = Float64[]
+    for k=2:params.nVerts
+        numerator = -eigenvectors[:,k]'*E*ğ
+        denominator = eigenvalues[k]*(eigenvectors[:,k]'*E*eigenvectors[:,k])
+        ψ̆ .+= (numerator/denominator).*eigenvectors[:,k]
+        push!(spectrum,(numerator/denominator))
+    end
+    return ψ̆, spectrum
+end
+
 export getRandomColor
 export makeCellPolygons
 export makeCellPolygonsOld
@@ -364,5 +517,15 @@ export calculateCellMidpointCurls
 export effectiveCellPressure
 export cellQs
 export cellShears
+export makeLf
+export makeLc
+export makeLv
+export makeLt
+export eigenmodesLt
+export eigenmodesLf
+export eigenmodesLv
+export psicPotential
+export psivPotential
+export capitalPsivPotential
 
 end #end module 
