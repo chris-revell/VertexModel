@@ -79,6 +79,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
+        cellA₀s           = fill(A₀, nCells),
+        cellL₀s           = fill(L₀, nCells),
         cellTensions      = zeros(nCells),
         cellPressures     = zeros(nCells),
         cellTimeToDivide  = cellTimeToDivide,
