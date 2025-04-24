@@ -46,9 +46,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
+        R = R_in
         A = A_in
         B = B_in
-        C = C_in
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
