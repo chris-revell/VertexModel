@@ -38,8 +38,8 @@ function createRunDirectory(params,subFolder)
         tMax,
         nonDimCycleTime = params
 
-    prepo = LibGit2.GitRepo(projectdir())
-    branchname = LibGit2.shortname(LibGit2.head(prepo))
+    repo = LibGit2.GitRepo(projectdir())
+    branchname = LibGit2.shortname(LibGit2.head(repo))
     # Create directory for run data labelled with current time.
     paramsName = @savename nCells L₀ γ realTimetMax
     # folderName = joinpath(branchname, subFolder, "$(branchname)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
