@@ -41,7 +41,7 @@ function largeInitialSystem()
     end
 
     triangulation_unconstrained = triangulate(ptsArray)
-    tessellation_constrained = voronoi(triangulation_unconstrained, true)
+    tessellation_constrained = voronoi(triangulation_unconstrained, clip=true)
 
     #Exclude points outside constraining boundary
     usableVertices = Int64[]
