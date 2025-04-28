@@ -101,7 +101,7 @@ function model!(du, u, p, t)
     #@show u[nVerts+1]
     #test=(C'*(cellAreas.*(cellAreas.*u[nVerts+1][1].-1.0).+cellPerimeters.*(0.5.*ΓA .+ Γa.*(2.0.*cellAreas.+u[nVerts+1][1].*cellPerimeters.-1.0))))
     #@show test
-    du[nVerts+1]=SVector(-sum(C'*(cellAreas.*(cellAreas.*u[nVerts+1][1].-1.0).+cellPerimeters.*(0.5.*ΓA .+ Γa.*(2.0.*cellAreas.+u[nVerts+1][1].*cellPerimeters.-1.0))))./nVerts, 0.0)
+    du[nVerts+1]=SVector(-sum((cellAreas.*(cellAreas.*u[nVerts+1][1].-1.0).+cellPerimeters.*(0.5.*ΓA .+ Γa.*(2.0.*cellAreas.+u[nVerts+1][1].*cellPerimeters.-1.0)))), 0.0)
     #@show du[nVerts+1]
     return du
 end

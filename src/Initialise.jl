@@ -163,14 +163,20 @@ function initialise(initialSystem,realTimetMax,Γa,ΓA,ΓL,L₀,A₀,pressureExt
         t1Threshold,
         peripheralTension,
         seed,
-        LogNormal(0.0, 0.05)
+        LogNormal(0.0, 0.1)
     )
 
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
     spatialData!(R, params, matrices)
 
-    return R, params, matrices
+    # R=R.*(1.0) #needed to allow me to pusH to R
+
+    # H=SVector(mean(matrices.cellHeights),0.0)
+
+    RH=push!(R.*(1.0),SVector(mean(matrices.cellHeights),0.0))    
+
+    return R,RH, params, matrices
 
 end
 

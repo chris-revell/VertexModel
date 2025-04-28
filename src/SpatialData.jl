@@ -57,16 +57,16 @@ function spatialData!(RH,params,matrices)
         L₀,
         A₀ = params
 
-    R=RH[1:nVerts]
+    #R=RH[1:nVerts]
     
     
-    cellPositions  .= C*R./cellEdgeCount
+    cellPositions  .= C*RH[1:nVerts]./cellEdgeCount
     
-    edgeTangents   .= A*R
+    edgeTangents   .= A*RH[1:nVerts]
     
     @.. thread=false edgeLengths .= norm.(edgeTangents)
 
-    edgeMidpoints  .= 0.5.*Ā*R
+    edgeMidpoints  .= 0.5.*Ā*RH[1:nVerts]
     
     fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
     dropzeros!(edgeMidpointLinks)
@@ -97,10 +97,10 @@ function spatialData!(RH,params,matrices)
     cellPerimeters .= B̄ * edgeLengths
 
     for i = 1:nCells
-        cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
+        cellAreas[i] = abs(area(Point{2,Float64}.(RH[cellVertexOrders[i]])))
 
         #cell_verts=findall(x-> x!=0, C[i,:])
-        Rα=[R[cellVertexOrders[i]][y]-matrices.cellPositions[i] for y in 1:length(cellVertexOrders[i])]
+        Rα=[RH[cellVertexOrders[i]][y]-matrices.cellPositions[i] for y in 1:length(cellVertexOrders[i])]
         cellShapeTensor[i]=sum(Rα.*transpose.(Rα))/Float64.(cellEdgeCount[i])
     end
     #@show(RH[nVerts+1])
@@ -112,7 +112,7 @@ function spatialData!(RH,params,matrices)
     @.. thread = false cellTensions .= (Γa.*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights.-1.0) .+ (0.5*ΓA)).*cellHeights .+ (2*ΓL).*(cellPerimeters-L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= cellHeights.*(cellAreas.*cellHeights-1) .+ (2*Γa).*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights-1)
+    @.. thread = false cellPressures .= cellHeights.*(cellAreas.*cellHeights.-1.0) .+ (2*Γa).*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights .-1.0)
 
     return nothing
 

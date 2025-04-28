@@ -55,7 +55,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     @show maximum(norm.(get_du(integrator)))
-    (maximum(norm.(get_du(integrator))) < 1e-5) & (integrator.p[1].nCells>=1)   ? true : false
+    (maximum(norm.(get_du(integrator))) < 1e-6) & (integrator.p[1].nCells>=1)   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -133,7 +133,7 @@ function vertexModel(;
 
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R, params, matrices = initialise(initialSystem, realTimetMax, Γa, ΓA, ΓL, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
+    R, RH, params, matrices = initialise(initialSystem, realTimetMax, Γa, ΓA, ΓL, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1
@@ -144,23 +144,18 @@ function vertexModel(;
             fig, ax1, mov = plotSetup(R, params, matrices, subFolder, folderName)
         end
     end
-    R=R.*(1.0) #needed to allow me to pusH to R
 
-    #H=SVector(2.0,0.0)
-    H=SVector(mean(matrices.cellHeights),0.0)
 
-    RH=push!(R,H)    
 
-    #@show(RH)
-    
+
     prob=ODEProblem(model!,RH,(0.0,Inf),(params,matrices))
-    #bvp1=BVProblem(model!,bc1!,R,(0.0,Inf),(params,matrices) )
 
-    #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=CallbackSet(cb, cb2)) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+   #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=CallbackSet(cb, cb2)) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
-    integrator = init(prob,solver,abstol=1e-9, reltol=1e-9, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
-    #integrator = init(bvp1,Shooting(solver),abstol=1e-10, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
 
+    integrator = init(prob,solver,abstol=1e-8, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
+    #integrator = init(prob,solver,abstol=1e-11, reltol=1e-11, callback=cb)
     # Iterate until integrator time reaches max system time 
     while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
         
@@ -201,6 +196,7 @@ function vertexModel(;
         step!(integrator)
 
         
+
         #Check system for T1 transitions 
         if t1Transitions!(integrator.u, params, matrices) > 0
             u_modified!(integrator, true)
