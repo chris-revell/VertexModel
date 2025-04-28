@@ -12,13 +12,15 @@ module VertexModel
 using PrecompileTools
 using DrWatson
 using FromFile
-using OrdinaryDiffEq
+#using OrdinaryDiffEq
+using DifferentialEquations
 using LinearAlgebra
 using JLD2
 using SparseArrays
 using StaticArrays
 using CairoMakie
 using Printf
+using DiffEqCallbacks
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -45,7 +47,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    solver=Tsit5(),
+    solver=DP8(),
+    #solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -61,8 +64,8 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
-    abstol = 1e-7, 
-    reltol = 1e-4,
+    abstol = 1e-8, 
+    reltol = 1e-6,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -82,9 +85,10 @@ function vertexModel(;
     end
 
     # Set up ODE integrator 
+
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState())
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
@@ -114,6 +118,7 @@ function vertexModel(;
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
 
+
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
         spatialData!(R, params, matrices)
 
@@ -124,11 +129,13 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator, params, matrices) > 0
-            u_modified!(integrator, true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(R, params, matrices) # Update spatial data after division 
+        if params.nCells < 100
+            if division!(integrator, params, matrices) > 0
+                u_modified!(integrator, true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(R, params, matrices) # Update spatial data after division 
+            end
         end
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
