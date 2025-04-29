@@ -34,6 +34,14 @@ using DiffEqCallbacks
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
 
+###
+# For no division Vern7 works well, with lazy=false to acount for T1Transitions
+# TanYam7 works with division and convergest to SS for 100 cells relatively quickly (ncycles=5, 26 time points, reltol=1e-7), also ok for 200 but with lower tolerances (1e-9, 1e-8)
+# Dp8 worked well for 50 cells but didn't converge to SS for 100 cells in 5 cycles
+# Tsit5 does not reach steady state
+#    
+###
+
 function vertexModel(;
     initialSystem="new",
     nRows=9,
@@ -47,7 +55,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    solver=DP8(),
+    solver=TanYam7(),
+    #solver=Tsit5(),
     #solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
@@ -56,7 +65,7 @@ function vertexModel(;
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,
+    videoToggle=0,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -64,8 +73,10 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
-    abstol = 1e-8, 
-    reltol = 1e-6,
+    abstol = 1e-10, 
+    reltol = 1e-8,
+    modelChoice="quadratic",
+    vertexWeighting=0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -73,7 +84,8 @@ function vertexModel(;
     isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows)
+    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
+    vertexWeighting=vertexWeighting)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
@@ -129,7 +141,7 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
-        if params.nCells < 100
+        if params.nCells < 50
             if division!(integrator, params, matrices) > 0
                 u_modified!(integrator, true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          

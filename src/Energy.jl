@@ -17,7 +17,7 @@ using UnPack
 𝒰(θ) = θ*(log(θ)-1.0)
 Uᵢ(Aᵢ, A₀, Lᵢ, L₀, μᵢ, Γᵢ) = μᵢ*(𝒰(Aᵢ/A₀) + Γᵢ*L₀^2*𝒰(Lᵢ/L₀))
 
-function energy(params,matrices)
+function energy_log(params,matrices)
 
     @unpack cellAreas,
         cellA₀s,
@@ -34,6 +34,21 @@ function energy(params,matrices)
     return energyTotal
 end
 
-export energy
+
+function energy_quadratic(params,matrices)
+
+    @unpack cellAreas,
+        cellA₀s,
+        cellPerimeters,
+        cellL₀s,
+        μ,
+        Γ = matrices
+    
+    energyTotal= sum(μ.*(0.5 .* (cellAreas .- cellA₀s).^2 .+ 0.5 .* Γ .* (cellPerimeters .- cellL₀s).^2))
+
+    return energyTotal
+end
+
+export energy_log, energy_quadratic
 
 end

@@ -42,7 +42,8 @@ function model!(du, u, p, t)
         nCells,
         nEdges,
         pressureExternal,
-        peripheralTension = params
+        peripheralTension,
+        vertexWeighting = params
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, u)
@@ -69,10 +70,11 @@ function model!(du, u, p, t)
             # Force on vertex from peripheral tension
             externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
-
-        dR[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
+        
+        dR[k] = (sum(@view F[k, :]) .+ externalF[k])
     end
-    
+    #if weighting drag by vertex area divide by vertex areas
+    vertexWeighting && (dR ./= vertexAreas)
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
     return du
 end
