@@ -36,8 +36,8 @@ using CircularArrays
     peripheralTension  ::Float64            # Tension at system periphery
     seed               ::Int64              # Random number seed 
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
-    modelChoice        ::String             # 2D model of choice (eg log, quadratic)
-    vertexWeighting    ::Bool               # Flag for drag weighted by vertex area
+    modelChoice        ::String             # Choice of energy function (eg log, quadratic)
+    vertexWeighting    ::Bool               # Flag controlling whether vertices experience drag proportional to their surrounding area 
 end
 
 @kwdef mutable struct MatricesContainer

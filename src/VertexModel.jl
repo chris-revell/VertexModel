@@ -33,27 +33,27 @@ using Printf
 @from "SenseCheck.jl" using SenseCheck
 
 function vertexModel(;
-    initialSystem="new",
-    nRows=9,
-    nCycles=1,
-    realCycleTime=86400.0,
-    realTimetMax=nCycles*realCycleTime,
-    γ=0.2,
-    L₀=0.75,
-    A₀=1.0,
-    viscousTimeScale=1000.0,
-    pressureExternal=0.0,
-    peripheralTension=0.0,
-    t1Threshold=0.05,
-    solver=Tsit5(),
-    nBlasThreads=1,
-    subFolder="",
-    outputTotal=100,
-    outputToggle=1,
-    frameDataToggle=1,
-    frameImageToggle=1,
-    printToggle=1,
-    videoToggle=0,
+    initialSystem = "new",
+    nRows = 9,
+    nCycles = 1,
+    realCycleTime = 86400.0,
+    realTimetMax = nCycles*realCycleTime,
+    γ = 0.2,
+    L₀ = 0.75,
+    A₀ = 1.0,
+    viscousTimeScale = 1000.0,
+    pressureExternal = 0.0,
+    peripheralTension = 0.0,
+    t1Threshold = 0.05,
+    solver = Tsit5(),
+    nBlasThreads = 1,
+    subFolder = "",
+    outputTotal = 100,
+    outputToggle = 1,
+    frameDataToggle = 1,
+    frameImageToggle = 1,
+    printToggle = 1,
+    videoToggle = 1,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -62,7 +62,8 @@ function vertexModel(;
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
     abstol = 1e-7, 
-    modelChoice = "quadratic",
+    reltol = 1e-4,
+    modelChoice = "log",
     vertexWeighting = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -71,8 +72,7 @@ function vertexModel(;
     isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
-    vertexWeighting=vertexWeighting)
+    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, nRows, modelChoice, vertexWeighting)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
