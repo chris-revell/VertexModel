@@ -35,6 +35,7 @@ using DiffEqCallbacks
 @from "SenseCheck.jl" using SenseCheck
 
 ###
+#Using vertex weighted log model
 # For no division Vern7 works well, with lazy=false to acount for T1Transitions
 # TanYam7 works with division and convergest to SS for 100 cells relatively quickly (ncycles=5, 26 time points, reltol=1e-7), also ok for 200 but with lower tolerances (1e-9, 1e-8)
 # Dp8 worked well for 50 cells but didn't converge to SS for 100 cells in 5 cycles
@@ -77,6 +78,7 @@ function vertexModel(;
     reltol = 1e-8,
     modelChoice="quadratic",
     vertexWeighting=0,
+    maxCells=1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -141,7 +143,7 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
-        if params.nCells < 50
+        if params.nCells < maxCells
             if division!(integrator, params, matrices) > 0
                 u_modified!(integrator, true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
