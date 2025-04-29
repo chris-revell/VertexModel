@@ -18,6 +18,7 @@ using FastBroadcast
 using SparseArrays
 using GeometryBasics
 
+
 @from "OrderAroundCell.jl" using OrderAroundCell
 # @from "AnalysisFunctions.jl" using AnalysisFunctions
 
@@ -53,7 +54,8 @@ function spatialData!(R,params,matrices)
         nVerts,
         γ,
         L₀,
-        A₀ = params
+        A₀,
+        modelChoice = params
 
     cellPositions  .= C*R./cellEdgeCount
     
@@ -99,12 +101,25 @@ function spatialData!(R,params,matrices)
         cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
     end
 
-    
-    # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
+    #can expand model choices, set quadratic as standard.
 
-    # Calculate cell internal pressures
-    @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+    if modelChoice == "log"
+        # Model per Cowley et al. 2024 Section 2a
+
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
+
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+    else
+        #standard quadratic model
+        
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
+
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .*(cellAreas - cellA₀s)
+    end
 
     return nothing
 

@@ -4,7 +4,6 @@
 #
 #  Created by Christopher Revell on 31/01/2022.
 #
-#
 # Function to calculate system energy
 
 module Energy
@@ -25,12 +24,19 @@ function energy(params,matrices)
         cellL₀s,
         μ,
         Γ = matrices
+    @unpack modelChoice = params
     
-    energyTotal = 0.0
-    for i = 1:nCells
-        # energyTotal += 0.5 * (cellAreas[i] - A₀)^2 + 0.5 * γ * (cellPerimeters[i] - L₀)^2
-        energyTotal += Uᵢ.(cellAreas[i], cellA₀s[i], cellPerimeters[i], cellL₀s[i], μ[i], Γ[i])
+    if modelChoice == "log"
+        # Logarithmic energy
+        energyTotal
+        for i = 1:nCells
+            energyTotal += Uᵢ.(cellAreas[i], cellA₀s[i], cellPerimeters[i], cellL₀s[i], μ[i], Γ[i])
+        end
+    else
+        # Quadratic energy
+        energyTotal = sum(μ.*(0.5 .* (cellAreas .- cellA₀s).^2 .+ 0.5 .* Γ .* (cellPerimeters .- cellL₀s).^2))
     end
+
     return energyTotal
 end
 

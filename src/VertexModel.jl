@@ -53,7 +53,7 @@ function vertexModel(;
     frameDataToggle=1,
     frameImageToggle=1,
     printToggle=1,
-    videoToggle=1,
+    videoToggle=0,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
@@ -62,7 +62,8 @@ function vertexModel(;
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
     abstol = 1e-7, 
-    reltol = 1e-4,
+    modelChoice = "quadratic",
+    vertexWeighting = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -70,7 +71,8 @@ function vertexModel(;
     isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows)
+    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
+    vertexWeighting=vertexWeighting)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
