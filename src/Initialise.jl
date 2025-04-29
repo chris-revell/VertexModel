@@ -27,7 +27,7 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed,nRows,modelChoice,vertexWeighting)
+function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed,nRows,energyModel,vertexWeighting)
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -124,7 +124,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         peripheralTension = peripheralTension,
         seed              = seed,
         distLogNormal     = LogNormal(0.0, 0.2),
-        modelChoice       = modelChoice,
+        energyModel       = energyModel,
         vertexWeighting   = vertexWeighting,
     )
 

@@ -54,7 +54,7 @@ function spatialData!(R,params,matrices)
         γ,
         L₀,
         A₀,
-        modelChoice = params
+        energyModel = params
 
     cellPositions  .= C*R./cellEdgeCount
     
@@ -101,7 +101,7 @@ function spatialData!(R,params,matrices)
     end
 
     # Calculate cell pressures and tensions according to energy model choice 
-    if modelChoice == "log"
+    if energyModel == "log"
         # Model per Cowley et al. 2024 Section 2a
         # Calculate cell boundary tensions
         @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)

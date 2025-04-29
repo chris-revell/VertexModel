@@ -63,7 +63,7 @@ function vertexModel(;
     setRandomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
-    modelChoice = "log",
+    energyModel = "log",
     vertexWeighting = 0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -72,7 +72,7 @@ function vertexModel(;
     isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, nRows, modelChoice, vertexWeighting)
+    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, nRows, energyModel, vertexWeighting)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1

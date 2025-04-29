@@ -24,9 +24,9 @@ function energy(params,matrices)
         cellL₀s,
         μ,
         Γ = matrices
-    @unpack modelChoice = params
+    @unpack energyModel = params
     
-    if modelChoice == "log"
+    if energyModel == "log"
         # Logarithmic energy
         energyTotal
         for i = 1:nCells
