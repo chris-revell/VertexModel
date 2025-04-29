@@ -157,7 +157,9 @@ function vertexModel(;
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
-
+    fname=@savename L₀ γ
+    R = reinterpret(SVector{2,Float64}, integrator.u)
+    jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
     return integrator
 end
 
