@@ -60,10 +60,12 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         R = importedData["R"]
     end
 
+
+
     nCells = size(B, 1)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
-
+    cellTimeToDivide = ones(nCells)
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A                 = A,
@@ -105,6 +107,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
                                 -1.0 0.0
                             ]),
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
+        cellLineage       = collect(1:nCells),
+        cellGeneration    = ones(nCells),
+        cellIndex         = collect(1:nCells),   
     )
 
     # Pack parameters into a struct for convenience

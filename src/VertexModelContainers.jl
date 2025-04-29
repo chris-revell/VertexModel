@@ -77,6 +77,9 @@ end
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
+    cellLineage      ::Vector{Int64}                                # Initial cell which cell originated from
+    cellGeneration   ::Vector{Int64}                                # Number of generations with inital config as gen 1.
+    cellIndex        ::Vector{Int64}                                # Index to track division
 end
 
 export ParametersContainer,MatricesContainer

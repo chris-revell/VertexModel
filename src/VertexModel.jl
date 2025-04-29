@@ -48,13 +48,13 @@ function vertexModel(;
     nCycles=1,
     realCycleTime=86400.0,
     realTimetMax=nCycles*realCycleTime,
-    γ=0.2,
-    L₀=0.75,
+    γ=0.172,
+    L₀=0.753,
     A₀=1.0,
-    viscousTimeScale=1000.0,
+    viscousTimeScale=100.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
-    t1Threshold=0.05,
+    t1Threshold=0.01,
     solver=TanYam7(),
     #solver=Tsit5(),
     #solver=Vern7(lazy=false),
@@ -89,8 +89,9 @@ function vertexModel(;
     vertexWeighting=vertexWeighting)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
+    folderName = createRunDirectory(params,subFolder)
+
     if outputToggle == 1
-        folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
         if frameImageToggle==1 || videoToggle==1
             fig, ax, mov = plotSetup()
@@ -101,7 +102,7 @@ function vertexModel(;
 
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState())
+    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=5*params.nonDimCycleTime))
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
@@ -157,7 +158,7 @@ function vertexModel(;
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
-    fname=@savename L₀ γ
+    fname=@savename L₀ γ realCycleTime
     R = reinterpret(SVector{2,Float64}, integrator.u)
     jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
     return integrator

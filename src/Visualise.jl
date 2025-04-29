@@ -38,7 +38,8 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
         edgeMidpoints,
         F,
         edgeMidpointLinks,
-        μ = matrices
+        μ,
+        cellLineage = matrices
     @unpack nEdges,
         nVerts,
         nCells = params
@@ -58,18 +59,29 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     ax.title = "t = $(@sprintf("%.2f", t))"
 
     # Plot cells
+    # if plotCells == 1
+    #     cellPolygons = makeCellPolygons(R,params,matrices)
+    #     for i=1:nCells
+    #         #poly!(ax,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas)-1e-6, maximum(cellAreas)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
+    #         poly!(ax,cellPolygons[i], color=cellEdgeCount[i], colorrange=(3, 10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),strokecolor=:black, strokewidth=1)
+
+    #     end
+    # end
+    
+    # cbar=Colorbar(fig[1,2],limits=(3,10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),flipaxis=true)
+    # cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])
+
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
             #poly!(ax,cellPolygons[i],color=cellAreas[i],colormap=:viridis,colorrange=(minimum(cellAreas)-1e-6, maximum(cellAreas)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
-            poly!(ax,cellPolygons[i], color=cellEdgeCount[i], colorrange=(3, 10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),strokecolor=:black, strokewidth=1)
+            poly!(ax,cellPolygons[i], color=cellLineage[i], colorrange=(1, maximum(cellLineage)),colormap=cgrad(ColorSchemes.turbo, maximum(cellLineage), categorical=true),strokecolor=:black, strokewidth=1)
 
         end
     end
     
-    cbar=Colorbar(fig[1,2],limits=(3,10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),flipaxis=true)
-    cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])
-
+    cbar=Colorbar(fig[1,2],limits=(1, maximum(cellLineage)),colormap=cgrad(ColorSchemes.turbo, maximum(cellLineage), categorical=true),flipaxis=true)
+    #cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])
 
     # Scatter vertices
     if scatterVertices == 1
