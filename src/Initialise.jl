@@ -43,7 +43,11 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     Random.seed!(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem == "new"
+    if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_eq", "sixteen"]
+        # Create matrices for one, three, or seven cells geometrically
+        A, B, R = initialCellConfig(initialSystem)
+        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    elseif initialSystem == "new"
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
