@@ -27,7 +27,26 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed,nRows,energyModel,vertexWeighting,R_in,A_in,B_in)
+function initialise(; initialSystem = "new",
+        nCycles = 1,
+        realCycleTime = 86400.0,
+        realTimetMax = nCycles*realCycleTime,
+        γ = 0.2,
+        L₀ = 0.75,
+        A₀ = 1.0,
+        pressureExternal = 0.0,
+        viscousTimeScale = 1000.0,
+        outputTotal = 100,
+        t1Threshold = 0.05,
+        peripheralTension = 0.0,
+        setRandomSeed = 0,
+        nRows = 9,
+        energyModel = "log",
+        vertexWeighting = 1,
+        R_in= spzeros(2),
+        A_in= spzeros(2),
+        B_in= spzeros(2),
+    )
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -43,6 +62,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Initialise system matrices from function or file
     if initialSystem == "new"
+        isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
@@ -124,6 +144,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realTimetMax      = realTimetMax,
         tMax              = tMax,
         realCycleTime     = realCycleTime,
+        nCycles           = nCycles,
         nonDimCycleTime   = nonDimCycleTime,
         t1Threshold       = t1Threshold,
         peripheralTension = peripheralTension,

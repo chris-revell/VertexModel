@@ -45,6 +45,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
+    divisionToggle = 1,
     solver = Tsit5(),
     nBlasThreads = 1,
     subFolder = "",
@@ -64,7 +65,7 @@ function vertexModel(;
     abstol = 1e-7, 
     reltol = 1e-4,
     energyModel = "log",
-    vertexWeighting = 0,
+    vertexWeighting = 1,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
@@ -72,10 +73,26 @@ function vertexModel(;
 
     BLAS.set_num_threads(nBlasThreads)
 
-    isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, nRows, energyModel, vertexWeighting, R_in, A_in, B_in)
+    u0, params, matrices = initialise(initialSystem = initialSystem,
+        realTimetMax = realTimetMax,
+        γ = γ,
+        L₀ = L₀,
+        A₀ = A₀,
+        pressureExternal = pressureExternal,
+        viscousTimeScale = viscousTimeScale,
+        outputTotal = outputTotal,
+        t1Threshold = t1Threshold,
+        realCycleTime = realCycleTime,
+        peripheralTension = peripheralTension,
+        setRandomSeed = setRandomSeed,
+        nRows = nRows,
+        energyModel = energyModel,
+        vertexWeighting = vertexWeighting,
+        R_in = R_in,
+        A_in = A_in,
+        B_in = B_in,
+    )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
@@ -129,11 +146,13 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator, params, matrices) > 0
-            u_modified!(integrator, true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(R, params, matrices) # Update spatial data after division 
+        if divisionToggle==1
+            if division!(integrator, params, matrices) > 0
+                u_modified!(integrator, true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(R, params, matrices) # Update spatial data after division 
+            end
         end
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
