@@ -42,6 +42,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
     Random.seed!(seed)
 
+    distLogNormal     = LogNormal(0.0, 0.2) #Distribution for division
+
     # Initialise system matrices from function or file
     if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_eq", "sixteen"]
         # Create matrices for one, three, or seven cells geometrically
@@ -65,7 +67,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     nCells = size(B, 1)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
-    cellTimeToDivide = ones(nCells)
+    cellTimeToDivide = rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*nonDimCycleTime
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A                 = A,
@@ -133,7 +135,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         t1Threshold       = t1Threshold,
         peripheralTension = peripheralTension,
         seed              = seed,
-        distLogNormal     = LogNormal(0.0, 0.2),
+        distLogNormal     = distLogNormal,
         modelChoice       = modelChoice,
         vertexWeighting   = vertexWeighting,
     )
