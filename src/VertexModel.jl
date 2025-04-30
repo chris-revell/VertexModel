@@ -144,7 +144,7 @@ function vertexModel(;
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
         if params.nCells < maxCells
-            if division!(integrator, params, matrices) > 0
+            if division!(integrator, params, matrices, folderName) > 0
                 u_modified!(integrator, true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
                 topologyChange!(matrices) # Update system matrices after division 
@@ -161,6 +161,7 @@ function vertexModel(;
     fname=@savename L₀ γ realCycleTime
     R = reinterpret(SVector{2,Float64}, integrator.u)
     jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
+    visualise_final_state(R, integrator.t,params, matrices, folderName)
     return integrator
 end
 
