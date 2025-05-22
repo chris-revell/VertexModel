@@ -127,20 +127,22 @@ function vertexModel(;
         # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
         # Output data to file 
-        if integrator.t == alltStops[outputCounter[1]]
-            # Update progress on command line 
-            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
-            if frameDataToggle == 1
-                # Save system data to file 
-                jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
+        if outputToggle==1
+            if integrator.t == alltStops[outputCounter[1]]
+                # Update progress on command line 
+                printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+                if frameDataToggle == 1
+                    # Save system data to file 
+                    jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
+                end
+                if frameImageToggle == 1 || videoToggle == 1
+                    # Render visualisation of system and add frame to movie
+                    visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                end
+                # Save still image of this time step 
+                frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
+                outputCounter[1] += 1
             end
-            if frameImageToggle == 1 || videoToggle == 1
-                # Render visualisation of system and add frame to movie
-                visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
-            end
-            # Save still image of this time step 
-            frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
-            outputCounter[1] += 1
         end
 
         # Step integrator forwards in time to update vertex positions 
