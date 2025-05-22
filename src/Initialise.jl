@@ -59,24 +59,25 @@ function initialise(; initialSystem = "new",
     # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
     seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
     Random.seed!(seed)
+    rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R = initialSystemLayout(nRows)
-        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
         R = R_in
         A = A_in
         B = B_in
-        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
         @unpack A,B = importedData["matrices"]
-        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
+        cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
 
@@ -149,6 +150,7 @@ function initialise(; initialSystem = "new",
         t1Threshold       = t1Threshold,
         peripheralTension = peripheralTension,
         seed              = seed,
+        rng               = rng,
         distLogNormal     = LogNormal(0.0, 0.2),
         energyModel       = energyModel,
         vertexWeighting   = vertexWeighting,
