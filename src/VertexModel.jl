@@ -113,7 +113,7 @@ function vertexModel(;
         integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=cb)
     else
         # Set up ODE integrator 
-        prob = ODEProblem(model!, u0, (0.0, tMax), (params, matrices))
+        prob = ODEProblem(model!, u0, (0.0, params.tMax), (params, matrices))
         integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     end
     outputCounter = [1]
