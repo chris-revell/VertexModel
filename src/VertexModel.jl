@@ -120,7 +120,8 @@ function vertexModel(;
 
     # Iterate until integrator time reaches max system time 
     # while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
-    while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    # while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    while (integrator.sol.retcode == ReturnCode.Default)# || integrator.sol.retcode == ReturnCode.Success)
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -143,6 +144,10 @@ function vertexModel(;
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
                 outputCounter[1] += 1
             end
+        end
+
+        if integrator.t == alltStops[outputCounter[1]]
+            @show integrator.t/params.tMax
         end
 
         # Step integrator forwards in time to update vertex positions 
@@ -184,9 +189,9 @@ function loadData(relativePath; outputNumber=100)
 end
 
 # Ensure code is precompiled
-@compile_workload begin
-    vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
-end
+# @compile_workload begin
+#     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
+# end
 
 export vertexModel
 export loadData 
