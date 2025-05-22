@@ -66,6 +66,7 @@ function vertexModel(;
     reltol = 1e-4,
     energyModel = "log",
     vertexWeighting = 1,
+    steadyStateCallback = 0,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
@@ -103,14 +104,23 @@ function vertexModel(;
         end
     end
 
-    # Set up ODE integrator 
-    prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    if steadyStateCallback==1 && divisionToggle==0
+        # Set up ODE integrator 
+        prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
+        # cb = TerminateSteadyState(abstol = 1e-8, reltol = 1e-6, test = allDerivPass; min_t = nothing, wrap_test::Val = Val(true))
+        cb = TerminateSteadyState(abstol = abstol, reltol = reltol)
+        integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=cb)
+    else
+        # Set up ODE integrator 
+        prob = ODEProblem(model!, u0, (0.0, tMax), (params, matrices))
+        integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    end
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    # while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
