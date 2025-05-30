@@ -12,7 +12,8 @@ module VertexModel
 using PrecompileTools
 using DrWatson
 using FromFile
-using DifferentialEquations
+#using DifferentialEquations
+using OrdinaryDiffEq
 using DiffEqCallbacks
 using DelimitedFiles
 using LinearAlgebra
@@ -55,7 +56,7 @@ function conditionSteadyState(u, t, integrator)
     # maximum() finds biggest gradient
     # Return true if biggest gradient is below threshold 
     @show maximum(norm.(get_du(integrator)))
-    (maximum(norm.(get_du(integrator))) < 1e-6) & (integrator.p[1].nCells>=1)   ? true : false
+    (maximum(norm.(get_du(integrator))) < 5e-6) & (integrator.p[1].nCells>=1)   ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -66,34 +67,12 @@ end
 function affectTerminate!(integrator)
     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
     println("Terminate at steady state")
-    terminate!(integrator, ReturnCode.Success)    
+    terminate!(integrator, ReturnCode.Terminated)    
 end
 # Create callback using two user-defined functions above
 cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
 cb2 = DiscreteCallback(conditionMaxCells, affectTerminate!)
 
-# function bc1!(residual, u, p, t)
-
-#     params, matrices = p
-#     @unpack A,
-#         B,
-#         Ā,
-#         B̄,
-#         edgeLengths,
-#         edgeTangents,
-#         cellHeights,
-#         ϵ,
-#         vertexAreas = matrices
-#     @unpack nVerts,
-#         nCells,
-#         nEdges = params
-
-#     spatialData!(u, params, matrices)
-#     dAdr=-1/2*B*Diagonal([(ϵ*T)' for T in edgeTangents])*Ā
-
-#     residual .= (dAdr'*cellHeights)./vertexAreas
-#     @show residual
-# end
 
 function vertexModel(;
     initialSystem="large",
@@ -109,9 +88,9 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,    
-    solver= Vern7(lazy=false),
+    #solver= Vern7(lazy=false),
     #solver= DP8(),
-    #solver= Tsit5(),
+    solver= Tsit5(),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -150,14 +129,10 @@ function vertexModel(;
 
     prob=ODEProblem(model!,RH,(0.0,Inf),(params,matrices))
 
-   #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=CallbackSet(cb, cb2)) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
-    #integrator = init(prob,solver,abstol=1e-8, reltol=1e-6, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
-
-
     integrator = init(prob,solver,abstol=1e-8, reltol=1e-8, callback=cb) # Adjust tolerances if you notice unbalanced forces in system that should be at equilibrium
-    #integrator = init(prob,solver,abstol=1e-11, reltol=1e-11, callback=cb)
+
     # Iterate until integrator time reaches max system time 
-    while integrator.t < params.tMax && integrator.sol.retcode == ReturnCode.Default
+    while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # Update spatial data (edge lengths, cell areas, etc.)
         spatialData!(integrator.u, params, matrices)
@@ -172,16 +147,10 @@ function vertexModel(;
 
                 jldsave(datadir("sims",subFolder,folderName,"frameData","systemData$(@sprintf("%03d", integrator.t*outputTotal÷params.tMax)).jld2");matrices,params,R)            
 
-                # e_tot=energy(params,matrices)
-                # csvfile=open(datadir("sims",subFolder,folderName,"EnergyTotal.csv"), "a")
-                # println(csvfile, string(integrator.t*outputTotal÷params.tMax), ",",e_tot)
-                # close(csvfile)
-                # print(e_tot ,'\n')
                 @show params.nCells
                 @show mean(matrices.cellAreas)
                 @show mean(matrices.cellHeights)
                 @show maximum(norm.(get_du(integrator)))
-                #@show integrator.u[end]
 
 
             end
@@ -213,7 +182,6 @@ function vertexModel(;
                 spatialData!(integrator.u,params,matrices) # Update spatial data after division 
             end
         end
-        #@show params.nCells
 
         
        

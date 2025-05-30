@@ -28,6 +28,8 @@ Manifest.toml
 notebooks/*
 data/sims*
 data/*
+/my_scripts
+my_scripts/*
 *.code-workspace
 *.mp4
 *.png
