@@ -25,7 +25,6 @@ Manifest.toml
 
 *.DS_Store
 /output
-notebooks/*
 data/sims*
 data/*
 /my_scripts
