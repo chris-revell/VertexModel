@@ -27,6 +27,10 @@ docs/site/
 /output
 data/sims*
 data/*
+/my_analysis
+my_analysis/*
+scripts/*
+notebooks/*
 *.code-workspace
 *.mp4
 *.png
