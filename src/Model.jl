@@ -20,6 +20,7 @@ using DrWatson
 
 # Local modules
 @from "SpatialData.jl" using SpatialData
+@from "Stretch.jl" using Stretch
 
 function model!(du, u, p, t)
 
@@ -43,7 +44,10 @@ function model!(du, u, p, t)
         nEdges,
         pressureExternal,
         peripheralTension,
-        vertexWeighting = params
+        vertexWeighting,
+        stretchType,
+        tStretch,
+        κ = params
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, u)
@@ -76,6 +80,21 @@ function model!(du, u, p, t)
     #if weighting drag by vertex area divide by vertex areas
     vertexWeighting && (dR ./= vertexAreas)
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
+
+    if stretchType != "none"
+        Rt, R_final=stretchCells(R,t, params, matrices)
+        #κ=1 #spring const assuming that the vertices are anchored to the stretched membrane layer by springs
+
+        if t<= tStretch
+            #dR .+= dR .-κ.*(R .- Rt)
+            dR .+= -κ.*(R .- Rt)
+
+        else
+            dR .+=-κ.*(R .- R_final)
+        end
+    end
+
+
     return du
 end
 

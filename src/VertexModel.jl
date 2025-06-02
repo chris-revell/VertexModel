@@ -32,6 +32,7 @@ using DiffEqCallbacks
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
+@from "Stretch.jl" using Stretch
 
 ###
 #Using vertex weighted log model
@@ -55,8 +56,8 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.05,
-    solver=TanYam7(),
-    #solver=Tsit5(),
+    #solver=TanYam7(),
+    solver=Tsit5(),
     #solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
@@ -77,6 +78,10 @@ function vertexModel(;
     reltol = 1e-8,
     modelChoice="quadratic",
     vertexWeighting=0,
+    stretchType="none", 
+    realStretchTime=0,
+    λs=0,
+    κ=1,
     maxCells=1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -86,12 +91,13 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
-    vertexWeighting=vertexWeighting)
+    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
+    folderName = createRunDirectory(params,subFolder)
     if outputToggle == 1
-        folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
+
         if frameImageToggle==1 || videoToggle==1
             fig, ax, mov = plotSetup()
         end

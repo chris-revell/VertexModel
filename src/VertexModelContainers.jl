@@ -38,6 +38,11 @@ using CircularArrays
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
     modelChoice        ::String             # 2D model of choice (eg log, quadratic)
     vertexWeighting    ::Bool               # Flag for drag weighted by vertex area
+    λs                 ::Float64            # stretch
+    stretchType        ::String             # type of stretch, {uniaxial, biaxial, none)
+    realStretchTime    ::Float64            # real total stretch time
+    tStretch           ::Float64            # non-dimensionalised total stretch time
+    κ                  ::Float64            # spring constant tethering vertices to membrane
 end
 
 @kwdef mutable struct MatricesContainer
@@ -77,6 +82,7 @@ end
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
+    R_initial        ::Vector{SVector{2, Float64}}                  # initial vertex positions
 end
 
 export ParametersContainer,MatricesContainer

@@ -28,10 +28,11 @@ using CircularArrays
 @from "SpatialData.jl" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed; nRows=9,modelChoice="quadratic",
-    vertexWeighting=0)
+    vertexWeighting=0, stretchType="none", realStretchTime=0, λs=0, κ=1)
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
+    tStretch= realStretchTime/viscousTimeScale
     outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
     λ = -2.0 * L₀ * γ
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
@@ -105,6 +106,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
                                 -1.0 0.0
                             ]),
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
+        R_initial         = R,
     )
 
     # Pack parameters into a struct for convenience
@@ -131,6 +133,11 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         distLogNormal     = LogNormal(0.0, 0.2),
         modelChoice       = modelChoice,
         vertexWeighting   = vertexWeighting,
+        λs                = λs,
+        stretchType       = stretchType,
+        realStretchTime   = realStretchTime,
+        tStretch          = tStretch,
+        κ                 = κ
     )
 
     # Initial evaluation of matrices based on system topology
