@@ -106,7 +106,9 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
                                 -1.0 0.0
                             ]),
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
-        R_initial         = R,
+        R_membrane         = fill(SVector{2,Float64}(zeros(2)), nVerts),
+        Rt                 = fill(SVector{2,Float64}(zeros(2)), nVerts),
+        R_final            = fill(SVector{2,Float64}(zeros(2)), nVerts),
     )
 
     # Pack parameters into a struct for convenience
@@ -137,9 +139,11 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         stretchType       = stretchType,
         realStretchTime   = realStretchTime,
         tStretch          = tStretch,
+        tMemChange        = 0,
         κ                 = κ
     )
 
+    matrices.R_membrane.=R
     # Initial evaluation of matrices based on system topology
     topologyChange!(matrices)
     spatialData!(R, params, matrices)

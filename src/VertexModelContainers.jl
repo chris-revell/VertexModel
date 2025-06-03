@@ -42,6 +42,7 @@ using CircularArrays
     stretchType        ::String             # type of stretch, {uniaxial, biaxial, none)
     realStretchTime    ::Float64            # real total stretch time
     tStretch           ::Float64            # non-dimensionalised total stretch time
+    tMemChange         ::Float64            # time at which topology has changed for membrane points (eg division)
     κ                  ::Float64            # spring constant tethering vertices to membrane
 end
 
@@ -82,7 +83,9 @@ end
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
-    R_initial        ::Vector{SVector{2, Float64}}                  # initial vertex positions
+    R_membrane       ::Vector{SVector{2, Float64}}                  # initial vertex positions, updated if there has been a division
+    Rt               ::Vector{SVector{2, Float64}}                  # Membrane point position at time t
+    R_final          ::Vector{SVector{2, Float64}}                  # Membrane point position at full stretch, may change with division
 end
 
 export ParametersContainer,MatricesContainer

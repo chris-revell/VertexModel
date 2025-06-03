@@ -38,7 +38,8 @@ function model!(du, u, p, t)
         ϵ,
         boundaryVertices,
         boundaryEdges,
-        vertexAreas = matrices
+        vertexAreas,
+        Rt, R_final= matrices
     @unpack nVerts,
         nCells,
         nEdges,
@@ -82,12 +83,14 @@ function model!(du, u, p, t)
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
 
     if stretchType != "none"
-        Rt, R_final=stretchCells(R,t, params, matrices)
+        dRt=stretchCells(t, params, matrices)
         #κ=1 #spring const assuming that the vertices are anchored to the stretched membrane layer by springs
 
+
+
         if t<= tStretch
-            #dR .+= dR .-κ.*(R .- Rt)
-            dR .+= -κ.*(R .- Rt)
+            #dR .+= -κ.*(R .- Rt)
+            dR .+= (dRt .-κ.*(R .- Rt))
 
         else
             dR .+=-κ.*(R .- R_final)

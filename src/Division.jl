@@ -25,6 +25,7 @@ using Random
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "ResizeMatrices.jl" using ResizeMatrices
+@from "Stretch.jl" using Stretch
 
 function division!(integrator,params,matrices)
 
@@ -33,9 +34,9 @@ function division!(integrator,params,matrices)
         nVerts,
         nonDimCycleTime,
         distLogNormal,
-        γ, t1Threshold = params
+        γ, t1Threshold, tStretch,tMemChange, stretchType = params
     @unpack A, 
-        B, 
+        B, C,
         cellTimeToDivide, 
         cellPositions, 
         edgeMidpoints, 
@@ -48,7 +49,7 @@ function division!(integrator,params,matrices)
         edgeTangents,
         ϵ, 
         μ, 
-        Γ = matrices
+        Γ, R_membrane, Rt, R_final = matrices
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -163,6 +164,32 @@ function division!(integrator,params,matrices)
             integrator.u[end-3:end-2] .= intersections[intersectedIndices[1]][2]
             integrator.u[end-1:end] .= intersections[intersectedIndices[2]][2]
             
+            if stretchType !="none"
+                params.tMemChange = integrator.t
+                tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
+                
+                ccMem=(C*matrices.R_membrane)./cellEdgeCount 
+                
+                shortAxisLineMem = Line(Point{2,Float64}(ccMem[i].+(2*shortvec)), Point{2,Float64}(ccMem[i].-(2*shortvec))) #division orientation should come from current cell shape
+
+
+                    
+                polyMembrane = LineString(Point{2, Float64}.(matrices.R_membrane[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+                intersectionsMembrane = [intersects(line, shortAxisLineMem) for line in polyMembrane] #might need to find shapetensor etc for R_membrane poly.
+                intersectedIndicesMem = findall(x->x!=0, first.(intersectionsMembrane))
+
+                #push!(matrices.R_membrane, intersections[intersectedIndices[1]][2])
+                #push!(matrices.R_membrane, intersections[intersectedIndices[2]][2])
+
+                push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[1]][2])
+                push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[2]][2])
+                
+            
+                resize!(matrices.Rt,length(matrices.Rt)+2)
+                resize!(matrices.R_final,length(matrices.R_final)+2)
+            end
+
+
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
