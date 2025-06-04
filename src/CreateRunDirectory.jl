@@ -36,12 +36,13 @@ function createRunDirectory(params,subFolder)
         L₀,
         outputInterval,
         tMax,
-        nonDimCycleTime = params
+        nonDimCycleTime,
+        realStretchTime, λs, κ = params
 
     repo = LibGit2.GitRepo(projectdir())
     branchname = LibGit2.shortname(LibGit2.head(repo))
     # Create directory for run data labelled with current time.
-    paramsName = @savename nCells L₀ γ realTimetMax
+    paramsName = @savename nCells L₀ γ realTimetMax realStretchTime λs κ
     # folderName = joinpath(branchname, subFolder, "$(branchname)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
     folderName = joinpath("sims", branchname, subFolder, "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)")
     # Create frames subdirectory to store system state at each output time
