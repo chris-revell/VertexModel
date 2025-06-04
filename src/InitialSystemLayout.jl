@@ -32,7 +32,7 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(nRows)
+function initialSystemLayout(nRows; edgeCells=false)
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -129,11 +129,35 @@ function initialSystemLayout(nRows)
     R = R[setdiff(1:size(R, 1), verticesToRemove)]
 
     senseCheck(A, B; marker="Removing peropheral vertices")
+    
+    if edgeCells==false
+        A,B,R=removeBoundaryCells(A,B,R)
+    end
 
     return A, B, R
 
 end
 
+function removeBoundaryCells(A, B, R)
+
+    nVerts=size(A)[2]
+    nEdges=size(A)[1]
+    nCells=size(B)[1]
+
+    edgesP=vec((abs.(ones(nCells)'*B)))
+    vertsP=vec((0.5.*edgesP'*abs.(A))')
+    edgesB=vec(abs.(A*(ones(nVerts).-vertsP)))
+    edgesI=vec(ones(nEdges).-edgesB.-edgesP)
+    vertsI=vec(ones(nVerts)-vertsP)
+    cellsB=vec(abs.(abs.(B)*edgesP))
+    cellsB[findall(x->x!=0,cellsB)].=1
+    cellsI=ones(nCells)-cellsB
+
+    Bint=B[cellsI.>0, edgesI.>0]
+    Aint=A[edgesI.>0, vertsI.>0]
+    Rint=R[vertsI.>0]
+    return Aint, Bint, Rint
+end
 
 
 indexLoop(a,N) = (N+a-1)%(N)+1
