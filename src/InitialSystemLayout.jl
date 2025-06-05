@@ -134,6 +134,8 @@ function initialSystemLayout(nRows; edgeCells=false)
         A,B,R=removeBoundaryCells(A,B,R)
     end
 
+    R.-= (sum(R, dims=1)./size(R,1))
+
     return A, B, R
 
 end
