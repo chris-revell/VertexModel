@@ -44,7 +44,11 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
         nVerts,
         nCells= params
 
-    empty!(ax)
+    #empty!(ax)
+    empty!(fig)
+    grid = fig[1,1] = GridLayout()
+    ax = Axis(grid[1,1],aspect=DataAspect())
+
 
     # ax.title = "t = $(@sprintf("%.3f", t))"
 
@@ -114,6 +118,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
     # Add frame to movie 
     recordframe!(mov)
+
 
     return nothing
 

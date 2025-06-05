@@ -83,7 +83,7 @@ function model!(du, u, p, t)
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
 
     if stretchType != "none"
-        dRt=stretchCells(t, params, matrices)
+        dRt=stretchCells(R,t, params, matrices)
         #κ=1 #spring const assuming that the vertices are anchored to the stretched membrane layer by springs
 
 

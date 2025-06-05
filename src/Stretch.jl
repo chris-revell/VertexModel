@@ -50,9 +50,9 @@ using GeometryBasics
         return dΛt
     end
 
-    function stretchCells(t, params,matrices)
+    function stretchCells(R,t, params,matrices)
         @unpack R_membrane, Rt, R_final= matrices
-        @unpack λs, stretchType, tStretch, tMemChange = params
+        @unpack λs, stretchType, tStretch, tMemChange, nVerts = params
         #stretch monolayer, map R_x->(1 + \lambda)R_x, Ry->R-y/(1+\lambda)
 
         ## This only works for non dividing monolayers currently
@@ -75,20 +75,38 @@ using GeometryBasics
 
         #@show tMemChange
 
-        ΛtMemt=(inv(stretchFunc(tMemChange, params))*stretchFunc(t, params)) #Λ(t)
-        ΛtMemτ=(inv(stretchFunc(tMemChange, params))*stretchFunc(tStretch, params)) #Λ(tStretch)
+        # ΛtMemt=(inv(stretchFunc(tMemChange, params))*stretchFunc(t, params)) #Λ(t)
+        # #ΛtMemτ=(inv(stretchFunc(tMemChange, params))*stretchFunc(tStretch, params)) #Λ(tStretch)
 
-        dΛtMemt=(inv(stretchFunc(tMemChange, params))*dstretchFunc(t, params)) #dΛ(t)
+        # dΛtMemt=(inv(stretchFunc(tMemChange, params))*dstretchFunc(t, params)) #dΛ(t)
        
+        
 
-        dRt=[dΛtMemt*kk for kk in R_membrane]
-        Rt.=[ΛtMemt*kk for kk in R_membrane]
+        # dRt=[dΛtMemt*kk for kk in R_membrane]
+        # Rt.=[ΛtMemt*kk for kk in R_membrane]
 
-        if t<=tStretch
-            R_final.=[ΛtMemτ*kk for kk in R_membrane]
-        else
-            R_final.=R_membrane
-        end
+        # if t<=tStretch
+        #     R_final.=[ΛtMemτ*kk for kk in R_membrane]
+        # else
+        #     R_final.=R_membrane
+        # end
+
+
+        #Try having new vertices not stuck down, so stretch force only acting on original points
+
+        #So don't update R_membrane
+        #Do stretch on original verts eg 1:nVerts, remaining dRt ->0, remaining Rt, R_final -> R
+        n=size(R_membrane)[1]
+
+        dRt=fill(SVector{2,Float64}(zeros(2)), nVerts)
+            
+
+        dRt[1:n].=[dstretchFunc(t, params)*kk for kk in R_membrane]
+        Rt[1:n].=[stretchFunc(t, params)*kk for kk in R_membrane]
+        R_final[1:n].=[stretchFunc(tStretch, params)*kk for kk in R_membrane]
+
+        Rt[n+1:end].=R[n+1:end]
+        R_final[n+1:end].=R[n+1:end]
 
         
         return dRt

@@ -165,28 +165,27 @@ function division!(integrator,params,matrices)
             integrator.u[end-1:end] .= intersections[intersectedIndices[2]][2]
             
             if stretchType !="none"
-                params.tMemChange = integrator.t
-                tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
+                # params.tMemChange = integrator.t
+                # tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
                 
-                ccMem=(C*matrices.R_membrane)./cellEdgeCount 
+                # ccMem=(C*matrices.R_membrane)./cellEdgeCount 
                 
-                shortAxisLineMem = Line(Point{2,Float64}(ccMem[i].+(2*shortvec)), Point{2,Float64}(ccMem[i].-(2*shortvec))) #division orientation should come from current cell shape
-
-
+                # shortAxisLineMem = Line(Point{2,Float64}(ccMem[i].+(2*shortvec)), Point{2,Float64}(ccMem[i].-(2*shortvec))) #division orientation should come from current cell shape
                     
-                polyMembrane = LineString(Point{2, Float64}.(matrices.R_membrane[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
-                intersectionsMembrane = [intersects(line, shortAxisLineMem) for line in polyMembrane] #might need to find shapetensor etc for R_membrane poly.
-                intersectedIndicesMem = findall(x->x!=0, first.(intersectionsMembrane))
+                # polyMembrane = LineString(Point{2, Float64}.(matrices.R_membrane[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+                # intersectionsMembrane = [intersects(line, shortAxisLineMem) for line in polyMembrane] #might need to find shapetensor etc for R_membrane poly.
+                # intersectedIndicesMem = findall(x->x!=0, first.(intersectionsMembrane))
 
-                #push!(matrices.R_membrane, intersections[intersectedIndices[1]][2])
-                #push!(matrices.R_membrane, intersections[intersectedIndices[2]][2])
+                # push!(matrices.R_membrane, intersections[intersectedIndices[1]][2])
+                # push!(matrices.R_membrane, intersections[intersectedIndices[2]][2])
 
-                push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[1]][2])
-                push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[2]][2])
+                # #push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[1]][2])
+                # #push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[2]][2])
                 
             
                 resize!(matrices.Rt,length(matrices.Rt)+2)
                 resize!(matrices.R_final,length(matrices.R_final)+2)
+                
             end
 
 
