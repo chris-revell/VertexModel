@@ -44,20 +44,20 @@ using DiffEqCallbacks
 ###
 
 function vertexModel(;
-    initialSystem="new",
-    nRows=9,
+    initialSystem="hex",
+    nRows=11,
     nCycles=1,
-    realCycleTime=86400.0,
+    realCycleTime=14400.0, #4hrs
     realTimetMax=nCycles*realCycleTime,
-    γ=0.2,
-    L₀=0.75,
+    γ=0.172, #from ANB parameter inference Xenopus animal caps
+    L₀=0.753, #from ANB parameter inference Xenopus animal caps
     A₀=1.0,
     viscousTimeScale=1000.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
-    t1Threshold=0.05,
-    #solver=TanYam7(),
-    solver=Tsit5(),
+    t1Threshold=0.01,
+    solver=TanYam7(),
+    #solver=Tsit5(),
     #solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
@@ -95,6 +95,10 @@ function vertexModel(;
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     folderName = createRunDirectory(params,subFolder)
+    fname=@savename L₀ γ
+
+    R0 = reinterpret(SVector{2,Float64}, u0)
+    jldsave(datadir(folderName,"systemDataInitial_$(fname).jld2");matrices,params,R0)
     if outputToggle == 1
         # Create plot object for later use 
 
@@ -104,6 +108,8 @@ function vertexModel(;
     end
 
     # Set up ODE integrator 
+
+    ###Need to set up tstops with max stretch time and then regular intervals relative to stretch
 
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
@@ -163,7 +169,6 @@ function vertexModel(;
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
-    fname=@savename L₀ γ
     R = reinterpret(SVector{2,Float64}, integrator.u)
     jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
     return integrator
