@@ -33,7 +33,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
     tStretch= realStretchTime/viscousTimeScale
-    outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
+    outputInterval = tMax / (outputTotal)     # Time interval for storing system data (non dimensionalised)
     λ = -2.0 * L₀ * γ
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
 
@@ -99,7 +99,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         edgeTangents      = fill(SVector{2,Float64}(zeros(2)), nEdges),
         edgeMidpoints     = fill(SVector{2,Float64}(zeros(2)), nEdges),
         edgeMidpointLinks = spzeros(SVector{2,Float64}, nCells, nVerts),
-        timeSinceT1       = zeros(nEdges),
+        timeSinceT1       = ones(nEdges).*(nonDimCycleTime/100) ,
         vertexAreas       = ones(nVerts),
         F                 = spzeros(SVector{2,Float64}, nVerts, nCells),
         externalF         = fill(SVector{2,Float64}(zeros(2)), nVerts),

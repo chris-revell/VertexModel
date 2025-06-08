@@ -23,10 +23,11 @@ function t1Transitions!(integrator, params, matrices)
         edgeTangents,
         timeSinceT1,
         boundaryEdges,
-        ϵ = matrices
+        ϵ= matrices
     @unpack nEdges,
         t1Threshold,
-        nonDimCycleTime = params
+        nonDimCycleTime,
+        tStretch, stretchType = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
@@ -103,8 +104,18 @@ function t1Transitions!(integrator, params, matrices)
                 R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
                 R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
+                # if stretchType!="none"
+                #     params.tMemChange = integrator.t
+                #     tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
+                #     memTangents=(A*matrices.R_membrane)
+
+                #     matrices.R_membrane[b] = matrices.R_membrane[b] .+ 0.5.*memTangents[j] .+ 0.5.*ϵ*memTangents[j]
+                #     matrices.R_membrane[a] = matrices.R_membrane[a] .- 0.5.*memTangents[j] .- 0.5.*ϵ*memTangents[j]
+                # end
+
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
+                @show transitionCount
                 break
             end 
         end
