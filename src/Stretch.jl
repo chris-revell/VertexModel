@@ -76,7 +76,7 @@ using GeometryBasics
         #@show tMemChange
 
         # ΛtMemt=(inv(stretchFunc(tMemChange, params))*stretchFunc(t, params)) #Λ(t)
-        # #ΛtMemτ=(inv(stretchFunc(tMemChange, params))*stretchFunc(tStretch, params)) #Λ(tStretch)
+        # ΛtMemτ=(inv(stretchFunc(tMemChange, params))*stretchFunc(tStretch, params)) #Λ(tStretch)
 
         # dΛtMemt=(inv(stretchFunc(tMemChange, params))*dstretchFunc(t, params)) #dΛ(t)
        
@@ -104,6 +104,10 @@ using GeometryBasics
         dRt[1:n].=[dstretchFunc(t, params)*kk for kk in R_membrane]
         Rt[1:n].=[stretchFunc(t, params)*kk for kk in R_membrane]
         R_final[1:n].=[stretchFunc(tStretch, params)*kk for kk in R_membrane]
+
+        # dRt[1:n].=[dΛtMemt*kk for kk in R_membrane]
+        # Rt[1:n].=[ΛtMemt*kk for kk in R_membrane]
+        # R_final[1:n].=[ΛtMemτ*kk for kk in R_membrane]
 
         Rt[n+1:end].=R[n+1:end]
         R_final[n+1:end].=R[n+1:end]

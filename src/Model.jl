@@ -48,7 +48,8 @@ function model!(du, u, p, t)
         vertexWeighting,
         stretchType,
         tStretch,
-        κ = params
+        κ,
+        viscousTimeScale = params
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, u)

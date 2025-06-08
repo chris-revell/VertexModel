@@ -56,9 +56,9 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
-    solver=TanYam7(),
+    #solver=TanYam7(),
     #solver=Tsit5(),
-    #solver=Vern7(lazy=false),
+    solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -95,17 +95,17 @@ function vertexModel(;
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     folderName = createRunDirectory(params,subFolder)
-    fname=@savename L₀ γ
+    fname=@savename L₀ γ λs realStretchTime κ
 
     R0 = reinterpret(SVector{2,Float64}, u0)
     jldsave(datadir(folderName,"systemDataInitial_$(fname).jld2");matrices,params,R0)
-    if outputToggle == 1
-        # Create plot object for later use 
+    # if outputToggle == 1
+    #     #Create plot object for later use 
 
-        if frameImageToggle==1 || videoToggle==1
+    #     if frameImageToggle==1 || videoToggle==1
             fig, ax, mov = plotSetup()
-        end
-    end
+    #     end
+    # end
 
     # Set up ODE integrator 
 
@@ -113,7 +113,8 @@ function vertexModel(;
 
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState())
+    push!(alltStops,params.tStretch )
+    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=params.tStretch+1))
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
@@ -129,15 +130,22 @@ function vertexModel(;
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
             if frameDataToggle == 1
                 # Save system data to file 
-                jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
+                jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1]-1)).jld2"); matrices, params, R)
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
                 visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
             end
             # Save still image of this time step 
-            frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
+            frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1]-1)).png"), fig) : nothing
             outputCounter[1] += 1
+        end
+        
+        if integrator.t==params.tStretch
+            jldsave(datadir(folderName,"systemDataFullStretch_$(fname).jld2");matrices,params,R)
+
+            visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+            save(datadir(folderName, "FullStretch_$(fname).png"), fig)
         end
 
         # Step integrator forwards in time to update vertex positions 
@@ -146,7 +154,7 @@ function vertexModel(;
 
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
         spatialData!(R, params, matrices)
-
+        @show minimum(matrices.edgeLengths)
         # Check system for T1 transitions 
         if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
