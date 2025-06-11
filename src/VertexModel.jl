@@ -99,6 +99,7 @@ function vertexModel(;
 
     R0 = reinterpret(SVector{2,Float64}, u0)
     jldsave(datadir(folderName,"systemDataInitial_$(fname).jld2");matrices,params,R0)
+
     # if outputToggle == 1
     #     #Create plot object for later use 
 
@@ -106,6 +107,8 @@ function vertexModel(;
             fig, ax, mov = plotSetup()
     #     end
     # end
+    visualise(R0, 0, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+    save(datadir(folderName, "systemDataInitial_$(fname).png"), fig)
 
     # Set up ODE integrator 
 
