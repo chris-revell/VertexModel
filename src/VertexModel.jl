@@ -56,9 +56,9 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
-    #solver=TanYam7(),
+    solver=TanYam7(),
     #solver=Tsit5(),
-    solver=Vern7(lazy=false),
+    #solver=Vern7(lazy=false),
     nBlasThreads=1,
     subFolder="",
     outputTotal=100,
@@ -81,7 +81,7 @@ function vertexModel(;
     stretchType="none", 
     realStretchTime=0,
     λs=0,
-    κ=1,
+    κ=0,
     maxCells=1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
@@ -94,21 +94,23 @@ function vertexModel(;
     vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
-    folderName = createRunDirectory(params,subFolder)
-    fname=@savename L₀ γ λs realStretchTime κ
 
-    R0 = reinterpret(SVector{2,Float64}, u0)
-    jldsave(datadir(folderName,"systemDataInitial_$(fname).jld2");matrices,params,R0)
+            fname=@savename L₀ γ λs realStretchTime κ
 
-    # if outputToggle == 1
-    #     #Create plot object for later use 
+            R0 = reinterpret(SVector{2,Float64}, u0)
+    if outputToggle == 1
+         #Create plot object for later use 
+            folderName = createRunDirectory(params,subFolder)
 
-    #     if frameImageToggle==1 || videoToggle==1
+            jldsave(datadir(folderName,"systemDataInitial_$(fname).jld2");matrices,params,R0)
+         if frameImageToggle==1 || videoToggle==1
             fig, ax, mov = plotSetup()
-    #     end
-    # end
-    visualise(R0, 0, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
-    save(datadir(folderName, "systemDataInitial_$(fname).png"), fig)
+            visualise(R0,R0, 0, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+            save(datadir(folderName, "systemDataInitial_$(fname).png"), fig)
+         end
+
+     end
+
 
     # Set up ODE integrator 
 
@@ -117,7 +119,9 @@ function vertexModel(;
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
     push!(alltStops,params.tStretch )
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=params.tStretch+1))
+    #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=params.tStretch+1))
+    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
@@ -137,17 +141,17 @@ function vertexModel(;
             end
             if frameImageToggle == 1 || videoToggle == 1
                 # Render visualisation of system and add frame to movie
-                visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                visualise(R0,R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
             end
             # Save still image of this time step 
             frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1]-1)).png"), fig) : nothing
             outputCounter[1] += 1
         end
         
-        if integrator.t==params.tStretch
+        if integrator.t==params.tStretch && outputToggle == 1
             jldsave(datadir(folderName,"systemDataFullStretch_$(fname).jld2");matrices,params,R)
 
-            visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+            visualise(R0,R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
             save(datadir(folderName, "FullStretch_$(fname).png"), fig)
         end
 
@@ -157,7 +161,7 @@ function vertexModel(;
 
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
         spatialData!(R, params, matrices)
-        @show minimum(matrices.edgeLengths)
+        #@show minimum(matrices.edgeLengths)
         # Check system for T1 transitions 
         if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
@@ -176,12 +180,14 @@ function vertexModel(;
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
+        @show params.nCells
     end
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
     R = reinterpret(SVector{2,Float64}, integrator.u)
-    jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R)
+    
+    outputToggle == 1 ? jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R) : nothing 
     return integrator
 end
 
