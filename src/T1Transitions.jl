@@ -13,15 +13,17 @@ module T1Transitions
 using LinearAlgebra
 using UnPack
 using StaticArrays
+using SparseArrays
 
 function t1Transitions!(integrator, params, matrices)
 
     @unpack A,
-        B,
+        B,Bᵀ,
         C,
         edgeLengths,
         edgeTangents,
         timeSinceT1,
+        cellTimeToDivide,
         boundaryEdges,
         ϵ= matrices
     @unpack nEdges,
@@ -35,7 +37,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > nonDimCycleTime / 100.0
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 500.0)
 
             timeSinceT1[j] = 0
 
@@ -104,14 +106,14 @@ function t1Transitions!(integrator, params, matrices)
                 R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
                 R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
-                # if stretchType!="none"
-                #     params.tMemChange = integrator.t
-                #     tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
-                #     memTangents=(A*matrices.R_membrane)
+                if stretchType!="none"
+                     params.tMemChange = integrator.t
+                     tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
+                     #memTangents=(A*matrices.R_membrane)
 
-                #     matrices.R_membrane[b] = matrices.R_membrane[b] .+ 0.5.*memTangents[j] .+ 0.5.*ϵ*memTangents[j]
-                #     matrices.R_membrane[a] = matrices.R_membrane[a] .- 0.5.*memTangents[j] .- 0.5.*ϵ*memTangents[j]
-                # end
+                     matrices.R_membrane[b] = R_u[b]
+                     matrices.R_membrane[a] = R_u[a]
+                end
 
                 transitionCount += 1
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.

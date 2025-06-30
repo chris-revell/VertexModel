@@ -83,19 +83,12 @@ function model!(du, u, p, t)
     vertexWeighting && (dR ./= vertexAreas)
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
 
-    if stretchType != "none"
-        dRt=stretchCells(R,t, params, matrices)
-        #κ=1 #spring const assuming that the vertices are anchored to the stretched membrane layer by springs
+    if (stretchType != "none") && (t<= tStretch)
 
-
-
-        if t<= tStretch
+            dRt=stretchCells(R,t, params, matrices)
             #dR .+= -κ.*(R .- Rt)
-            dR .+= (dRt .-κ.*(R .- Rt))
-
-        else
-            dR .+=-κ.*(R .- R_final)
-        end
+            #dR .+= (dRt .-κ.*(R .- Rt))
+            dR .+= dRt
     end
 
 

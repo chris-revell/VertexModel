@@ -165,8 +165,8 @@ function division!(integrator,params,matrices)
             integrator.u[end-1:end] .= intersections[intersectedIndices[2]][2]
             
             if stretchType !="none"
-                # params.tMemChange = integrator.t
-                # tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
+                params.tMemChange = integrator.t
+                tStretch-integrator.t > 0 ? matrices.R_membrane .= matrices.Rt : matrices.R_membrane.=matrices.R_final
                 
                 # ccMem=(C*matrices.R_membrane)./cellEdgeCount 
                 
@@ -176,8 +176,8 @@ function division!(integrator,params,matrices)
                 # intersectionsMembrane = [intersects(line, shortAxisLineMem) for line in polyMembrane] #might need to find shapetensor etc for R_membrane poly.
                 # intersectedIndicesMem = findall(x->x!=0, first.(intersectionsMembrane))
 
-                # push!(matrices.R_membrane, intersections[intersectedIndices[1]][2])
-                # push!(matrices.R_membrane, intersections[intersectedIndices[2]][2])
+                push!(matrices.R_membrane, intersections[intersectedIndices[1]][2])
+                push!(matrices.R_membrane, intersections[intersectedIndices[2]][2])
 
                 # #push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[1]][2])
                 # #push!(matrices.R_membrane, intersectionsMembrane[intersectedIndicesMem[2]][2])
