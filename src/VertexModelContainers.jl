@@ -86,6 +86,9 @@ end
     R_membrane       ::Vector{SVector{2, Float64}}                  # initial vertex positions, updated if there has been a division
     Rt               ::Vector{SVector{2, Float64}}                  # Membrane point position at time t
     R_final          ::Vector{SVector{2, Float64}}                  # Membrane point position at full stretch, may change with division
+    cellLineage      ::Vector{Int64}                                # Initial cell which cell originated from
+    cellGeneration   ::Vector{Int64}                                # Number of generations with inital config as gen 1.
+    cellIndex        ::Vector{Int64}                                # Index to track division
 end
 
 export ParametersContainer,MatricesContainer

@@ -49,7 +49,9 @@ function division!(integrator,params,matrices)
         edgeTangents,
         ϵ, 
         μ, 
-        Γ, R_membrane, Rt, R_final = matrices
+        Γ, R_membrane, Rt, R_final,
+        cellLineage,
+        cellGeneration = matrices
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -194,9 +196,16 @@ function division!(integrator,params,matrices)
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
+            cellGeneration[i]+=1
+            cellIndex[i]=nCells+1
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
+            push!(cellLineage,cellLineage[i])
+            push!(cellGeneration,cellGeneration[i])
+            push!(cellIndex, nCells+2)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
+
+            #do we want a cell index so we can track daughter cells currently on split on cell retains parent's cell id
 
             divisionCount = 1
             

@@ -52,7 +52,7 @@ function vertexModel(;
     γ=0.172, #from ANB parameter inference Xenopus animal caps
     L₀=0.753, #from ANB parameter inference Xenopus animal caps
     A₀=1.0,
-    viscousTimeScale=1000.0,
+    viscousTimeScale=100.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
