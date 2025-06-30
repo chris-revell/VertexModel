@@ -21,20 +21,22 @@ using OrdinaryDiffEq
 using Distributions
 using GeometryBasics
 using Random
+using DelimitedFiles
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "ResizeMatrices.jl" using ResizeMatrices
 @from "Stretch.jl" using Stretch
 
-function division!(integrator,params,matrices)
+function division!(integrator,params,matrices, folderName)
 
     @unpack nCells,
         nEdges,
         nVerts,
         nonDimCycleTime,
+        realCycleTime,
         distLogNormal,
-        γ, t1Threshold, tStretch,tMemChange, stretchType = params
+        L₀, γ, t1Threshold, tStretch,tMemChange, stretchType = params
     @unpack A, 
         B, C,
         cellTimeToDivide, 
@@ -51,7 +53,8 @@ function division!(integrator,params,matrices)
         μ, 
         Γ, R_membrane, Rt, R_final,
         cellLineage,
-        cellGeneration = matrices
+        cellGeneration,
+        cellIndex = matrices
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -68,15 +71,16 @@ function division!(integrator,params,matrices)
             
             # circ = abs(eigenVals[1]/eigenVals[2]) # circularity
             # #for very circular cells randomly choose division axis
-            # if circ > 0.95 
+            # if circ > 0.9
             #     theta = rand()*π
             #     shortvec = [cos(theta), sin(theta)]
             # else
-            if eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
-                shortvec = -1.0*cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
-            else
-                shortvec = cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
-            end
+                if eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
+                    shortvec = -1.0*cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
+                else
+                    shortvec = cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
+                end
+            #end
             shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
             # Test cell edges for an intersection
@@ -194,25 +198,26 @@ function division!(integrator,params,matrices)
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
+            maxIndex=maximum(cellIndex)
+            open(io -> writedlm(io, [integrator.t cellIndex[i] maxIndex+1 maxIndex+2 cellPositions[i][1] cellPositions[i][2] cellLineage[i] cellGeneration[i] eigenVecs[:,2][1] eigenVecs[:,2][2]], ','), datadir(folderName,"Division_$(@savename L₀ γ realCycleTime).csv"), "a") # write
+
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             cellGeneration[i]+=1
-            cellIndex[i]=nCells+1
+            cellIndex[i]=maxIndex+1
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             push!(cellLineage,cellLineage[i])
             push!(cellGeneration,cellGeneration[i])
-            push!(cellIndex, nCells+2)
+            push!(cellIndex, maxIndex+2)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
 
             #do we want a cell index so we can track daughter cells currently on split on cell retains parent's cell id
 
             divisionCount = 1
-            
             break
         end 
     end
-
     return divisionCount
 
 end
