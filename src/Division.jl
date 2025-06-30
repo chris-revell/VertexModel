@@ -198,7 +198,7 @@ function division!(integrator,params,matrices, folderName)
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
-            matrices.timeSinceT1[newEdges].=nonDimCycleTime/250.0
+            matrices.timeSinceT1[newEdges].=nonDimCycleTime/100.0
             maxIndex=maximum(cellIndex)
             open(io -> writedlm(io, [integrator.t cellIndex[i] maxIndex+1 maxIndex+2 cellPositions[i][1] cellPositions[i][2] cellLineage[i] cellGeneration[i] eigenVecs[:,2][1] eigenVecs[:,2][2]], ','), datadir(folderName,"Division_$(@savename L₀ γ realCycleTime).csv"), "a") # write
 
