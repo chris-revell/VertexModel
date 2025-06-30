@@ -49,7 +49,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         A, B, R = initialCellConfig(initialSystem)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "hex"
-        A, B, R = initialSystemLayout(nRows)
+        A, B, R = initialSystemLayout(nRows, x=0)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "hex_smooth"
         A, B, R = initialSystemLayout(nRows, edgeCells=true)

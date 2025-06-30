@@ -32,7 +32,7 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(nRows; edgeCells=false)
+function initialSystemLayout(nRows; edgeCells=false, x=0)
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -135,6 +135,11 @@ function initialSystemLayout(nRows; edgeCells=false)
     end
 
     R.-= (sum(R, dims=1)./size(R,1))
+
+    if x!=0 
+        rot=[cos(x) -sin(x); sin(x) cos(x)]
+        R.=[rot*R[k] for k in 1:size(R,1)]
+    end
 
     return A, B, R
 
