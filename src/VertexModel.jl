@@ -19,6 +19,7 @@ using SparseArrays
 using StaticArrays
 using CairoMakie
 using Printf
+using DiffEqCallbacks
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -31,6 +32,35 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
+# @from "Callbacks.jl" using Callbacks
+
+function conditionSteadyState(u, t, integrator)
+    # @show maximum(norm.(get_du(integrator)))
+    maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol ? true : false
+end
+function conditiontMax(u, t, integrator)
+    integrator.t <= integrator.p[1].tMax ? false : true
+end
+function affectTerminate!(integrator)
+    # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+    println("Terminate")
+    terminate!(integrator)
+end
+# function affectTerminateSS!(integrator)
+#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+#     println("Terminate at steady state")
+#     terminate!(integrator)
+# end
+# function affectTerminatetMax!(integrator)
+#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+#     println("Terminate at tMax")
+#     terminate!(integrator)
+# end
+
+# Create callback using user-defined functions above
+cbtMax = DiscreteCallback(conditiontMax, affectTerminate!)
+cbSS = DiscreteCallback(conditionSteadyState, affectTerminate!)
+
 
 function vertexModel(;
     initialSystem = "new",
@@ -69,6 +99,7 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
+    termSteadyState = false,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -103,18 +134,55 @@ function vertexModel(;
         end
     end
 
-    # Set up ODE integrator 
-    prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
-    alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    # Set up ODE integrator   
+    prob = ODEProblem(model!, u0, (0.0, (termSteadyState ? Inf : params.tMax)), (params, matrices))
+    alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 10.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
+    integrator = init(prob,
+            solver,
+            tstops=alltStops,
+            abstol=abstol,
+            reltol=reltol,
+            save_on=false,
+            save_start=false,
+            save_end=true,
+            callback= (termSteadyState ? cbSS : cbtMax)
+        )  
+    # if termSteadyState
+    #     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
+    #     alltStops = [Inf] # Time points that the solver will be forced to land at during integration
+    #     integrator = init(prob,
+    #             solver,
+    #             tstops=alltStops,
+    #             abstol=abstol,
+    #             reltol=reltol,
+    #             save_on=false,
+    #             save_start=false,
+    #             save_end=true,
+    #             callback = cbSS
+    #         )
+    # else 
+    #     prob = ODEProblem(model!, u0, (0.0, params.tMax), (params, matrices))
+    #     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
+    #     integrator = init(prob,
+    #             solver,
+    #             tstops=alltStops,
+    #             abstol=abstol,
+    #             reltol=reltol,
+    #             save_on=false,
+    #             save_start=false,
+    #             save_end=true,
+    #             callback=cbtMax
+    #         )
+    # end
     outputCounter = [1]
 
-    # Iterate until integrator time reaches max system time 
-    while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    # Iterate until integrator terminates according to specified callback 
+    while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success) && integrator.sol.retcode!=:Terminate
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
-        # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
+        # Note that reinterpreting accesses the same underlying data, 
+        # so changes to R will update integrator.u and vice versa 
 
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]
