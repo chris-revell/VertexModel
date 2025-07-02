@@ -37,6 +37,12 @@ using DiffEqCallbacks
 function conditionSteadyState(u, t, integrator)
     # @show maximum(norm.(get_du(integrator)))
     maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol ? true : false
+    # if maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol 
+    #     @show maximum(norm.(get_du(integrator)))
+    #     return true
+    # else
+    #     return false
+    # end
 end
 function conditiontMax(u, t, integrator)
     integrator.t <= integrator.p[1].tMax ? false : true
@@ -135,7 +141,11 @@ function vertexModel(;
     end
 
     # Set up ODE integrator   
-    prob = ODEProblem(model!, u0, (0.0, (termSteadyState ? Inf : params.tMax)), (params, matrices))
+    prob = ODEProblem(model!,
+            u0,
+            (0.0, (termSteadyState ? Inf : params.tMax)),
+            (params, matrices),
+        )
     alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 10.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
     integrator = init(prob,
             solver,
@@ -147,33 +157,6 @@ function vertexModel(;
             save_end=true,
             callback= (termSteadyState ? cbSS : cbtMax)
         )  
-    # if termSteadyState
-    #     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
-    #     alltStops = [Inf] # Time points that the solver will be forced to land at during integration
-    #     integrator = init(prob,
-    #             solver,
-    #             tstops=alltStops,
-    #             abstol=abstol,
-    #             reltol=reltol,
-    #             save_on=false,
-    #             save_start=false,
-    #             save_end=true,
-    #             callback = cbSS
-    #         )
-    # else 
-    #     prob = ODEProblem(model!, u0, (0.0, params.tMax), (params, matrices))
-    #     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    #     integrator = init(prob,
-    #             solver,
-    #             tstops=alltStops,
-    #             abstol=abstol,
-    #             reltol=reltol,
-    #             save_on=false,
-    #             save_start=false,
-    #             save_end=true,
-    #             callback=cbtMax
-    #         )
-    # end
     outputCounter = [1]
 
     # Iterate until integrator terminates according to specified callback 
@@ -186,6 +169,7 @@ function vertexModel(;
 
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]
+            termSteadyState  ? @show maximum(norm.(get_du(integrator))) : nothing
             # Update progress on command line 
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
             if frameDataToggle == 1
