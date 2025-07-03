@@ -10,23 +10,43 @@ module Callbacks
 
 using OrdinaryDiffEq
 using DiffEqCallbacks
-
-tss = TerminateSteadyState(abstol = 1e-8,
-                    reltol = 1e-6,
-                    test = allDerivPass; 
-                    min_t = nothing,
-                    wrap_test::Val = Val(true)
-        )
+using LinearAlgebra
 
 function conditionSteadyState(u, t, integrator)
-    maximum(norm.(get_du(integrator))) < 1e-3 ? true : false
+    # @show maximum(norm.(get_du(integrator)))
+    maximum(abs.(get_du(integrator))) < 100.0*integrator.opts.abstol ? true : false
+    # if maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol 
+    #     @show maximum(norm.(get_du(integrator)))
+    #     return true
+    # else
+    #     return false
+    # end
 end
-
+function conditiontMax(u, t, integrator)
+    integrator.t <= integrator.p[1].tMax ? false : true
+end
 function affectTerminate!(integrator)
     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
-    println("Terminate at steady state")
-    terminate!(integrator, ReturnCode.Success)    
+    println("Terminate")
+    terminate!(integrator)
 end
-# Create callback using two user-defined functions above
-cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
+# function affectTerminateSS!(integrator)
+#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+#     println("Terminate at steady state")
+#     terminate!(integrator)
+# end
+# function affectTerminatetMax!(integrator)
+#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+#     println("Terminate at tMax")
+#     terminate!(integrator)
+# end
 
+# Create callback using user-defined functions above
+# cbtMax = DiscreteCallback(conditiontMax, affectTerminate!)
+# cbSS = DiscreteCallback(conditionSteadyState, affectTerminate!)
+
+export conditionSteadyState
+export conditiontMax
+export affectTerminate!
+
+end
