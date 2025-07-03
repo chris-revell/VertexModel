@@ -32,41 +32,7 @@ using DiffEqCallbacks
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-# @from "Callbacks.jl" using Callbacks
-
-function conditionSteadyState(u, t, integrator)
-    # @show maximum(norm.(get_du(integrator)))
-    maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol ? true : false
-    # if maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol 
-    #     @show maximum(norm.(get_du(integrator)))
-    #     return true
-    # else
-    #     return false
-    # end
-end
-function conditiontMax(u, t, integrator)
-    integrator.t <= integrator.p[1].tMax ? false : true
-end
-function affectTerminate!(integrator)
-    # if conditionSteadyState() returns true, terminate integrator and pass successful return code
-    println("Terminate")
-    terminate!(integrator)
-end
-# function affectTerminateSS!(integrator)
-#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
-#     println("Terminate at steady state")
-#     terminate!(integrator)
-# end
-# function affectTerminatetMax!(integrator)
-#     # if conditionSteadyState() returns true, terminate integrator and pass successful return code
-#     println("Terminate at tMax")
-#     terminate!(integrator)
-# end
-
-# Create callback using user-defined functions above
-cbtMax = DiscreteCallback(conditiontMax, affectTerminate!)
-cbSS = DiscreteCallback(conditionSteadyState, affectTerminate!)
-
+@from "Callbacks.jl" using Callbacks
 
 function vertexModel(;
     initialSystem = "new",
@@ -146,7 +112,7 @@ function vertexModel(;
             (0.0, (termSteadyState ? Inf : params.tMax)),
             (params, matrices),
         )
-    alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 10.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
+    alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 100.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
     integrator = init(prob,
             solver,
             tstops=alltStops,
@@ -155,7 +121,7 @@ function vertexModel(;
             save_on=false,
             save_start=false,
             save_end=true,
-            callback= (termSteadyState ? cbSS : cbtMax)
+            callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, affectTerminate!), #(termSteadyState ? cbSS : cbtMax),
         )  
     outputCounter = [1]
 
