@@ -14,7 +14,7 @@ using LinearAlgebra
 
 function conditionSteadyState(u, t, integrator)
     # @show maximum(norm.(get_du(integrator)))
-    maximum(abs.(get_du(integrator))) < 100.0*integrator.opts.abstol ? true : false
+    maximum(abs.(get_du(integrator))) < integrator.p[3] ? true : false
     # if maximum(norm.(get_du(integrator))) < 100.0*integrator.opts.abstol 
     #     @show maximum(norm.(get_du(integrator)))
     #     return true
