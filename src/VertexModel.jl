@@ -66,6 +66,7 @@ function vertexModel(;
     setRandomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
+    sstol = 100.0*abstol,
     energyModel = "log",
     vertexWeighting = 1,
     R_in = spzeros(2),
@@ -110,7 +111,7 @@ function vertexModel(;
     prob = ODEProblem(model!,
             u0,
             (0.0, (termSteadyState ? Inf : params.tMax)),
-            (params, matrices),
+            (termSteadyState ? (params, matrices, sstol) : (params, matrices)),
         )
     alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 100.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
     integrator = init(prob,
@@ -135,7 +136,7 @@ function vertexModel(;
 
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]
-            termSteadyState  ? (@show maximum(norm.(get_du(integrator)))) : nothing
+            termSteadyState  ? (@show maximum(get_du(integrator))) : nothing
             # Update progress on command line 
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
             if frameDataToggle == 1
