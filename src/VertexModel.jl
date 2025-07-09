@@ -80,10 +80,11 @@ function vertexModel(;
     realCycleTime=86400.0,
     realTimetMax=nCycles*realCycleTime,
     Γa=0.1,
-    ΓA=0.1,
+    ΓA=-0.5,
     ΓL=0.1,
     L₀=2.0,
     A₀=1.0,
+    a₀=1.0,
     viscousTimeScale=1000.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
@@ -112,7 +113,7 @@ function vertexModel(;
 
     # realTimetMax=nCycles*realCycleTime
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    R, RH, params, matrices = initialise(initialSystem, realTimetMax, Γa, ΓA, ΓL, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
+    R, RH, params, matrices = initialise(initialSystem, realTimetMax, Γa, ΓA, ΓL, L₀, A₀,a₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed)
 
     # Set up output if outputToggle argument == 1
     if outputToggle==1

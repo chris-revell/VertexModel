@@ -55,7 +55,8 @@ function spatialData!(RH,params,matrices)
         ΓA,
         ΓL,
         L₀,
-        A₀ = params
+        A₀,
+        a₀ = params
 
     #R=RH[1:nVerts]
     
@@ -109,10 +110,10 @@ function spatialData!(RH,params,matrices)
     end
     #@show H
     # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= (Γa.*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights.-1.0) .+ (0.5*ΓA)).*cellHeights .+ (2*ΓL).*(cellPerimeters-L₀)
+    @.. thread = false cellTensions .= (Γa.*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights.-a₀) .+ (0.5*ΓA)).*cellHeights .+ (2*ΓL).*(cellPerimeters-L₀)
 
     # Calculate cell internal pressures
-    @.. thread = false cellPressures .= cellHeights.*(cellAreas.*cellHeights.-1.0) .+ (2*Γa).*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights .-1.0)
+    @.. thread = false cellPressures .= cellHeights.*(cellAreas.*cellHeights.-1.0) .+ (2*Γa).*(2.0 .*cellAreas .+ cellPerimeters.*cellHeights .-a₀)
 
     return nothing
 

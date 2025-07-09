@@ -35,12 +35,13 @@ function createRunDirectory(R,params,matrices,subFolder)
         nCells,
         nEdges,
         L₀,
+        a₀,
         outputInterval,
         tMax,
         nonDimCycleTime = params
 
     # Create directory for run data labelled with current time.
-    paramsName = @savename nCells L₀ Γa ΓA ΓL realTimetMax
+    paramsName = @savename nCells a₀ L₀ Γa ΓA ΓL realTimetMax
     folderName = "$(paramsName)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))"
     # Create frames subfirectory to store system state at each output time
     mkpath(datadir("sims",subFolder,folderName,"frameImages"))

@@ -38,6 +38,8 @@ mutable struct ParametersContainer
     peripheralTension  ::Float64            # Tension at system periphery
     seed               ::Int64              # Random number seed 
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
+    a₀                 ::Float64            # Cell preferred surface area
+
 end
 
 mutable struct MatricesContainer
