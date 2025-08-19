@@ -197,5 +197,6 @@ end
 
 export vertexModel
 export loadData 
+export model! 
 
 end
