@@ -60,7 +60,7 @@ function spatialData!(R,params,matrices)
     
     edgeTangents   .= A*R
     
-    @.. thread=false edgeLengths .= norm.(edgeTangents)
+    edgeLengths .= norm.(edgeTangents)
 
     edgeMidpoints  .= 0.5.*Ā*R
     
@@ -104,15 +104,15 @@ function spatialData!(R,params,matrices)
     if energyModel == "log"
         # Model per Cowley et al. 2024 Section 2a
         # Calculate cell boundary tensions
-        @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
+        cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
         # Calculate cell internal pressures
-        @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+        cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
     else
         # Quadratic energy model
         # Calculate cell boundary tensions
-        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
+        cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
         # Calculate cell internal pressures
-        @.. thread = false cellPressures .= μ .*(cellAreas - cellA₀s)
+        cellPressures .= μ .*(cellAreas - cellA₀s)
     end
 
     return nothing
