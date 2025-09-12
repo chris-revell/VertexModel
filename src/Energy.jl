@@ -4,7 +4,6 @@
 #
 #  Created by Christopher Revell on 31/01/2022.
 #
-#
 # Function to calculate system energy
 
 module Energy
@@ -13,23 +12,32 @@ module Energy
 using LinearAlgebra
 using UnPack
 
+# Energy per Cowley et al. 2024 Section 2a
+𝒰(θ) = θ*(log(θ)-1.0)
+Uᵢ(Aᵢ, A₀, Lᵢ, L₀, μᵢ, Γᵢ) = μᵢ*(𝒰(Aᵢ/A₀) + Γᵢ*L₀^2*𝒰(Lᵢ/L₀))
+
 function energy(params,matrices)
 
-    @unpack cellEnergies,
-        cellAreas,
-        cellPerimeters = matrices
-    @unpack nCells,
-        A₀,
-        L₀,
-        γ = params
-
-    energyTotal = 0.0
-    for i = 1:nCells
-        energyTotal += 0.5 * (cellAreas[i] - A₀)^2 + 0.5 * γ * (cellPerimeters[i] - L₀)^2
+    @unpack cellAreas,
+        cellA₀s,
+        cellPerimeters,
+        cellL₀s,
+        μ,
+        Γ = matrices
+    @unpack energyModel = params
+    
+    if energyModel == "log"
+        # Logarithmic energy
+        energyTotal
+        for i = 1:nCells
+            energyTotal += Uᵢ.(cellAreas[i], cellA₀s[i], cellPerimeters[i], cellL₀s[i], μ[i], Γ[i])
+        end
+    else
+        # Quadratic energy
+        energyTotal = sum(μ.*(0.5 .* (cellAreas .- cellA₀s).^2 .+ 0.5 .* Γ .* (cellPerimeters .- cellL₀s).^2))
     end
 
     return energyTotal
-
 end
 
 export energy

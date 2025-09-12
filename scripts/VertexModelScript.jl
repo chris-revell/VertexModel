@@ -29,8 +29,6 @@ using Printf
 @from "$(srcdir("TopologyChange.jl"))" using TopologyChange
 @from "$(srcdir("Division.jl"))" using Division
 @from "$(srcdir("SenseCheck.jl"))" using SenseCheck
-@from "$(srcdir("EdgeAblation.jl"))" using EdgeAblation
-
 
 initialSystem="large"
 nCycles=1.0

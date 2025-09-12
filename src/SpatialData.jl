@@ -53,7 +53,8 @@ function spatialData!(R,params,matrices)
         nVerts,
         γ,
         L₀,
-        A₀ = params
+        A₀,
+        energyModel = params
 
     cellPositions  .= C*R./cellEdgeCount
     
@@ -99,12 +100,20 @@ function spatialData!(R,params,matrices)
         cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
     end
 
-    
-    # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
-
-    # Calculate cell internal pressures
-    @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+    # Calculate cell pressures and tensions according to energy model choice 
+    if energyModel == "log"
+        # Model per Cowley et al. 2024 Section 2a
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+    else
+        # Quadratic energy model
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .*(cellAreas - cellA₀s)
+    end
 
     return nothing
 

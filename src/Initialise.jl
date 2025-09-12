@@ -27,7 +27,27 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,β,setRandomSeed; nRows=9)
+function initialise(; initialSystem = "new",
+        nCycles = 1,
+        realCycleTime = 86400.0,
+        realTimetMax = nCycles*realCycleTime,
+        γ = 0.2,
+        L₀ = 0.75,
+        A₀ = 1.0,
+        pressureExternal = 0.0,
+        viscousTimeScale = 1000.0,
+        outputTotal = 100,
+        t1Threshold = 0.05,
+        peripheralTension = 0.0,
+        β,
+        randomSeed = 0,
+        nRows = 9,
+        energyModel = "log",
+        vertexWeighting = 1,
+        R_in= spzeros(2),
+        A_in= spzeros(2),
+        B_in= spzeros(2),
+    )
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -37,21 +57,28 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
-    # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
-    seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
+    # unless non zero value of randomSeed is passed, in which case random seed is passed value of randomSeed
+    seed = (randomSeed == 0 ? floor(Int64, datetime2unix(now())) : randomSeed)
     Random.seed!(seed)
+    rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
     if initialSystem == "new"
+        isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R = initialSystemLayout(nRows)
-        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    elseif initialSystem == "argument"
+        R = R_in
+        A = A_in
+        B = B_in
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
         @unpack A,B = importedData["matrices"]
-        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
+        cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
 
@@ -119,12 +146,16 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realTimetMax      = realTimetMax,
         tMax              = tMax,
         realCycleTime     = realCycleTime,
+        nCycles           = nCycles,
         nonDimCycleTime   = nonDimCycleTime,
         t1Threshold       = t1Threshold,
         peripheralTension = peripheralTension,
         β                 = β,
         seed              = seed,
+        rng               = rng,
         distLogNormal     = LogNormal(0.0, 0.2),
+        energyModel       = energyModel,
+        vertexWeighting   = vertexWeighting,
     )
 
     # Initial evaluation of matrices based on system topology
