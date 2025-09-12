@@ -45,7 +45,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
-    β = 0.01,
+    β = 0.0,
     divisionToggle = 1,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -76,6 +76,8 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem = initialSystem,
+        nCycles = nCycles,
+        realCycleTime = realCycleTime,
         realTimetMax = realTimetMax,
         γ = γ,
         L₀ = L₀,
@@ -84,9 +86,8 @@ function vertexModel(;
         viscousTimeScale = viscousTimeScale,
         outputTotal = outputTotal,
         t1Threshold = t1Threshold,
-        realCycleTime = realCycleTime,
         peripheralTension = peripheralTension,
-        β,
+        β = β,
         randomSeed = randomSeed,
         nRows = nRows,
         energyModel = energyModel,
