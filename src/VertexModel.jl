@@ -46,7 +46,7 @@ function vertexModel(;
     peripheralTension = 0.0,
     t1Threshold = 0.05,
     β = 0.0,
-    divisionToggle = 1,
+    divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
