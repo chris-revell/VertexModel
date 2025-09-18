@@ -52,7 +52,7 @@ function model!(du, u, p, t)
 
     spatialData!(R, params, matrices)
 
-    fill!(F, @SVector zeros(2))
+    fill!(F, @SVector zeros(2)) # internal forces on vertices 
     dropzeros!(F)
     fill!(externalF, @SVector zeros(2))
 
@@ -62,14 +62,17 @@ function model!(du, u, p, t)
         for j in nzrange(A, k) # iterate over the nonzero entries for vertex k 
             for i in nzrange(B, rowvals(A)[j]) # rowvals(A) gives the row indices of nonzero entries of A
                 
-                # Force components from cell pressure perpendicular to edge tangents 
+                # Force components from cell pressure perpendicular to edge tangents - the area derivative wrt. vertex position of Energy from pressure
                 F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-                # Force on vertex from external pressure 
+                # Force on vertex from external pressure -- only applies to boundary vertices 
                 externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+
+                # MY ADDITIONS: 
+                
             end
-            # Force on vertex from peripheral tension
+            # Force on vertex from peripheral tension -- only for boundary edges 
             externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
         
