@@ -59,8 +59,9 @@ function model!(du, u, p, t)
     peripheryLength = sum(boundaryEdges .* edgeLengths)
 
     for k = 1:nVerts
-        for j in nzrange(A, k)
-            for i in nzrange(B, rowvals(A)[j])
+        for j in nzrange(A, k) # iterate over the nonzero entries for vertex k 
+            for i in nzrange(B, rowvals(A)[j]) # rowvals(A) gives the row indices of nonzero entries of A
+                
                 # Force components from cell pressure perpendicular to edge tangents 
                 F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
                 # Force components from cell membrane tension parallel to edge tangents 
