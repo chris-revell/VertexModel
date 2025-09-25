@@ -29,7 +29,6 @@ function model!(du, u, p, t)
         B,
         Ā,
         B̄,
-        cellAreas,
         cellTensions,
         cellPressures,
         edgeLengths,
@@ -58,7 +57,6 @@ function model!(du, u, p, t)
     fill!(externalF, @SVector zeros(2))
 
     peripheryLength = sum(boundaryEdges .* edgeLengths)
-    cellPerimeters = sum() 
 
     for k = 1:nVerts
         for j in nzrange(A, k) # iterate over the nonzero entries for vertex k 
@@ -66,33 +64,16 @@ function model!(du, u, p, t)
                 
                 # Force components from cell pressure perpendicular to edge tangents - the area derivative wrt. vertex position of Energy from pressure
                 F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
-
-                # Force components from cell membrane tension parallel to edge tangents - NEED TO EDIT THIS TO BE FOR DIFFERENT CELL TYPES
+                # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-
                 # Force on vertex from external pressure -- only applies to boundary vertices 
                 externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
 
                 # MY ADDITIONS: 
-                # QUANTITIES WE NEED TO ADD: 
-                    # K = elastic coefficients of each cell 
-                    # Γ = contractility coefficient of each cell 
-
-                # Area elasticity force
-                F[k,rowvals(B)[i]] += 0.5 * K[rowvals(B)[i]] * (cellAreas[rowvals(B)[i]] - A₀) * B[rowvals(B)[i],rowvals(A)[j]] * Ā[rowvals(A)[j],k] .* (ϵ * edgeTangents[rowvals(A)[j]])
-
-                cellPerimeter = sum(edgeLengths[rowvals(A)[j]])
-
-                # Cell perimeter contractility: 
-                F[k,rowvals(B)[i]] -= Γ[rowvals(B)[i]] * cellPerimeter * B̄[rowvals(B)[i],rowvals(A)[j]] * A[rowvals(A)[j],k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-
-
+                
             end
             # Force on vertex from peripheral tension -- only for boundary edges 
             externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-
-            
-
         end
         
         dR[k] = (sum(@view F[k, :]) .+ externalF[k])
@@ -113,4 +94,3 @@ export model!
 export g!
 
 end
-
