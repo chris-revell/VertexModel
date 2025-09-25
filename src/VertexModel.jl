@@ -65,7 +65,7 @@ function vertexModel(;
     randomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
-    energyModel = "log",
+    energyModel = "quadratic",
     vertexWeighting = 1,
     R_in = spzeros(2),
     A_in = spzeros(2),
