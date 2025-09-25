@@ -69,7 +69,6 @@ function model!(du, u, p, t)
                 # Force on vertex from external pressure -- only applies to boundary vertices 
                 externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
 
-                # MY ADDITIONS: 
                 
             end
             # Force on vertex from peripheral tension -- only for boundary edges 
