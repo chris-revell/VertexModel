@@ -45,7 +45,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
-    β = 0.0,
+    β = 2.0,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
