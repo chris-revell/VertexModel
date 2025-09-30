@@ -97,6 +97,7 @@ function vertexModel(;
         R_in = R_in,
         A_in = A_in,
         B_in = B_in,
+        spiky = spiky,
     )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
