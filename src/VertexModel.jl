@@ -35,7 +35,7 @@ using Printf
 function vertexModel(;
     initialSystem = "new",
     nRows = 9,
-    nCycles = 1,
+    nCycles = 0.1,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
     γ = 0.2,
@@ -45,7 +45,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
-    β = 2.0,
+    β = 0.01,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -175,9 +175,9 @@ function loadData(relativePath; outputNumber=100)
 end
 
 # Ensure code is precompiled
-@compile_workload begin
-    vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
-end
+# @compile_workload begin
+#     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
+# end
 
 export vertexModel
 export loadData 
