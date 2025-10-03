@@ -119,6 +119,19 @@ function vertexModel(;
         R = reinterpret(SVector{2,Float64}, integrator.u)
         # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
+        # MY ADDITION: this is where we can pick the A/B cells and change the preferred perimeter
+        # SHOULD THIS BE HAPPENING INSIDE THE INTEGRATOR?? 
+        cellsToChange = Int64[]
+        while length(cellsToChange) <= params.nACells 
+
+            cellToUpdate = rand([x for x in 1:params.nCells if x ∉ cellsToChange])
+
+            push!(cellsToChange,cellToUpdate)
+            
+        end
+        
+        
+
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]
             # Update progress on command line 
