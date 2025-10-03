@@ -112,25 +112,33 @@ function vertexModel(;
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]
 
+    # Define the number of A and B cells
+    nACells = Int(floor(params.nCells/2))
+    nBCells = params.nCells - nACells
+
+    # MY ADDITION: this is where we can pick the A/B cells and change the preferred perimeter
+    # SHOULD THIS BE HAPPENING INSIDE THE INTEGRATOR?? 
+    cellsTypeA = Int64[]
+    while length(cellsTypeA) <= nACells 
+
+        cellToUpdate = rand([x for x in 1:params.nCells if x ∉ cellsTypeA])
+
+        push!(cellsTypeA,cellToUpdate)
+
+    end
+    sort!(cellsTypeA)
+    cellsTypeB = [x for x in 1:params.nCells if x ∉ cellsTypeA]
+
+    println(cellsTypeA)
+    println(cellsTypeB)
+
+
     # Iterate until integrator time reaches max system time 
     while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
         # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
-
-        # MY ADDITION: this is where we can pick the A/B cells and change the preferred perimeter
-        # SHOULD THIS BE HAPPENING INSIDE THE INTEGRATOR?? 
-        cellsToChange = Int64[]
-        while length(cellsToChange) <= params.nACells 
-
-            cellToUpdate = rand([x for x in 1:params.nCells if x ∉ cellsToChange])
-
-            push!(cellsToChange,cellToUpdate)
-            
-        end
-        
-        
 
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]]

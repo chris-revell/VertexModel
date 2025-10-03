@@ -68,7 +68,7 @@ end
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
-    Γ                ::Vector{Float64}                              # Vector of factors determinind relative strength of cell tension and internal pressure per cell 
+    Γ                ::Vector{Float64}                              # Vector of factors determining relative strength of cell tension and internal pressure per cell 
     edgeLengths      ::Vector{Float64}                              # Vector of lengths for each edge in the system
     edgeTangents     ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing edge length and direction as a 2D vector
     edgeMidpoints    ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing edge midpoints as (x,y) positions
