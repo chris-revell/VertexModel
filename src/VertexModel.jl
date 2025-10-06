@@ -112,6 +112,27 @@ function vertexModel(;
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]
 
+    # Define the number of A and B cells
+    nACells = Int(floor(params.nCells/2))
+    nBCells = params.nCells - nACells
+
+    # MY ADDITION: this is where we can pick the A/B cells and change the preferred perimeter
+    # SHOULD THIS BE HAPPENING INSIDE THE INTEGRATOR?? 
+    cellsTypeA = Int64[]
+    while length(cellsTypeA) <= nACells 
+
+        cellToUpdate = rand([x for x in 1:params.nCells if x ∉ cellsTypeA])
+
+        push!(cellsTypeA,cellToUpdate)
+
+    end
+    sort!(cellsTypeA)
+    cellsTypeB = [x for x in 1:params.nCells if x ∉ cellsTypeA]
+
+    println(cellsTypeA)
+    println(cellsTypeB)
+
+
     # Iterate until integrator time reaches max system time 
     while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
