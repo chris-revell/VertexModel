@@ -32,6 +32,8 @@ function initialise(; initialSystem = "new",
         realCycleTime = 86400.0,
         realTimetMax = nCycles*realCycleTime,
         γ = 0.2,
+        L0_A = 0.5,
+        L0_B = 1.0,
         L₀ = 0.75,
         A₀ = 1.0,
         pressureExternal = 0.0,
@@ -52,7 +54,6 @@ function initialise(; initialSystem = "new",
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
-    λ = -2.0 * L₀ * γ
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
 
     # Set random seed value and allocate random number generator
@@ -93,8 +94,8 @@ function initialise(; initialSystem = "new",
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
 
     # Preferred perimeter depends on cell type
-    L0_A = 0.75    # preferred perimeter for Type A
-    L0_B = 1.0     # preferred perimeter for Type B
+    # L0_A = 0.5    # preferred perimeter for Type A
+    # L0_B = 1.0     # preferred perimeter for Type B
 
     cellL₀s = zeros(nCells)
     for i in 1:nCells
@@ -104,6 +105,10 @@ function initialise(; initialSystem = "new",
             cellL₀s[i] = L0_B
         end
     end
+
+    # Define contractility
+    λs = -2.0 .* γ .* cellL₀s
+
 
 
     # Fill preallocated matrices into struct for convenience
@@ -156,8 +161,8 @@ function initialise(; initialSystem = "new",
         nEdges            = nEdges,
         nVerts            = nVerts,
         γ                 = γ,
-        λ                 = λ,
-        L₀                = L₀,
+        λs                = λs,
+        L₀                = NaN,
         A₀                = A₀,
         pressureExternal  = pressureExternal,
         outputTotal       = outputTotal,

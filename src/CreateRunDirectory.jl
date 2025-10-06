@@ -23,7 +23,7 @@ function createRunDirectory(params,subFolder)
     @unpack initialSystem,
         realTimetMax,
         γ,
-        λ,
+        λs,
         A₀,
         pressureExternal,
         viscousTimeScale,
