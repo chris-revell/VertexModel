@@ -41,6 +41,9 @@ using CircularArrays
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
     energyModel        ::String             # Choice of energy function (eg log, quadratic)
     vertexWeighting    ::Bool               # Flag controlling whether vertices experience drag proportional to their surrounding area 
+    cellsTypeA       ::Vector{Int64}        # Vector storing indices of type A population
+    cellsTypeB       ::Vector{Int64}        # Vector storing indices of type B population
+    
 end
 
 @kwdef mutable struct MatricesContainer

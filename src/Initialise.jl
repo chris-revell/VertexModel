@@ -86,6 +86,13 @@ function initialise(; initialSystem = "new",
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 
+    # Define the number of A and B cells
+    nACells = Int(floor(nCells/2))
+
+    cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
+    cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
+
+
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
         A                 = A,
@@ -156,6 +163,9 @@ function initialise(; initialSystem = "new",
         distLogNormal     = LogNormal(0.0, 0.2),
         energyModel       = energyModel,
         vertexWeighting   = vertexWeighting,
+        cellsTypeA        = cellsTypeA,
+        cellsTypeB        = cellsTypeB
+
     )
 
     # Initial evaluation of matrices based on system topology
