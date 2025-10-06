@@ -2,10 +2,7 @@
 #  CreateRunDirectory.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 09/02/2021.
-#
-#
-# Function to create a directory in which to store simulations results and parameters, with directory name given by current date and time
+#  Function to create a directory in which to store simulations results and parameters, with directory name given by current date and time
 
 module CreateRunDirectory
 

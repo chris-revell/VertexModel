@@ -2,9 +2,7 @@
 #  Energy.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2022.
-#
-# Function to calculate system energy
+#  Function to calculate system energy
 
 module Energy
 

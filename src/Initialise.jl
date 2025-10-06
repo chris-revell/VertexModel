@@ -2,10 +2,7 @@
 #  Initialise.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
-#
-# Function to initialise vertex model system matrices and derived parameters
+#  Function to initialise vertex model system matrices and derived parameters
 
 module Initialise
 

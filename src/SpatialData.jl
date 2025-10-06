@@ -2,10 +2,7 @@
 #  SpatialData.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 09/02/2021.
-#
-#
-# Function to calculate spatial data including tangents, lengths, midpoints, tensions etc from incidence and vertex position matrices.
+#  Function to calculate spatial data including tangents, lengths, midpoints, tensions etc from incidence and vertex position matrices.
 
 module SpatialData
 

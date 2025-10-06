@@ -2,8 +2,6 @@
 #  PlotSetup.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2022.
-#
 #
 
 module PlotSetup

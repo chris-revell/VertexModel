@@ -2,10 +2,7 @@
 #  VertexModelContainers.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 05/12/2021.
-#
-#
-# Structs to hold system parameters and matrices, allowing us avoid passing dozens of arguments to each function
+#  Structs to hold system parameters and matrices, allowing us avoid passing dozens of arguments to each function
 
 module VertexModelContainers
 

@@ -2,10 +2,7 @@
 #  Model.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 15/02/2023.
-#
-#
-# Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices and update vertex positions.
+#  Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices and update vertex positions.
 
 module Model
 

@@ -2,9 +2,6 @@
 #  Visualise.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 16/02/2021.
-#
-#
 #
 
 module Visualise
