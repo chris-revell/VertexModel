@@ -42,7 +42,7 @@ function initialise(; initialSystem = "new",
         β,
         randomSeed = 0,
         nRows = 9,
-        energyModel = "log",
+        energyModel = "quadratic",
         vertexWeighting = 1,
         R_in= spzeros(2),
         A_in= spzeros(2),
@@ -92,6 +92,19 @@ function initialise(; initialSystem = "new",
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
 
+    # Preferred perimeter depends on cell type
+    L0_A = 0.75    # preferred perimeter for Type A
+    L0_B = 1.0     # preferred perimeter for Type B
+
+    cellL₀s = zeros(nCells)
+    for i in 1:nCells
+        if i in cellsTypeA
+            cellL₀s[i] = L0_A
+        else
+            cellL₀s[i] = L0_B
+        end
+    end
+
 
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
@@ -114,7 +127,7 @@ function initialise(; initialSystem = "new",
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
         cellA₀s           = fill(A₀, nCells),
-        cellL₀s           = fill(L₀, nCells),
+        cellL₀s           = cellL₀s,
         cellTensions      = zeros(nCells),
         cellPressures     = zeros(nCells),
         cellTimeToDivide  = cellTimeToDivide,
