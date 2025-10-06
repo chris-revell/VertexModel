@@ -39,9 +39,12 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
         F,
         edgeMidpointLinks,
         μ = matrices
-    @unpack nEdges,
-        nVerts,
-        nCells = params
+    @unpack nEdges, 
+    nVerts, 
+    nCells, 
+    cellsTypeA, 
+    cellsTypeB = params
+
 
     empty!(ax)
 
@@ -51,8 +54,17 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     if plotCells == 1
         cellPolygons = makeCellPolygons(R, params, matrices)
         for i = 1:nCells
+
+            if i in cellsTypeA
+
+                poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+
+            else
+
+                poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+
+            end
             
-            poly!(ax, cellPolygons[i], color=(getRandomColor(i), 0.5), strokecolor=(:black, 1.0), strokewidth=2)
         end
     end
 
