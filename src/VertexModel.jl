@@ -2,8 +2,6 @@
 #  VertexModel.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
 #
 
 module VertexModel
@@ -22,59 +20,82 @@ using CairoMakie
 using Printf
 
 # Local modules
-@from "$(srcdir("CreateRunDirectory.jl"))" using CreateRunDirectory
-@from "$(srcdir("Visualise.jl"))" using Visualise
-@from "$(srcdir("Initialise.jl"))" using Initialise
-@from "$(srcdir("SpatialData.jl"))" using SpatialData
-@from "$(srcdir("PlotSetup.jl"))" using PlotSetup
-@from "$(srcdir("Model.jl"))" using Model
-@from "$(srcdir("T1Transitions.jl"))" using T1Transitions
-@from "$(srcdir("TopologyChange.jl"))" using TopologyChange
-@from "$(srcdir("Division.jl"))" using Division
-@from "$(srcdir("SenseCheck.jl"))" using SenseCheck
-@from "$(srcdir("EdgeAblation.jl"))" using EdgeAblation
+@from "CreateRunDirectory.jl" using CreateRunDirectory
+@from "Visualise.jl" using Visualise
+@from "Initialise.jl" using Initialise
+@from "SpatialData.jl" using SpatialData
+@from "PlotSetup.jl" using PlotSetup
+@from "Model.jl" using Model
+@from "T1Transitions.jl" using T1Transitions
+@from "TopologyChange.jl" using TopologyChange
+@from "Division.jl" using Division
+@from "SenseCheck.jl" using SenseCheck
 
 function vertexModel(;
-    initialSystem="new",
-    nRows=9,
-    nCycles=1,
-    realCycleTime=86400.0,
-    realTimetMax=nCycles*realCycleTime,
-    γ=0.2,
-    L₀=0.75,
-    A₀=1.0,
-    viscousTimeScale=1000.0,
-    pressureExternal=0.0,
-    peripheralTension=0.0,
-    t1Threshold = 0.01,
-    surfaceRadius = 20.0,
-    surfaceReturnAmplitude = 100.0,
-    solver=Tsit5(),
-    nBlasThreads=1,
-    subFolder="",
-    outputTotal=100,
-    outputToggle=1,
-    frameDataToggle=1,
-    frameImageToggle=1,
-    printToggle=1,
-    videoToggle=1,
+    initialSystem = "new",
+    nRows = 9,
+    nCycles = 1,
+    realCycleTime = 86400.0,
+    realTimetMax = nCycles*realCycleTime,
+    γ = 0.2,
+    L₀ = 0.75,
+    A₀ = 1.0,
+    viscousTimeScale = 1000.0,
+    pressureExternal = 0.0,
+    peripheralTension = 0.0,
+    t1Threshold = 0.05,
+    divisionToggle = 1,
+    solver = Tsit5(),
+    nBlasThreads = 1,
+    subFolder = "",
+    outputTotal = 100,
+    outputToggle = 1,
+    frameDataToggle = 1,
+    frameImageToggle = 1,
+    printToggle = 1,
+    videoToggle = 1,
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
     scatterCells = 0,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
-    setRandomSeed = 0,
+    randomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
+    energyModel = "log",
+    vertexWeighting = 1,
+    R_in = spzeros(2),
+    A_in = spzeros(2),
+    B_in = spzeros(2), 
+    surfaceRadius = 20.0,
+    surfaceReturnAmplitude = 100.0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
 
-    isodd(nRows)&&(nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
-    u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed, surfaceRadius, surfaceReturnAmplitude; nRows=nRows)
+    u0, params, matrices = initialise(initialSystem = initialSystem,
+        realTimetMax = realTimetMax,
+        γ = γ,
+        L₀ = L₀,
+        A₀ = A₀,
+        pressureExternal = pressureExternal,
+        viscousTimeScale = viscousTimeScale,
+        outputTotal = outputTotal,
+        t1Threshold = t1Threshold,
+        realCycleTime = realCycleTime,
+        peripheralTension = peripheralTension,
+        randomSeed = randomSeed,
+        nRows = nRows,
+        energyModel = energyModel,
+        vertexWeighting = vertexWeighting,
+        R_in = R_in,
+        A_in = A_in,
+        B_in = B_in,
+        surfaceRadius = surfaceRadius,
+        surfaceReturnAmplitude = surfaceReturnAmplitude,
+    )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
@@ -128,11 +149,13 @@ function vertexModel(;
             topologyChange!(matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
-        if division!(integrator, params, matrices) > 0
-            u_modified!(integrator, true)
-            # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-            topologyChange!(matrices) # Update system matrices after division 
-            spatialData!(R, params, matrices) # Update spatial data after division 
+        if divisionToggle==1
+            if division!(integrator, params, matrices) > 0
+                u_modified!(integrator, true)
+                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                topologyChange!(matrices) # Update system matrices after division 
+                spatialData!(R, params, matrices) # Update spatial data after division 
+            end
         end
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt

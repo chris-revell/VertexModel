@@ -2,10 +2,7 @@
 #  Division.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 13/12/2021.
-#
-#
-# Function to divide cells that meet division criteria
+#  Function to divide cells that meet division criteria
 
 module Division
 

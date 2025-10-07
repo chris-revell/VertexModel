@@ -2,10 +2,7 @@
 #  SpatialData.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 09/02/2021.
-#
-#
-# Function to calculate spatial data including tangents, lengths, midpoints, tensions etc from incidence and vertex position matrices.
+#  Function to calculate spatial data including tangents, lengths, midpoints, tensions etc from incidence and vertex position matrices.
 
 module SpatialData
 
@@ -38,8 +35,8 @@ function spatialData!(R,params,matrices)
         cellPerimeters,
         cellϵs,
         cellAreas,
-        cellA₀s,
         cellL₀s,
+        cellA₀s,
         cellTensions,
         cellPressures,
         edgeLengths,
@@ -54,7 +51,8 @@ function spatialData!(R,params,matrices)
         nVerts,
         γ,
         L₀,
-        A₀ = params
+        A₀,
+        energyModel = params
 
     cellPositions  .= C*R./cellEdgeCount
 
@@ -117,14 +115,21 @@ function spatialData!(R,params,matrices)
         matrices.edgeϵs[j] = MMatrix{3,3,Float64}(ϵ(v=perpAxis))
         # ϵ!(matrices.edgeϵs[j], v=perpAxis)
     end
-    
-    # Calculate cell boundary tensions
-    @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
-    # @.. thread = false cellTensions .= Γ .* L₀ .* (cellPerimeters .- L₀)
 
-    # Calculate cell internal pressures
-    @.. thread = false cellPressures .= cellA₀s .* μ .* log.(cellAreas ./ cellA₀s)
-    # @.. thread = false cellPressures .= cellA₀s .* μ .* (cellAreas .- cellA₀s)
+    # Calculate cell pressures and tensions according to energy model choice 
+    if energyModel == "log"
+        # Model per Cowley et al. 2024 Section 2a
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
+    else
+        # Quadratic energy model
+        # Calculate cell boundary tensions
+        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
+        # Calculate cell internal pressures
+        @.. thread = false cellPressures .= μ .*(cellAreas - cellA₀s)
+    end
 
     return nothing
 

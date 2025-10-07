@@ -2,12 +2,9 @@
 #  InitialSystemLayout.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 06/09/2023.
-#
-#
-# Function to create a hexagonal grid of cells. 
-# Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
-# Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
+#  Function to create a hexagonal grid of cells. 
+#  Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
+#  Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
 module InitialSystemLayout
 

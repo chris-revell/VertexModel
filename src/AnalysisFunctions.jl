@@ -2,8 +2,6 @@
 #  AnalysisFunctions.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
 #
 
 module AnalysisFunctions

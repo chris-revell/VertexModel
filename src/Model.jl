@@ -2,10 +2,7 @@
 #  Model.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 15/02/2023.
-#
-#
-# Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices and update vertex positions.
+#  Function to calculate force vector on vertex k from cell i (Fᵢₖ) for all vertices and update vertex positions.
 
 module Model
 
@@ -49,6 +46,7 @@ function model!(du, u, p, t)
         surfaceCentre,
         surfaceRadius,
         surfaceReturnAmplitude = params
+        vertexWeighting = params
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{3,Float64}, u)
@@ -76,8 +74,10 @@ function model!(du, u, p, t)
             # externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
         end
         externalF[k] -= surfaceReturnAmplitude.*(norm(R[k] .- surfaceCentre)-surfaceRadius).*normalize(R[k].-surfaceCentre)
-        dR[k] = (sum(@view F[k, :]) .+ externalF[k]) ./ vertexAreas[k]
+        dR[k] = (sum(@view F[k, :]) .+ externalF[k])
     end
+    
+    vertexWeighting == 1 ? dR ./= vertexAreas : nothing 
 
     # dR accesses the same underlying data as du, so by altering dR we have already updated du appropriately
     return du

@@ -2,10 +2,7 @@
 #  Initialise.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
-#
-# Function to initialise vertex model system matrices and derived parameters
+#  Function to initialise vertex model system matrices and derived parameters
 
 module Initialise
 
@@ -28,7 +25,28 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed, surfaceRadius, surfaceReturnAmplitude; nRows=9)
+function initialise(; initialSystem = "new",
+        nCycles = 1,
+        realCycleTime = 86400.0,
+        realTimetMax = nCycles*realCycleTime,
+        γ = 0.2,
+        L₀ = 0.75,
+        A₀ = 1.0,
+        pressureExternal = 0.0,
+        viscousTimeScale = 1000.0,
+        outputTotal = 100,
+        t1Threshold = 0.05,
+        peripheralTension = 0.0,
+        randomSeed = 0,
+        nRows = 9,
+        energyModel = "log",
+        vertexWeighting = 1,
+        R_in= spzeros(2),
+        A_in= spzeros(2),
+        B_in= spzeros(2),
+        surfaceRadius = 20.0,
+        surfaceReturnAmplitude = 100.0,
+    )
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -38,21 +56,28 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
-    # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
-    seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
+    # unless non zero value of randomSeed is passed, in which case random seed is passed value of randomSeed
+    seed = (randomSeed == 0 ? floor(Int64, datetime2unix(now())) : randomSeed)
     Random.seed!(seed)
+    rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
     if initialSystem == "new"
-        A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=2*L₀/6)
-        cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
+        A, B, R = initialSystemLayout(nRows, initialEdgeLength=2*L₀/6)
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    elseif initialSystem == "argument"
+        R = R_in
+        A = A_in
+        B = B_in
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
         @unpack A,B = importedData["matrices"]
-        cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
+        cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
 
@@ -62,41 +87,46 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
 
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
-        A                   = A,
-        B                   = B,
-        Aᵀ                  = spzeros(Int64, nVerts, nEdges),
-        Ā                   = spzeros(Int64, nEdges, nVerts),
-        Āᵀ                  = spzeros(Int64, nVerts, nEdges),
-        Bᵀ                  = spzeros(Int64, nEdges, nCells),
-        B̄                   = spzeros(Int64, nCells, nEdges),
-        B̄ᵀ                  = spzeros(Int64, nEdges, nCells),
-        C                   = spzeros(Int64, nCells, nVerts),
-        cellEdgeCount       = zeros(Int64, nCells),
-        cellVertexOrders    = fill(CircularVector(Int64[]), nCells),
-        cellEdgeOrders      = fill(CircularVector(Int64[]), nCells),
-        boundaryVertices    = zeros(Int64, nVerts),
-        boundaryEdges       = zeros(Int64, nEdges),
-        cellPositions       = fill(SVector{3,Float64}(zeros(3)), nCells),
-        cellPerimeters      = zeros(nCells),
-        cellϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nCells),
-        cellAreas           = zeros(nCells),
-        cellA₀s             = A₀.*ones(nCells),
-        cellL₀s             = L₀.*ones(nCells),
-        cellTensions        = zeros(nCells),
-        cellPressures       = zeros(nCells),
-        cellTimeToDivide    = cellTimeToDivide,
-        μ                   = ones(nCells),
-        Γ                   = γ.*ones(nCells),
-        edgeLengths         = zeros(nEdges),
-        edgeTangents        = fill(SVector{3,Float64}(zeros(3)), nEdges),
-        edgeMidpoints       = fill(SVector{3,Float64}(zeros(3)), nEdges),
-        edgeϵs              = fill(SMatrix{3,3,Float64}(zeros(3,3)), nEdges),
-        edgeMidpointLinks   = spzeros(SVector{3,Float64}, nCells, nVerts),
-        timeSinceT1         = zeros(nEdges),
-        vertexAreas         = ones(nVerts),
-        F                   = spzeros(SVector{3,Float64}, nVerts, nCells),
-        externalF           = fill(SVector{3,Float64}(zeros(3)), nVerts),
-        totalF              = fill(SVector{3,Float64}(zeros(3)), nVerts),
+        A                 = A,
+        B                 = B,
+        Aᵀ                = spzeros(Int64, nVerts, nEdges),
+        Ā                 = spzeros(Int64, nEdges, nVerts),
+        Āᵀ                = spzeros(Int64, nVerts, nEdges),
+        Bᵀ                = spzeros(Int64, nEdges, nCells),
+        B̄                 = spzeros(Int64, nCells, nEdges),
+        B̄ᵀ                = spzeros(Int64, nEdges, nCells),
+        C                 = spzeros(Int64, nCells, nVerts),
+        cellEdgeCount     = zeros(Int64, nCells),
+        cellVertexOrders  = fill(CircularVector(Int64[]), nCells),
+        cellEdgeOrders    = fill(CircularVector(Int64[]), nCells),
+        boundaryVertices  = zeros(Int64, nVerts),
+        boundaryEdges     = zeros(Int64, nEdges),
+        cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        cellPerimeters    = zeros(nCells),
+        cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
+        cellAreas         = zeros(nCells),
+        cellA₀s           = fill(A₀, nCells),
+        cellL₀s           = fill(L₀, nCells),
+        cellTensions      = zeros(nCells),
+        cellPressures     = zeros(nCells),
+        cellTimeToDivide  = cellTimeToDivide,
+        μ                 = ones(nCells),
+        Γ                 = γ.*ones(nCells),
+        edgeLengths       = zeros(nEdges),
+        edgeTangents      = fill(SVector{2,Float64}(zeros(2)), nEdges),
+        edgeMidpoints     = fill(SVector{2,Float64}(zeros(2)), nEdges),
+        edgeϵs            = MMatrix{3,3,Float64}(zeros(3,3)),
+        edgeMidpointLinks = spzeros(SVector{2,Float64}, nCells, nVerts),
+        timeSinceT1       = zeros(nEdges),
+        vertexAreas       = ones(nVerts),
+        F                 = spzeros(SVector{2,Float64}, nVerts, nCells),
+        externalF         = fill(SVector{2,Float64}(zeros(2)), nVerts),
+        totalF            = fill(SVector{2,Float64}(zeros(2)), nVerts),
+        # ϵ                 = SMatrix{2, 2, Float64}([
+        #                         0.0 1.0
+        #                         -1.0 0.0
+        #                     ]),
+        # cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
     )
 
     # Pack parameters into a struct for convenience
@@ -116,11 +146,15 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realTimetMax      = realTimetMax,
         tMax              = tMax,
         realCycleTime     = realCycleTime,
+        nCycles           = nCycles,
         nonDimCycleTime   = nonDimCycleTime,
         t1Threshold       = t1Threshold,
         peripheralTension = peripheralTension,
         seed              = seed,
+        rng               = rng,
         distLogNormal     = LogNormal(0.0, 0.2),
+        energyModel       = energyModel,
+        vertexWeighting   = vertexWeighting,
         surfaceCentre     = SVector{3,Float64}(0.0,0.0,-surfaceRadius),
         surfaceRadius     = surfaceRadius,
         surfaceReturnAmplitude = surfaceReturnAmplitude,
