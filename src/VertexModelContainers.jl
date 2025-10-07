@@ -65,7 +65,7 @@ end
     cellTensions     ::Vector{Float64}                              # Vector of boundary tensions for each cell
     cellPressures    ::Vector{Float64}                              # Vector of internal pressures for each cell
     cellTimeToDivide ::Vector{Float64}                              # Vector of time left until division for each cell
-    cellϵs           ::Vector{SMatrix{3, 3, Float64}}               # Vector of matrices required to rotate dimensions such that each cell is 2D
+    # cellϵs           ::Vector{SMatrix{3, 3, Float64}}               # Vector of matrices required to rotate dimensions such that each cell is 2D
     μ                ::Vector{Float64}                              # Vector of cell stiffness factors 
     Γ                ::Vector{Float64}                              # Vector of factors determinind relative strength of cell tension and internal pressure per cell 
     edgeLengths      ::Vector{Float64}                              # Vector of lengths for each edge in the system

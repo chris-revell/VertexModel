@@ -33,7 +33,7 @@ function spatialData!(R,params,matrices)
         cellEdgeOrders,
         cellPositions,
         cellPerimeters,
-        cellϵs,
+        # cellϵs,
         cellAreas,
         cellL₀s,
         cellA₀s,

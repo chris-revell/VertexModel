@@ -29,7 +29,7 @@ function model!(du, u, p, t)
         cellTensions,
         cellPressures,
         # cellPerpAxes,
-        cellϵs,
+        # cellϵs,
         edgeLengths,
         edgeTangents,
         edgeMidpoints,
