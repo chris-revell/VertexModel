@@ -120,7 +120,7 @@ function initialSystemLayout(;nRows=0, initialEdgeLength=1.0)
         push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 -1.0 ), initialEdgeLength*r[2], 0.0))
     end
 
-    senseCheck(A, B; marker="Removing peropheral vertices")
+    senseCheck(A, B; marker="Removing peripheral vertices")
 
     return A, B, R
 
