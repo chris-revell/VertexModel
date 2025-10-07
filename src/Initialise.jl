@@ -43,6 +43,7 @@ function initialise(; initialSystem = "new",
         R_in= spzeros(2),
         A_in= spzeros(2),
         B_in= spzeros(2),
+        initialEdgeLength = 0.75,
     )
 
     # Calculate derived parameters
@@ -61,7 +62,7 @@ function initialise(; initialSystem = "new",
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R = initialSystemLayout(nRows)
+        A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=initialEdgeLength=5*L₀/6)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
         R = R_in

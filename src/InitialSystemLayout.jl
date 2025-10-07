@@ -20,7 +20,10 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(nRows)
+function initialSystemLayout(;
+        nRows = 9,
+        initialEdgeLength = 5.0*0.75/6, # Need to find a better value for this than 5*L₀/6
+    )
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -54,7 +57,7 @@ function initialSystemLayout(nRows)
     # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
     vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
 
-    R = SVector.(tessellation_constrained.polygon_points[usableVertices])
+    Rtmp = SVector.(tessellation_constrained.polygon_points[usableVertices])
 
     # Find pairs of vertices connected by edges in tessellation 
     # Use incidence matrix indexing for vertices, and exclude outer vertices 
@@ -62,7 +65,7 @@ function initialSystemLayout(nRows)
     # Ensure lowest index is first in tuple, and remove duplicates 
     orderedPairs = unique([(min(p...), max(p...)) for p in pairs])
 
-    nVerts = length(R)
+    nVerts = length(Rtmp)
     nEdges = length(orderedPairs)
     nCells = length(cellPoints)
 
@@ -114,7 +117,12 @@ function initialSystemLayout(nRows)
     end
     A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
     B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
-    R = R[setdiff(1:size(R, 1), verticesToRemove)]
+    Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+
+    R = SVector{2, Float64}[]
+    for r in Rtmp 
+        push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 - 1.0 ), initialEdgeLength*r[2]))
+    end
 
     senseCheck(A, B; marker="Removing peropheral vertices")
 
