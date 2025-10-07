@@ -20,8 +20,12 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(;nRows=0, initialEdgeLength=1.0)
-    
+function initialSystemLayout(;
+        nRows = 9,
+        initialEdgeLength = 5.0*0.75/6, # Need to find a better value for this than 5*L₀/6
+    )
+
+    # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
     for j = 1:(floor(Int64,nRows/2))
         for i = 1:nRows-j
