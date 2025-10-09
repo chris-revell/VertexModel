@@ -3,7 +3,8 @@ using LinearAlgebra
 using CairoMakie
 using StatsBase
 
-@from "$(srcdir("VertexModel.jl"))" using VertexModel
+using VertexModel
+
 @from "$(srcdir("RotationMatrix.jl"))" using RotationMatrix
 
 folderName = "curved-surface/25-04-04-14-39-13_L₀=0.75_nCells=792_realTimetMax=86400.0_γ=0.2"
