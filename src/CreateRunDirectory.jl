@@ -9,7 +9,6 @@ module CreateRunDirectory
 # Julia packages
 using Dates
 using Base.Filesystem
-using DelimitedFiles
 using UnPack
 using JLD2
 using DrWatson
