@@ -21,7 +21,6 @@ function plotSetup()
     ax = Axis3(fig[1,1], aspect=:data)
     # hidedecorations!(ax)
     # hidespines!(ax)
-    # limits!(ax, (-2,2), (-2,2), (-2,2))
 
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)

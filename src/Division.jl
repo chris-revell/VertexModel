@@ -81,7 +81,7 @@ function division!(integrator,params,matrices)
             shortAxisLine = Line(Point{2,Float64}(shortvec), Point{2,Float64}(-shortvec))
 
             # Test cell edges for an intersection
-            edgeLines = Line.(Point{2,Float64}.(R[rotatedSpokes[1:end-1]]), Point{2,Float64}.(R[rotatedSpokes[2:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+            edgeLines = Line.(Point{2,Float64}.(rotatedSpokes[1:end-1]), Point{2,Float64}.(rotatedSpokes[2:end])) # Start and end with the same vertex by indexing circular array from 0 to end
             intersections = [intersects(line, shortAxisLine) for line in edgeLines] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
 
