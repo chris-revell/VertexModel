@@ -21,7 +21,12 @@ using DrWatson
 @from "SenseCheck.jl" using SenseCheck
 @from "OrderAroundCell.jl" using OrderAroundCell
 
-function topologyChange!(matrices)
+function topologyChange!(R,params,matrices)
+
+    @unpack initialSystem, 
+        nCells,
+        nVerts,
+        nEdges = params
 
     @unpack A,
         B,
@@ -36,7 +41,9 @@ function topologyChange!(matrices)
         cellVertexOrders,
         cellEdgeOrders,
         boundaryVertices,
-        boundaryEdges = matrices
+        boundaryEdges,
+        boundaryCells,
+        cellPositions = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread = false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
@@ -65,14 +72,33 @@ function topologyChange!(matrices)
     # Number of edges around each cell found by summing columns of B̄
     cellEdgeCount .= sum.(eachrow(B̄))  # FastBroadcast doesn't work for this line; not sure why
 
-    # Find boundary vertices
-    # Summing each column of B finds boundary edges (for all other edges, cell orientations on either side cancel);
-    # multiplying by Aᵀ gives nonzero values only where a vertex (row) has nonzero values at columns (edges) corresponding to nonzero values in the list of boundary edges.
-    # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
-    boundaryVertices .= Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
+    # Only do the following if the initialSystem isn't periodic: 
 
-    # Find list of edges at system periphery
-    boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
+    if initialSystem == "new"
+        # Find boundary vertices
+        # Summing each column of B finds boundary edges (for all other edges, cell orientations on either side cancel);
+        # multiplying by Aᵀ gives nonzero values only where a vertex (row) has nonzero values at columns (edges) corresponding to nonzero values in the list of boundary edges.
+        # Note that the abs is needed in case the direction of boundary edges cancel at a vertex
+        boundaryVertices .= Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
+
+        # Find list of edges at system periphery
+        boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
+    end
+    
+
+    N_x = 10
+    # Update boundary cells: 
+    boundaryCells = zeros(1,nCells)
+    for i=1:nCells
+        for k=1:nVerts
+            if C[i,k]==0
+                if norm(R[k]-cellPositions[i]) > N_x/2 # Checking the vertex is on the other side of the domain 
+                    boundaryCells[i] = 1
+                end
+            end
+        end
+    end
+
 
     for i = 1:length(cellVertexOrders)
         cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(matrices, i)

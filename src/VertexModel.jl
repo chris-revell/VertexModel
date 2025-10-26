@@ -33,7 +33,7 @@ using Printf
 @from "SenseCheck.jl" using SenseCheck
 
 function vertexModel(;
-    initialSystem = "new",
+    initialSystem = "periodic",
     nRows = 9,
     nCycles = 0.1,
     realCycleTime = 86400.0,
@@ -151,14 +151,14 @@ function vertexModel(;
         if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
-            topologyChange!(matrices) # Update system matrices after T1 transition
+            topologyChange!(R,params,matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
         end
         if divisionToggle==1
             if division!(integrator, params, matrices) > 0
                 u_modified!(integrator, true)
                 # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-                topologyChange!(matrices) # Update system matrices after division 
+                topologyChange!(R,params,matrices) # Update system matrices after division 
                 spatialData!(R, params, matrices) # Update spatial data after division 
             end
         end

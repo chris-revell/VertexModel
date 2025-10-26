@@ -20,6 +20,9 @@ using Random
 using Distributions
 using Dates
 using CircularArrays
+using CSV # For reading csv files
+using DataFrames # For reading csv files
+using MAT # For reading mat files
 
 # Local modules
 @from "initialSystemLayout.jl" using InitialSystemLayout
@@ -27,7 +30,34 @@ using CircularArrays
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-function initialise(; initialSystem = "new",
+# Extracting data from csv files: 
+dfR = DataFrame(CSV.File(datadir("R.csv");header=false)) 
+dfA = DataFrame(CSV.File(datadir("A.csv");header=false)) 
+dfB = DataFrame(CSV.File(datadir("B.csv");header=false)) 
+dfC = DataFrame(CSV.File(datadir("C.csv");header=false)) 
+
+
+# Import the boundary cells: 
+dfboundary = DataFrame(CSV.File(datadir("boundary_cells_indices.csv");header=false)) 
+# Import the area vector: 
+dfAreaVec = DataFrame(CSV.File(datadir("Area_vec.csv");header=false))
+# Import cell centres: 
+dfCentres = DataFrame(CSV.File(datadir("cellPositions.csv");header=false))
+# Import edge vectors: 
+dfEdges = DataFrame(CSV.File(datadir("edgeVectors.csv");header=false))
+# Import link vectors: 
+dfLinks = DataFrame(CSV.File(datadir("linkVectors.csv");header=false))
+
+periodicR = [SVector(row[1],row[2]) for row in eachrow(dfR)]
+dense_matrix_A = Matrix{Int}(dfA)
+dense_matrix_B = Matrix{Int}(dfB)
+dense_matrix_C = Matrix{Int}(dfC)
+periodicA = sparse(dense_matrix_A)
+periodicB = sparse(dense_matrix_B)
+periodicBoundaryCellIndices = [Int(col[1]) for col in eachcol(dfboundary)]
+
+
+function initialise(; initialSystem = "periodic",
         nCycles = 1,
         realCycleTime = 86400.0,
         realTimetMax = nCycles*realCycleTime,
@@ -67,6 +97,9 @@ function initialise(; initialSystem = "new",
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R = initialSystemLayout(nRows)
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+    elseif initialSystem == "periodic"
+        A, B, R = periodicA, periodicB, periodicR
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
         R = R_in
@@ -127,6 +160,7 @@ function initialise(; initialSystem = "new",
         cellEdgeOrders    = fill(CircularVector(Int64[]), nCells),
         boundaryVertices  = zeros(Int64, nVerts),
         boundaryEdges     = zeros(Int64, nEdges),
+        boundaryCells     = zeros(Int64, nCells),
         cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
@@ -187,8 +221,10 @@ function initialise(; initialSystem = "new",
     )
 
     # Initial evaluation of matrices based on system topology
-    topologyChange!(matrices)
+    topologyChange!(R,params,matrices)
     spatialData!(R, params, matrices)
+
+    println(matrices.boundaryCells)
 
     # Convert vector of SVectors to flat vector of Float64
     u0 = Float64[]

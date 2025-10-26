@@ -61,6 +61,7 @@ end
     cellEdgeOrders   ::Vector{CircularVector{Int64, Vector{Int64}}} # Storing the ordering of edges around the cell
     boundaryVertices ::Vector{Int64}                                # Vector of 1s and 0s denoting vertices that lie on the system boundary
     boundaryEdges    ::Vector{Int64}                                # Vector of 1s and 0s denoting edges that lie on the system boundary
+    boundaryCells    ::Vector{Int64}                                # Vector of 1s and 0s denotind cell centres that lie on the (periodic) boundary - for plotting purposes
     cellPositions    ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors for each cell centre of mass
     cellPerimeters   ::Vector{Float64}                              # Vector of scalar cell perimeter lengths
     cellOrientedAreas::Vector{SMatrix{2, 2, Float64}}               # Vector of oriented cell areas. Each row is a 2x2 antisymmetric static matrix of the form [0 A / -A 0] where A is the scalar cell area

@@ -38,8 +38,10 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
         edgeMidpoints,
         F,
         edgeMidpointLinks,
-        μ = matrices
-    @unpack nEdges, 
+        μ,
+        boundaryCells = matrices
+    @unpack initialSystem,
+    nEdges, 
     nVerts, 
     nCells, 
     cellsTypeA, 
@@ -55,13 +57,115 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
         cellPolygons = makeCellPolygons(R, params, matrices)
         for i = 1:nCells
 
-            if i in cellsTypeA
+            if initialSystem == "periodic"
+                # Check whether it is on the periodic boundary: 
+                if boundaryCells[i]==1
 
-                poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    N_x = 10
+                    N_y = 10
+
+                    num_vertices = length(cellPolygons[i])
+                    newCellPolygon = zeros(num_vertices, 2)
+
+                    # Initialise a polygon on the other side of the domain: 
+                    oppositePolygon1 = zeros(num_vertices, 2)
+                    oppositePolygon2 = zeros(num_vertices, 2)
+                    oppositePolygon3 = zeros(num_vertices, 2)
+                    oppositePolygon4 = zeros(num_vertices, 2)
+                    oppositePolygon5 = zeros(num_vertices, 2)
+                    oppositePolygon6 = zeros(num_vertices, 2)
+                    oppositePolygon7 = zeros(num_vertices, 2)
+                    oppositePolygon8 = zeros(num_vertices, 2)
+
+                    # Flags to see which boundaries are being crossed 
+                    flag1=0
+                    flag2=0
+
+                    for k = 1:num_vertices
+
+                        if norm(cellPolygons[i][k][1]-cellPositions[i][1]) > N_x/2
+                            
+                            if cellPolygons[i][k][1] > cellPositions[i][1]
+                                newCellPolygon[k,1] = cellPolygons[i][k][1] - N_x
+                                flag1 = 1
+                            else
+                                newCellPolygon[k,1] = cellPolygons[i][k][1] + N_x
+                                flag1 = 2
+                            end
+                        else
+                            newCellPolygon[k,1] = cellPolygons[i][k][1]
+                        end
+
+                        if norm(cellPolygons[i][k][2]-cellPositions[i][2]) > N_y/2
+                            
+                            if cellPolygons[i][k][2] > cellPositions[i][2]
+                                flag2 = 1
+                                newCellPolygon[k,2] = cellPolygons[i][k][2] - N_y
+                            else
+                                flag2=2
+                                newCellPolygon[k,2] = cellPolygons[i][k][2] + N_y
+                            end
+                        else
+                            newCellPolygon[k,2] = cellPolygons[i][k][2]
+                        end
+
+                    end
+
+                    oppositePolygon1[:,1] = newCellPolygon[:,1] .+ N_x
+                    oppositePolygon1[:,2] = newCellPolygon[:,2] .+ N_y
+                    oppositePolygon2[:,1] = newCellPolygon[:,1] .+ N_x
+                    oppositePolygon2[:,2] = newCellPolygon[:,2] .- N_y
+                    oppositePolygon3[:,1] = newCellPolygon[:,1] .- N_x
+                    oppositePolygon3[:,2] = newCellPolygon[:,2] .+ N_y
+                    oppositePolygon4[:,1] = newCellPolygon[:,1] .- N_x
+                    oppositePolygon4[:,2] = newCellPolygon[:,2] .- N_y
+                    oppositePolygon5[:,1] = newCellPolygon[:,1] .+ N_x
+                    oppositePolygon5[:,2] = newCellPolygon[:,2] 
+                    oppositePolygon6[:,1] = newCellPolygon[:,1] .- N_x
+                    oppositePolygon6[:,2] = newCellPolygon[:,2] 
+                    oppositePolygon7[:,1] = newCellPolygon[:,1] 
+                    oppositePolygon7[:,2] = newCellPolygon[:,2] .+ N_y
+                    oppositePolygon8[:,1] = newCellPolygon[:,1]
+                    oppositePolygon8[:,2] = newCellPolygon[:,2] .- N_y
+
+                    # Draw a polygon for cell i with colour determined by concentration
+                    poly!(ax, oppositePolygon1, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon2, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon3, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon4, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon5, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon6, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon7, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+                    poly!(ax, oppositePolygon8, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
+                    strokewidth=0.5)
+
+                    poly!(ax, newCellPolygon, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black, 
+                    strokewidth=0.5)
+
+                else # the cell isn't on the periodic boundary
+                    if i in cellsTypeA
+                        poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    else
+                        poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    end
+                end
+
+                
+
 
             else
-
-                poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                if i in cellsTypeA
+                    poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                else
+                    poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                end
 
             end
             
