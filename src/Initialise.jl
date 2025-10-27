@@ -55,7 +55,7 @@ dense_matrix_C = Matrix{Int}(dfC)
 periodicA = sparse(dense_matrix_A)
 periodicB = sparse(dense_matrix_B)
 periodicBoundaryCellIndices = [Int(col[1]) for col in eachcol(dfboundary)]
-
+cellPositionsPeriodic = [(Float64(row[1]), Float64(row[2])) for row in eachrow(dfCentres)]
 
 function initialise(; initialSystem = "periodic",
         nCycles = 1,
@@ -101,6 +101,7 @@ function initialise(; initialSystem = "periodic",
     elseif initialSystem == "periodic"
         A, B, R = periodicA, periodicB, periodicR
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellPositions = cellPositionsPeriodic
     elseif initialSystem == "argument"
         R = R_in
         A = A_in
@@ -161,7 +162,8 @@ function initialise(; initialSystem = "periodic",
         boundaryVertices  = zeros(Int64, nVerts),
         boundaryEdges     = zeros(Int64, nEdges),
         boundaryCells     = zeros(Int64, nCells),
-        cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        # cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        cellPositions     = cellPositions,
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
@@ -225,6 +227,9 @@ function initialise(; initialSystem = "periodic",
     spatialData!(R, params, matrices)
 
     println(matrices.boundaryCells)
+    # println(R)
+    # println(matrices.cellPositions)
+    
 
     # Convert vector of SVectors to flat vector of Float64
     u0 = Float64[]

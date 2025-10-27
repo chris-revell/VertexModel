@@ -87,12 +87,10 @@ function topologyChange!(R,params,matrices)
     
 
     N_x = 10
-    # Update boundary cells: 
-    boundaryCells = zeros(1,nCells)
     for i=1:nCells
         for k=1:nVerts
-            if C[i,k]==0
-                if norm(R[k]-cellPositions[i]) > N_x/2 # Checking the vertex is on the other side of the domain 
+            if C[i,k]==1
+                if norm(R[k].-cellPositions[i]) > N_x/2 # Checking the vertex is on the other side of the domain 
                     boundaryCells[i] = 1
                 end
             end

@@ -128,26 +128,30 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
                     oppositePolygon8[:,1] = newCellPolygon[:,1]
                     oppositePolygon8[:,2] = newCellPolygon[:,2] .- N_y
 
-                    # Draw a polygon for cell i with colour determined by concentration
-                    poly!(ax, oppositePolygon1, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon2, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon3, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon4, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon5, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon6, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon7, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-                    poly!(ax, oppositePolygon8, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black,
-                    strokewidth=0.5)
-
-                    poly!(ax, newCellPolygon, color=sol.u[t][i], colorrange=(minimum(u0_S),maximum(u0_S)), colormap=cmap, strokecolor=:black, 
-                    strokewidth=0.5)
+                    # Draw a polygon for cell i with colour determined by cell type
+                    if i in cellsTypeA
+                        poly!(ax, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    else
+                        poly!(ax, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                   
+                    end
+                    
 
                 else # the cell isn't on the periodic boundary
                     if i in cellsTypeA
