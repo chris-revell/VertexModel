@@ -50,7 +50,9 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
     empty!(ax)
 
+    N_x,N_y = 10,10
     ax.title = "t = $(@sprintf("%.3f", t))"
+    ax.limits = ((0,N_x),(0,N_y))
 
     # Plot cells
     if plotCells == 1
@@ -60,9 +62,6 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
             if initialSystem == "periodic"
                 # Check whether it is on the periodic boundary: 
                 if boundaryCells[i]==1
-
-                    N_x = 10
-                    N_y = 10
 
                     num_vertices = length(cellPolygons[i])
                     newCellPolygon = zeros(num_vertices, 2)
@@ -78,8 +77,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
                     oppositePolygon8 = zeros(num_vertices, 2)
 
                     # Flags to see which boundaries are being crossed 
-                    flag1=0
-                    flag2=0
+                    flag1=flag2=flag3=flag4=0
 
                     for k = 1:num_vertices
 
