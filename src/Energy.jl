@@ -60,6 +60,6 @@ function energy_quadratic(params,matrices)
     return energyTotal
 end
 
-export energy_log, energy_quadratic
+export energy, energy_quadratic
 
 end

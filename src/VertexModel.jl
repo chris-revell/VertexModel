@@ -33,6 +33,7 @@ using DiffEqCallbacks
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
 @from "Stretch.jl" using Stretch
+@from "Energy.jl" using Energy
 
 ###
 #Using vertex weighted log model
@@ -42,6 +43,31 @@ using DiffEqCallbacks
 # Tsit5 does not reach steady state
 #    
 ###
+
+
+function conditionMaxCells(u, t, integrator)
+    @show params.nCells
+    integrator.p[1].nCells >= integrator.p[1].maxCells ? true : false
+
+end
+
+function conditionSteadyState(u, t, integrator)
+
+    @show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
+    #(maximum(norm.(get_du(integrator))) < 1e-6 )&(integrator.p[1].nCells >= 1024) ? true : false
+    maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator)))) < 1e-4 ? true : false
+    # Use integrator.opts.abstol as threshold?
+end
+
+function affectTerminate!(integrator)
+    # if conditionSteadyState() returns true, terminate integrator and pass successful return code
+    println("Terminate at steady state")
+    terminate!(integrator, ReturnCode.Terminated)    
+end
+# Create callback using two user-defined functions above
+cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
+cb_maxCells = DiscreteCallback(conditionMaxCells, affectTerminate!)
+
 
 function vertexModel(;
     initialSystem="hex",
@@ -56,10 +82,10 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
-    solver=TanYam7(),
+    #solver=TanYam7(),
     #solver=Tsit5(),
-    #solver=Vern7(lazy=false),
-    nBlasThreads=1,
+    solver=Vern7(lazy=false),
+    nBlasThreads=4,
     subFolder="",
     outputTotal=100,
     outputToggle=1,
@@ -74,7 +100,7 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
-    abstol = 1e-10, 
+    abstol = 1e-8, 
     reltol = 1e-8,
     modelChoice="quadratic",
     vertexWeighting=0,
@@ -91,11 +117,11 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
-    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ )
+    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ, maxCells=maxCells )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
 
-            fname=@savename L₀ γ λs realStretchTime κ
+            fname=@savename L₀ γ realCycleTime
 
             R0 = reinterpret(SVector{2,Float64}, u0)
     if outputToggle == 1
@@ -120,7 +146,10 @@ function vertexModel(;
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
     push!(alltStops,params.tStretch )
     #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=params.tStretch+1))
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=2*params.nonDimCycleTime))
+    #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=cb_maxCells)
+    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=cb)
+
 
     outputCounter = [1]
 
@@ -148,7 +177,7 @@ function vertexModel(;
             outputCounter[1] += 1
         end
         
-        if integrator.t==params.tStretch && outputToggle == 1
+        if integrator.t==params.tStretch && outputToggle == 1 && params.stretchType!="none"
             jldsave(datadir(folderName,"systemDataFullStretch_$(fname).jld2");matrices,params,R)
 
             visualise(R0,R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
@@ -180,7 +209,9 @@ function vertexModel(;
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
-        @show params.nCells
+        #@show params.nCells
+        #@show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
+        #@show energy(params,matrices)
     end
 
     # If outputToggle==1, save animation object and save final system matrices
@@ -188,6 +219,8 @@ function vertexModel(;
     R = reinterpret(SVector{2,Float64}, integrator.u)
     
     outputToggle == 1 ? jldsave(datadir(folderName,"systemDataFinal_$(fname).jld2");matrices,params,R) : nothing 
+    frameImageToggle == 1 ? save(datadir(folderName,"systemDataFinal_$(fname).png"), fig) : nothing
+
     return integrator
 end
 

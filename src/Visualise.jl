@@ -45,12 +45,12 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
         nVerts,
         nCells= params
 
-    #empty!(ax)
+    empty!(ax)
     empty!(fig)
     grid = fig[1,1] = GridLayout()
-    #ax = Axis(grid[1,1],aspect=DataAspect())
-    maxR=maximum(abs.(reinterpret(Float64, R0)))
-    ax = Axis(grid[1,1],aspect=DataAspect(), limits=(-1.5*maxR, 1.5*maxR, -1.5*maxR, 1.5*maxR))
+    ax = Axis(grid[1,1],aspect=DataAspect())
+    # maxR=maximum(abs.(reinterpret(Float64, R0)))
+    # ax = Axis(grid[1,1],aspect=DataAspect(), limits=(-1.5*maxR, 1.5*maxR, -1.5*maxR, 1.5*maxR))
 
     hidedecorations!(ax)
     hidespines!(ax)
@@ -72,7 +72,7 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
 
     ax.title = "t = $(@sprintf("%.2f", t))"
 
-    # Plot cells
+    # #Plot cells
     # if plotCells == 1
     #     cellPolygons = makeCellPolygons(R,params,matrices)
     #     for i=1:nCells
@@ -101,8 +101,8 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
 
     #cbar=Colorbar(fig[1,2],limits=(3,10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),flipaxis=true)
     #cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])
-    ylims!( -1.5*maxR, 1.5*maxR)
-    xlims!(-1.5*maxR, 1.5*maxR)
+    # ylims!( -1.5*maxR, 1.5*maxR)
+    # xlims!(-1.5*maxR, 1.5*maxR)
 
     # Scatter vertices
     if scatterVertices == 1

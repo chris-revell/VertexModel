@@ -28,7 +28,7 @@ using CircularArrays
 @from "SpatialData.jl" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed; nRows=9,modelChoice="quadratic",
-    vertexWeighting=0, stretchType="none", realStretchTime=0, λs=0, κ=1)
+    vertexWeighting=0, stretchType="none", realStretchTime=0, λs=0, κ=1, maxCells=1)
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -150,7 +150,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         realStretchTime   = realStretchTime,
         tStretch          = tStretch,
         tMemChange        = 0,
-        κ                 = κ
+        κ                 = κ,
+        maxCells          = maxCells
     )
 
     matrices.R_membrane.=R

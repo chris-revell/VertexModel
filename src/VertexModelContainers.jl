@@ -44,6 +44,7 @@ using CircularArrays
     tStretch           ::Float64            # non-dimensionalised total stretch time
     tMemChange         ::Float64            # time at which topology has changed for membrane points (eg division)
     κ                  ::Float64            # spring constant tethering vertices to membrane
+    maxCells           ::Float64            # number of cells for division cutoff
 end
 
 @kwdef mutable struct MatricesContainer
