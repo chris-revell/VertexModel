@@ -226,7 +226,9 @@ function initialise(; initialSystem = "periodic",
     topologyChange!(R,params,matrices)
     spatialData!(R, params, matrices)
 
-    println(matrices.boundaryCells)
+    # Checking the boundary cells match my Matlab vector: 
+    println(length(periodicBoundaryCellIndices))
+    println(count(!=(0), matrices.boundaryCells))
     # println(R)
     # println(matrices.cellPositions)
     

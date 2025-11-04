@@ -24,10 +24,12 @@ using SparseArrays
 using CircularArrays
 using FromFile
 using DrWatson
+using GeometryBasics: area
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "AnalysisFunctions.jl" using AnalysisFunctions
+
 
 function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
 
@@ -47,7 +49,6 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     cellsTypeA, 
     cellsTypeB = params
 
-
     empty!(ax)
 
     N_x,N_y = 10,10
@@ -58,6 +59,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     if plotCells == 1
         cellPolygons = makeCellPolygons(R, params, matrices)
         for i = 1:nCells
+            
 
             if initialSystem == "periodic"
                 # Check whether it is on the periodic boundary: 
@@ -108,6 +110,8 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
                         end
 
                     end
+
+                    
 
                     oppositePolygon1[:,1] = newCellPolygon[:,1] .+ N_x
                     oppositePolygon1[:,2] = newCellPolygon[:,2] .+ N_y
@@ -188,8 +192,15 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
     # Scatter cell positions
     if scatterCells == 1
-        scatter!(ax, Point{2,Float64}.(cellPositions), color=:red)
-        annotations!(ax, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions), color=:red)
+        for i=1:nCells
+            p = Point{2,Float64}(cellPositions[i]...)
+
+            # choose color
+            col = boundaryCells[i] == 1 ? :red : :blue
+
+            scatter!(ax, [p], color=col)
+            annotations!(ax, string(i), p, color=col)
+        end
     end
 
     # Plot resultant forces on vertices (excluding external pressure)

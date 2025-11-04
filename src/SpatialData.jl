@@ -17,9 +17,10 @@ using UnPack
 using FastBroadcast
 using SparseArrays
 using GeometryBasics
+using Statistics
 
 @from "OrderAroundCell.jl" using OrderAroundCell
-# @from "AnalysisFunctions.jl" using AnalysisFunctions
+@from "AnalysisFunctions.jl" using AnalysisFunctions
 
 function spatialData!(R,params,matrices)
 
@@ -33,6 +34,7 @@ function spatialData!(R,params,matrices)
         cellVertexOrders,
         cellEdgeOrders,
         cellPositions,
+        boundaryCells,
         cellPerimeters,
         cellOrientedAreas,
         cellShapeTensor,
@@ -56,7 +58,40 @@ function spatialData!(R,params,matrices)
         A₀,
         energyModel = params
 
-    cellPositions  .= C*R./cellEdgeCount
+    cellPolygons = makeCellPolygons(R, params, matrices)
+    cellPositions= C*R ./ cellEdgeCount
+    for i in 1:nCells
+        # Check whether the cell is on the boundary 
+        if boundaryCells[i]==1
+            L_x,L_y = 10,10
+            # get vertices; 
+            # verts is a vector of points
+            verts = [SVector(v[1], v[2]) for v in cellPolygons[i]]  # make immutable copies
+
+            for k in 2:length(verts)
+                dx = verts[k][1] - verts[1][1]
+                if dx > L_x/2
+                    verts[k] = SVector(verts[k][1]-L_x, verts[k][2])
+                elseif dx < -L_x/2
+                    verts[k] = SVector(verts[k][1]+L_x, verts[k][2])
+                end
+                dy = verts[k][2] - verts[1][2]
+                if dy > L_y/2
+                    verts[k] = SVector(verts[k][1], verts[k][2]-L_y)
+                elseif dy < -L_y/2
+                    verts[k] = SVector(verts[k][1], verts[k][2]+L_y)
+                end
+            end
+
+            # now average
+            mean_x = mean(v[1] for v in verts)
+            mean_y = mean(v[2] for v in verts)
+            cellPositions[i] = SVector(mod(mean_x, L_x), mod(mean_y, L_y))
+
+
+        end
+    end
+    
     
     edgeTangents   .= A*R
     
