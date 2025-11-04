@@ -79,6 +79,8 @@ function initialise(; initialSystem = "periodic",
         R_in= spzeros(2),
         A_in= spzeros(2),
         B_in= spzeros(2),
+        L_x = 10,
+        L_y = 10,
     )
 
     # Calculate derived parameters
