@@ -35,19 +35,19 @@ using Printf
 function vertexModel(;
     initialSystem = "periodic",
     nRows = 9,
-    nCycles = 0.1,
+    nCycles = 0.01,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
     γ = 0.2,
-    L0_A = 0.5,
-    L0_B = 1.0,
+    L0_A = 0.75,
+    L0_B = 0.75,
     L₀ = 0.75,
     A₀ = 1.0,
     viscousTimeScale = 1000.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
-    β = 0.1,
+    β = 0.01,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -61,7 +61,7 @@ function vertexModel(;
     plotCells = 1,
     scatterEdges = 0,
     scatterVertices = 0,
-    scatterCells = 0,
+    scatterCells = 1,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
@@ -116,7 +116,7 @@ function vertexModel(;
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]
 
-
+   
     # Iterate until integrator time reaches max system time 
     while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
@@ -139,10 +139,28 @@ function vertexModel(;
             # Save still image of this time step 
             frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
             outputCounter[1] += 1
+            
         end
 
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
+
+        if initialSystem == "periodic"
+            # Wrap vertices into the periodic domain
+            # R = reinterpret(SVector{2,Float64}, integrator.u)
+            L_x, L_y = 10.0,10.0
+            for k in 1:length(R)
+                x = R[k][1]
+                y=R[k][2]
+                # wrap 
+                x = mod(x,L_x)
+                y = mod(y,L_y)
+
+                # Write back to state vector
+                integrator.u[2k-1] = x 
+                integrator.u[2k] = y
+            end
+        end
 
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
         spatialData!(R, params, matrices)
@@ -170,7 +188,7 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
-    return integrator
+    return integrator, matrices
 end
 
 # Function to load previously saved simulation data 

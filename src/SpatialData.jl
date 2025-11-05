@@ -49,13 +49,43 @@ function spatialData!(R,params,matrices)
         vertexAreas,
         μ,
         Γ = matrices
-    @unpack nCells,
+    @unpack initialSystem,
+        nCells,
         nEdges,
         nVerts,
         γ,
         L₀,
         A₀,
         energyModel = params
+
+
+        # Compute boundary cells: 
+        if initialSystem == "periodic"
+            # Recalculate cells at the periodic boundary
+            fill!(boundaryCells, 0)
+            Lx, Ly = 10, 10
+            for i in 1:nCells
+                # Assume cell is internal
+                isBoundary = false
+        
+                for k in 1:nVerts
+                    if C[i,k] == 1
+                        dx = abs(R[k][1] - cellPositions[i][1])
+                        dy = abs(R[k][2] - cellPositions[i][2])
+    
+                        # If the cell stretches across a periodic boundary
+                        if dx > Lx/2 || dy > Ly/2 
+                            isBoundary = true
+                            break
+                        end
+                    end
+                end
+        
+                boundaryCells[i] = isBoundary ? 1 : 0
+            end
+            
+    
+        end
 
     cellPolygons = makeCellPolygons(R, params, matrices)
     # cellPositions= C*R ./ cellEdgeCount
@@ -175,11 +205,15 @@ function spatialData!(R,params,matrices)
         for v in verts[2:end]
             dx = v[1] - x0
             dy = v[2] - y0
-            if dx >  L_x/2; dx -= L_x
-            elseif dx < -L_x/2; dx += L_x
+            if dx >  L_x/2; 
+                dx -= L_x
+            elseif dx < -L_x/2; 
+                dx += L_x
             end
-            if dy >  L_y/2; dy -= L_y
-            elseif dy < -L_y/2; dy += L_y
+            if dy >  L_y/2; 
+                dy -= L_y
+            elseif dy < -L_y/2; 
+                dy += L_y
             end
             push!(unwrapped, SVector(x0 + dx, y0 + dy))
         end
@@ -191,6 +225,10 @@ function spatialData!(R,params,matrices)
         
         Rα = [v - cellPositions[i] for v in unwrapped]
         cellShapeTensor[i] = sum(Rα .* transpose.(Rα)) / length(Rα)
+
+        if cellAreas[i] < 0
+            println("Negative area for cell", i)
+        end
     end
 
     # Calculate cell pressures and tensions according to energy model choice 

@@ -120,6 +120,7 @@ function initialise(; initialSystem = "periodic",
     end
 
     nCells = size(B, 1)
+    println(nCells)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 

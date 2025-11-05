@@ -84,18 +84,6 @@ function topologyChange!(R,params,matrices)
         # Find list of edges at system periphery
         boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
     end
-    
-
-    N_x = 10
-    for i=1:nCells
-        for k=1:nVerts
-            if C[i,k]==1
-                if norm(R[k].-cellPositions[i]) > N_x/2 # Checking the vertex is on the other side of the domain 
-                    boundaryCells[i] = 1
-                end
-            end
-        end
-    end
 
 
     for i = 1:length(cellVertexOrders)
