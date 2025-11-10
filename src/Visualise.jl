@@ -47,13 +47,14 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     nVerts, 
     nCells, 
     cellsTypeA, 
-    cellsTypeB = params
+    cellsTypeB,
+    L_x,
+    L_y = params
 
     empty!(ax)
 
-    N_x,N_y = 10,10
     ax.title = "t = $(@sprintf("%.3f", t))"
-    ax.limits = ((0,N_x),(0,N_y))
+    ax.limits = ((0,L_x),(0,L_y))
 
     # Plot cells
     if plotCells == 1
@@ -83,27 +84,27 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
                     for k = 1:num_vertices
 
-                        if norm(cellPolygons[i][k][1]-cellPositions[i][1]) > N_x/2
+                        if norm(cellPolygons[i][k][1]-cellPositions[i][1]) > L_x/2
                             
                             if cellPolygons[i][k][1] > cellPositions[i][1]
-                                newCellPolygon[k,1] = cellPolygons[i][k][1] - N_x
+                                newCellPolygon[k,1] = cellPolygons[i][k][1] - L_x
                                 flag1 = 1
                             else
-                                newCellPolygon[k,1] = cellPolygons[i][k][1] + N_x
+                                newCellPolygon[k,1] = cellPolygons[i][k][1] + L_x
                                 flag1 = 2
                             end
                         else
                             newCellPolygon[k,1] = cellPolygons[i][k][1]
                         end
 
-                        if norm(cellPolygons[i][k][2]-cellPositions[i][2]) > N_y/2
+                        if norm(cellPolygons[i][k][2]-cellPositions[i][2]) > L_y/2
                             
                             if cellPolygons[i][k][2] > cellPositions[i][2]
                                 flag2 = 1
-                                newCellPolygon[k,2] = cellPolygons[i][k][2] - N_y
+                                newCellPolygon[k,2] = cellPolygons[i][k][2] - L_y
                             else
                                 flag2=2
-                                newCellPolygon[k,2] = cellPolygons[i][k][2] + N_y
+                                newCellPolygon[k,2] = cellPolygons[i][k][2] + L_y
                             end
                         else
                             newCellPolygon[k,2] = cellPolygons[i][k][2]
@@ -113,22 +114,22 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
                     
 
-                    oppositePolygon1[:,1] = newCellPolygon[:,1] .+ N_x
-                    oppositePolygon1[:,2] = newCellPolygon[:,2] .+ N_y
-                    oppositePolygon2[:,1] = newCellPolygon[:,1] .+ N_x
-                    oppositePolygon2[:,2] = newCellPolygon[:,2] .- N_y
-                    oppositePolygon3[:,1] = newCellPolygon[:,1] .- N_x
-                    oppositePolygon3[:,2] = newCellPolygon[:,2] .+ N_y
-                    oppositePolygon4[:,1] = newCellPolygon[:,1] .- N_x
-                    oppositePolygon4[:,2] = newCellPolygon[:,2] .- N_y
-                    oppositePolygon5[:,1] = newCellPolygon[:,1] .+ N_x
+                    oppositePolygon1[:,1] = newCellPolygon[:,1] .+ L_x
+                    oppositePolygon1[:,2] = newCellPolygon[:,2] .+ L_y
+                    oppositePolygon2[:,1] = newCellPolygon[:,1] .+ L_x
+                    oppositePolygon2[:,2] = newCellPolygon[:,2] .- L_y
+                    oppositePolygon3[:,1] = newCellPolygon[:,1] .- L_x
+                    oppositePolygon3[:,2] = newCellPolygon[:,2] .+ L_y
+                    oppositePolygon4[:,1] = newCellPolygon[:,1] .- L_x
+                    oppositePolygon4[:,2] = newCellPolygon[:,2] .- L_y
+                    oppositePolygon5[:,1] = newCellPolygon[:,1] .+ L_x
                     oppositePolygon5[:,2] = newCellPolygon[:,2] 
-                    oppositePolygon6[:,1] = newCellPolygon[:,1] .- N_x
+                    oppositePolygon6[:,1] = newCellPolygon[:,1] .- L_x
                     oppositePolygon6[:,2] = newCellPolygon[:,2] 
                     oppositePolygon7[:,1] = newCellPolygon[:,1] 
-                    oppositePolygon7[:,2] = newCellPolygon[:,2] .+ N_y
+                    oppositePolygon7[:,2] = newCellPolygon[:,2] .+ L_y
                     oppositePolygon8[:,1] = newCellPolygon[:,1]
-                    oppositePolygon8[:,2] = newCellPolygon[:,2] .- N_y
+                    oppositePolygon8[:,2] = newCellPolygon[:,2] .- L_y
 
                     # Draw a polygon for cell i with colour determined by cell type
                     if i in cellsTypeA

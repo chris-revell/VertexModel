@@ -98,7 +98,9 @@ function vertexModel(;
         vertexWeighting = vertexWeighting,
         R_in = R_in,
         A_in = A_in,
-        B_in = B_in
+        B_in = B_in,
+        L_x=L_x,
+        L_y=L_y
     )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
@@ -148,7 +150,6 @@ function vertexModel(;
         if initialSystem == "periodic"
             # Wrap vertices into the periodic domain
             # R = reinterpret(SVector{2,Float64}, integrator.u)
-            L_x, L_y = 10.0,10.0
             for k in 1:length(R)
                 x = R[k][1]
                 y=R[k][2]

@@ -56,6 +56,11 @@ periodicA = sparse(dense_matrix_A)
 periodicB = sparse(dense_matrix_B)
 periodicBoundaryCellIndices = [Int(col[1]) for col in eachcol(dfboundary)]
 cellPositionsPeriodic = [(Float64(row[1]), Float64(row[2])) for row in eachrow(dfCentres)]
+areaVecPeriodic = Matrix{Float64}(dfAreaVec)
+
+# Find mean area and scale by this
+meanArea = sum(areaVecPeriodic)/length(areaVecPeriodic)
+println("mean area:",meanArea)
 
 function initialise(; initialSystem = "periodic",
         nCycles = 1,
@@ -80,7 +85,7 @@ function initialise(; initialSystem = "periodic",
         A_in= spzeros(2),
         B_in= spzeros(2),
         L_x = 10,
-        L_y = 10,
+        L_y = 10
     )
 
     # Calculate derived parameters
@@ -101,9 +106,14 @@ function initialise(; initialSystem = "periodic",
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        A, B, R = periodicA, periodicB, periodicR
+        A, B, R = periodicA, periodicB, periodicR.÷sqrt(meanArea)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-        cellPositions = cellPositionsPeriodic
+        cellPositions = cellPositionsPeriodic.÷sqrt(meanArea)
+
+        L_x = L_x /sqrt(meanArea)
+        L_y = L_y /sqrt(meanArea)
+
+
     elseif initialSystem == "argument"
         R = R_in
         A = A_in
@@ -125,7 +135,8 @@ function initialise(; initialSystem = "periodic",
     nVerts = size(A, 2)
 
     # Define the number of A and B cells
-    nACells = Int(floor(nCells/2))
+    # nACells = Int(floor(nCells/2))
+    nACells = nCells
 
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
@@ -221,7 +232,9 @@ function initialise(; initialSystem = "periodic",
         energyModel       = energyModel,
         vertexWeighting   = vertexWeighting,
         cellsTypeA        = cellsTypeA,
-        cellsTypeB        = cellsTypeB
+        cellsTypeB        = cellsTypeB,
+        L_x               = L_x,
+        L_y               = L_y
 
     )
 

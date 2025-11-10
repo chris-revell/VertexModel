@@ -43,7 +43,8 @@ using CircularArrays
     vertexWeighting    ::Bool               # Flag controlling whether vertices experience drag proportional to their surrounding area 
     cellsTypeA       ::Vector{Int64}        # Vector storing indices of type A population
     cellsTypeB       ::Vector{Int64}        # Vector storing indices of type B population
-    
+    L_x              ::Float64
+    L_y              ::Float64
 end
 
 @kwdef mutable struct MatricesContainer

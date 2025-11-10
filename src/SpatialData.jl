@@ -56,7 +56,9 @@ function spatialData!(R,params,matrices)
         γ,
         L₀,
         A₀,
-        energyModel = params
+        energyModel,
+        L_x,
+        L_y = params
 
 
         # Compute boundary cells: 
@@ -92,7 +94,6 @@ function spatialData!(R,params,matrices)
     for i in 1:nCells
         # Check whether the cell is on the boundary 
         # if boundaryCells[i]==1
-            L_x,L_y = 10,10
             # get vertices; 
             # verts is a vector of points
             verts = [SVector(v[1], v[2]) for v in cellPolygons[i]]  # make immutable copies
@@ -123,7 +124,6 @@ function spatialData!(R,params,matrices)
     
     # Computing edge data: 
     for j in 1:nEdges
-        L_x,L_y = 10,10
         # Get the vertices of edge j: 
         verts = findall(x -> x!=0, A[j,:])
         v1, v2 = R[verts[1]], R[verts[2]]
@@ -197,7 +197,6 @@ function spatialData!(R,params,matrices)
     # end
 
     for i = 1:nCells
-        L_x,L_y = 10,10
         verts = R[cellVertexOrders[i]]
         # unwrap all vertices relative to the first vertex
         x0, y0 = verts[1]
