@@ -54,7 +54,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     empty!(ax)
 
     ax.title = "t = $(@sprintf("%.3f", t))"
-    ax.limits = ((0,L_x),(0,L_y))
+    # ax.limits = ((0,L_x),(0,L_y))
 
     # Plot cells
     if plotCells == 1

@@ -72,6 +72,8 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
+    L_x = 10,
+    L_y = 10
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)

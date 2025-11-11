@@ -62,30 +62,30 @@ areaVecPeriodic = Matrix{Float64}(dfAreaVec)
 meanArea = sum(areaVecPeriodic)/length(areaVecPeriodic)
 println("mean area:",meanArea)
 
-function initialise(; initialSystem = "periodic",
-        nCycles = 1,
-        realCycleTime = 86400.0,
-        realTimetMax = nCycles*realCycleTime,
-        γ = 0.2,
-        L0_A = 0.5,
-        L0_B = 1.0,
-        L₀ = 0.75,
+function initialise(; initialSystem,
+        nCycles,
+        realCycleTime,
+        realTimetMax,
+        γ,
+        L0_A,
+        L0_B,
+        L₀,
         A₀ = 1.0,
-        pressureExternal = 0.0,
-        viscousTimeScale = 1000.0,
-        outputTotal = 100,
-        t1Threshold = 0.05,
-        peripheralTension = 0.0,
+        pressureExternal,
+        viscousTimeScale,
+        outputTotal,
+        t1Threshold,
+        peripheralTension,
         β,
-        randomSeed = 0,
-        nRows = 9,
-        energyModel = "quadratic",
-        vertexWeighting = 1,
-        R_in= spzeros(2),
-        A_in= spzeros(2),
-        B_in= spzeros(2),
-        L_x = 10,
-        L_y = 10
+        randomSeed,
+        nRows,
+        energyModel,
+        vertexWeighting,
+        R_in,
+        A_in,
+        B_in,
+        L_x,
+        L_y
     )
 
     # Calculate derived parameters
@@ -106,12 +106,9 @@ function initialise(; initialSystem = "periodic",
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        A, B, R = periodicA, periodicB, periodicR.÷sqrt(meanArea)
+        A, B, R = periodicA, periodicB, periodicR
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-        cellPositions = cellPositionsPeriodic.÷sqrt(meanArea)
-
-        L_x = L_x /sqrt(meanArea)
-        L_y = L_y /sqrt(meanArea)
+        cellPositions = cellPositionsPeriodic
 
 
     elseif initialSystem == "argument"
@@ -176,8 +173,8 @@ function initialise(; initialSystem = "periodic",
         boundaryVertices  = zeros(Int64, nVerts),
         boundaryEdges     = zeros(Int64, nEdges),
         boundaryCells     = zeros(Int64, nCells),
-        # cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
-        cellPositions     = cellPositions,
+        cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        # cellPositions     = cellPositions,
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
