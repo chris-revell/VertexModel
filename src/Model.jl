@@ -39,7 +39,8 @@ function model!(du, u, p, t)
         boundaryVertices,
         boundaryEdges,
         vertexAreas = matrices
-    @unpack nVerts,
+    @unpack initialSystem, 
+        nVerts,
         nCells,
         nEdges,
         pressureExternal,
@@ -67,6 +68,7 @@ function model!(du, u, p, t)
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure -- only applies to boundary vertices 
+                
                 externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
 
                 

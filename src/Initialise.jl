@@ -152,7 +152,7 @@ function initialise(; initialSystem,
     end
 
     # Define contractility
-    λs = -2.0 .* γ .* cellL₀s
+    # λs = -2.0 .* γ .* cellL₀s
 
 
 
@@ -173,8 +173,8 @@ function initialise(; initialSystem,
         boundaryVertices  = zeros(Int64, nVerts),
         boundaryEdges     = zeros(Int64, nEdges),
         boundaryCells     = zeros(Int64, nCells),
-        cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
-        # cellPositions     = cellPositions,
+        # cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        cellPositions     = cellPositions,
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
@@ -209,7 +209,9 @@ function initialise(; initialSystem,
         nVerts            = nVerts,
         γ                 = γ,
         λs                = λs,
-        L₀                = NaN,
+        L0_A              = L0_A,
+        L0_B              = L0_B,
+        L₀                = L₀,
         A₀                = A₀,
         pressureExternal  = pressureExternal,
         outputTotal       = outputTotal,
@@ -242,8 +244,6 @@ function initialise(; initialSystem,
     # Checking the boundary cells match my Matlab vector: 
     println(length(periodicBoundaryCellIndices))
     println(count(!=(0), matrices.boundaryCells))
-    # println(R)
-    # println(matrices.cellPositions)
     
 
     # Convert vector of SVectors to flat vector of Float64

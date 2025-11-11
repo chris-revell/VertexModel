@@ -34,6 +34,7 @@ function spatialData!(R,params,matrices)
         cellEdgeOrders,
         cellPositions,
         boundaryCells,
+        cellPositions,
         cellPerimeters,
         cellOrientedAreas,
         cellShapeTensor,
@@ -59,35 +60,6 @@ function spatialData!(R,params,matrices)
         energyModel,
         L_x,
         L_y = params
-
-
-        # Compute boundary cells: 
-        if initialSystem == "periodic"
-            # Recalculate cells at the periodic boundary
-            fill!(boundaryCells, 0)
-            Lx, Ly = 10, 10
-            for i in 1:nCells
-                # Assume cell is internal
-                isBoundary = false
-        
-                for k in 1:nVerts
-                    if C[i,k] == 1
-                        dx = abs(R[k][1] - cellPositions[i][1])
-                        dy = abs(R[k][2] - cellPositions[i][2])
-    
-                        # If the cell stretches across a periodic boundary
-                        if dx > Lx/2 || dy > Ly/2 
-                            isBoundary = true
-                            break
-                        end
-                    end
-                end
-        
-                boundaryCells[i] = isBoundary ? 1 : 0
-            end
-            
-    
-        end
 
     cellPolygons = makeCellPolygons(R, params, matrices)
     if initialSystem=="new"
@@ -160,7 +132,32 @@ function spatialData!(R,params,matrices)
         end
     end
     
+    # Compute boundary cells: 
+    if initialSystem == "periodic"
+        # Recalculate cells at the periodic boundary
+        fill!(boundaryCells, 0)
+        for i in 1:nCells
+            # Assume cell is internal
+            isBoundary = false
     
+            for k in 1:nVerts
+                if C[i,k] == 1
+                    dx = abs(R[k][1] - cellPositions[i][1])
+                    dy = abs(R[k][2] - cellPositions[i][2])
+
+                    # If the cell stretches across a periodic boundary
+                    if dx > L_x/2 || dy > L_y/2 
+                        isBoundary = true
+                        break
+                    end
+                end
+            end
+    
+            boundaryCells[i] = isBoundary ? 1 : 0
+        end
+        
+
+    end
     
     
     fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
