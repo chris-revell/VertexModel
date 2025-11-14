@@ -200,7 +200,8 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
             col = boundaryCells[i] == 1 ? :red : :blue
 
             scatter!(ax, [p], color=col)
-            annotations!(ax, string(i), p, color=col)
+            
+            annotations!(ax, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions), color=col)
         end
     end
 

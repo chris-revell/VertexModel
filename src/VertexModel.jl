@@ -151,7 +151,7 @@ function vertexModel(;
 
         if initialSystem == "periodic"
             # Wrap vertices into the periodic domain
-            # R = reinterpret(SVector{2,Float64}, integrator.u)
+            R = reinterpret(SVector{2,Float64}, integrator.u)
             for k in 1:length(R)
                 x = R[k][1]
                 y=R[k][2]

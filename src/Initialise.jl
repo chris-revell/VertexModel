@@ -152,7 +152,7 @@ function initialise(; initialSystem,
     end
 
     # Define contractility
-    # λs = -2.0 .* γ .* cellL₀s
+    λs = -2.0 .* γ .* cellL₀s
 
 
 
