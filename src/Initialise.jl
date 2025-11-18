@@ -26,6 +26,7 @@ using MAT # For reading mat files
 
 # Local modules
 @from "initialSystemLayout.jl" using InitialSystemLayout
+@from "InitialSystemLayoutPeriodic.jl" using InitialSystemLayoutPeriodic
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
@@ -110,6 +111,10 @@ function initialise(; initialSystem,
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         cellPositions = cellPositionsPeriodic
 
+        roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+        println("roots_p=",roots_p)
+        # Area_hex = 3*sqrt(3)*L_sol^2/2
+        # println("Area_hex=",Area_hex)
 
     elseif initialSystem == "argument"
         R = R_in

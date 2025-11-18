@@ -9,7 +9,7 @@
 # Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
 # Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
-module InitialSystemLayout
+module InitialSystemLayoutPeriodic
 
 # Julia packages
 using LinearAlgebra
@@ -20,111 +20,45 @@ using FromFile
 using DelaunayTriangulation
 using FromFile
 using Random
+using Polynomials 
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(nRows)
+function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
-    # nRows = 9 # Must be an odd number
-    cellPoints = [SVector(x, 0.0) for x = 1:nRows]
-    for j = 1:(floor(Int64,nRows/2))
-        for i = 1:nRows-j
-            # Need to add a small amount of randomness to prevent errors in voronoi tessellation 
-            push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
-            push!(cellPoints, SVector(i + 0.5 * j + rand() * 0.001 - 0.0005, -j * sqrt(1 - 0.5^2) + rand() * 0.001 - 0.0005))
+    
+
+    if L0_A == L0_B
+        # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
+        # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
+        a,b,c,d = 9/4, 0, -(sqrt(3)/2 + 6*γ), γ*L0_A
+        p = Polynomial([d, c, b, a])
+        roots_p = roots(p)
+        # Choose the greatest of these: 
+        l = maxiumum(roots_p)
+        if l<=0 
+            println("Error: negative hexagon sidelength")
         end
-    end
-    xs = [x[1] for x in cellPoints]
-    ys = [x[2] for x in cellPoints]
+        Area_hex = 3*sqrt(3)*l^2/2
+        N_c = Int(ceil(L_x*L_y / Area_hex))
 
-    ptsArray = zeros(Float64, (2, length(cellPoints)))
-    for (i, point) in enumerate(cellPoints)
-        ptsArray[1, i] = point[1]
-        ptsArray[2, i] = point[2]
-    end
+        
+        
 
-    triangulation_unconstrained = triangulate(ptsArray)
-    tessellation_constrained = voronoi(triangulation_unconstrained, clip=true)
-
-    #Exclude points outside constraining boundary
-    usableVertices = Int64[]
-    for a in values(tessellation_constrained.polygons)
-        push!(usableVertices, a...)
-    end
-    sort!(unique!(usableVertices))
-    outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
-
-    # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
-    vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
-
-    R = SVector.(tessellation_constrained.polygon_points[usableVertices])
-
-    # Find pairs of vertices connected by edges in tessellation 
-    # Use incidence matrix indexing for vertices, and exclude outer vertices 
-    pairs = [(vertexIndexingMap[p[1]], vertexIndexingMap[p[2]]) for p in keys(tessellation_constrained.adjacent.adjacent) if p[1] ∈ usableVertices && p[2] ∈ usableVertices]
-    # Ensure lowest index is first in tuple, and remove duplicates 
-    orderedPairs = unique([(min(p...), max(p...)) for p in pairs])
-
-    nVerts = length(R)
-    nEdges = length(orderedPairs)
-    nCells = length(cellPoints)
-
-    # Construct A matrix mapping tessellation edges to tessellation vertices 
-    A = spzeros(Int64, nEdges, nVerts)
-    for (edgeIndex, vertices) in enumerate(orderedPairs)
-        A[edgeIndex, vertices[1]] = 1
-        A[edgeIndex, vertices[2]] = -1
+    else
+        println("Update cell number calculation for different preferred areas!")
     end
 
-    # NB get_polygon(tessellation_constrained,x) or tessellation_constrained.polygons[x] return indices of vertices around cell x ordered anti-clockwise, with first and last element the same
+    
 
-    # Construct B matrix mapping voronoi cell around each fibril to surrounding edges between vertices in tessellation
-    # NB assume ϵᵢ is a clockwise rotation so cell orientation is into page. 
-    B = spzeros(Int64, nCells, nEdges)
-    for c = 1:nCells
-        for i = 2:length(tessellation_constrained.polygons[c])
-            vertexLeading = vertexIndexingMap[tessellation_constrained.polygons[c][i-1]]  # Leading with respect to *clockwise* direction around cell
-            vertexTrailing = vertexIndexingMap[tessellation_constrained.polygons[c][i]]
-            # Find index of edge connecting these vertices 
-            edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
-            if A[edge, vertexLeading] > 0
-                B[c, edge] = 1
-            else
-                B[c, edge] = -1
-            end
-        end
-    end
+    # cellPoints = [SVector(x, 0.0) for x = 1:nRows]
+    
 
-    # Prune peripheral vertices with 2 edges that both belong to the same cell
-    # Making the assumption that there will never be two such vertices adjacent to each other
-    verticesToRemove = Int64[]
-    edgesToRemove = Int64[]
-    for i = 1:nVerts
-        edges = findall(x -> x != 0, @view A[:, i])
-        cells1 = findall(x -> x != 0, @view B[:, edges[1]])
-        cells2 = findall(x -> x != 0, @view B[:, edges[2]])
-        if cells1 == cells2
-            # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
-            push!(verticesToRemove, i)
-            push!(edgesToRemove, edges[1])
-        end
-    end
-    for i in verticesToRemove
-        edges = findall(x -> x != 0, @view A[:, i])
-        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
-        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
-        A[edges[1], otherVertexOnEdge1] = 0
-    end
-    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
-    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
-    R = R[setdiff(1:size(R, 1), verticesToRemove)]
-
-    senseCheck(A, B; marker="Removing peropheral vertices")
-
-    return A, B, R
+    # return A, B, R
+    return roots_p
 
 end
 
-export initialSystemLayout 
+export initialSystemLayoutPeriodic
 
 end
