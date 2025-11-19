@@ -21,8 +21,36 @@ using DelaunayTriangulation
 using FromFile
 using Random
 using Polynomials 
+using Distributions
 
 @from "SenseCheck.jl" using SenseCheck
+
+function periodic_distance(p, q, Lx, Ly)
+    # Function to calculate distance between points p and q, wrapped around the periodic boundaries: 
+    dx = abs(p[1] - q[1])
+    dy = abs(p[2] - q[2])
+    dx = min(dx, Lx - dx)
+    dy = min(dy, Ly - dy)
+    return sqrt(dx^2 + dy^2)
+end
+
+function matern_typeII(parents, marks, rad, Lx, Ly)
+    order = sortperm(marks)
+    kept = Vector{NTuple{2,Float64}}()
+
+    for idx in order
+        p = parents[idx]
+        keep = true
+        for q in kept
+            if periodic_distance(p, q, Lx, Ly) < rad
+                keep = false
+                break
+            end
+        end
+        keep && push!(kept, p)
+    end
+    return kept
+end
 
 function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
@@ -35,7 +63,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         p = Polynomial([d, c, b, a])
         roots_p = roots(p)
         # Choose the greatest of these: 
-        l = maxiumum(roots_p)
+        l = maximum(roots_p)
         if l<=0 
             println("Error: negative hexagon sidelength")
         end
@@ -49,10 +77,30 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         println("Update cell number calculation for different preferred areas!")
     end
 
-    
 
-    # cellPoints = [SVector(x, 0.0) for x = 1:nRows]
-    
+    # Matern type II process to generate periodic cell centres:
+    rad = l                      # use hexagon side as hardcore radius
+    area = L_x * L_y
+    λp = N_c * 3 / area          # parent intensity guess
+    kept = NTuple{2,Float64}[]
+
+    while length(kept) < N_c
+        n_parent = rand(Poisson(λp * area))
+        parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
+        marks   = rand(n_parent)
+
+        kept = matern_typeII(parents, marks, rad, L_x, L_y)
+
+        λp *= 1.5   # increase parent intensity if we failed
+    end
+
+    # truncate if too many
+    if length(kept) > N_c
+        kept = kept[randperm(length(kept))[1:N_c]]
+    end
+
+    xs = [x[1] for x in kept]
+    ys = [x[2] for x in kept]
 
     # return A, B, R
     return roots_p

@@ -113,8 +113,6 @@ function initialise(; initialSystem,
 
         roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         println("roots_p=",roots_p)
-        # Area_hex = 3*sqrt(3)*L_sol^2/2
-        # println("Area_hex=",Area_hex)
 
     elseif initialSystem == "argument"
         R = R_in

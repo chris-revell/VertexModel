@@ -47,6 +47,7 @@ UnicodeFun = "1cfade01-22cf-5700-b092-accc4b62d6e1"
 [compat]
 CSV = "0.10.15"
 DataFrames = "1.8.0"
+Distributions = "0.25.122"
 GeometryBasics = "0.4"
 JLD2 = "0.5.7"
 LibGit2 = "1.11.0"
