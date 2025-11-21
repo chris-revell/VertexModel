@@ -2,9 +2,7 @@
 #  VertexModelScript.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
-#
+#  This script will run all of the components of vertexModel() outside the scope of a function, which can be useful for debugging
 
 # Julia packages
 using PrecompileTools

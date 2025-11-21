@@ -2,8 +2,6 @@
 #  VertexModel.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
 #
 
 module VertexModel
@@ -63,7 +61,7 @@ function vertexModel(;
     scatterCells = 0,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
-    setRandomSeed = 0,
+    randomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
     sstol = 100.0*abstol,
@@ -90,7 +88,7 @@ function vertexModel(;
         t1Threshold = t1Threshold,
         realCycleTime = realCycleTime,
         peripheralTension = peripheralTension,
-        setRandomSeed = setRandomSeed,
+        randomSeed = randomSeed,
         nRows = nRows,
         energyModel = energyModel,
         vertexWeighting = vertexWeighting,

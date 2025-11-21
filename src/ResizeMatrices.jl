@@ -2,10 +2,7 @@
 #  ResizeMatrices.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 24/01/2024.
-#
-#
-# Function to adjust the size of system matrices
+#  Function to adjust the size of system matrices
 
 module ResizeMatrices
 

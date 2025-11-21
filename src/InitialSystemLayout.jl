@@ -2,12 +2,9 @@
 #  InitialSystemLayout.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 06/09/2023.
-#
-#
-# Function to create a hexagonal grid of cells. 
-# Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
-# Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
+#  Function to create a hexagonal grid of cells. 
+#  Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
+#  Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
 module InitialSystemLayout
 
@@ -23,7 +20,11 @@ using Random
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(nRows; spiky=false)
+function initialSystemLayout(;
+        nRows = 9,
+        initialEdgeLength = 5.0*0.75/6, # Need to find a better value for this than 5*L₀/6
+        spiky=false,
+    )
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -57,7 +58,7 @@ function initialSystemLayout(nRows; spiky=false)
     # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
     vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
 
-    R = SVector.(tessellation_constrained.polygon_points[usableVertices])
+    Rtmp = SVector.(tessellation_constrained.polygon_points[usableVertices])
 
     # Find pairs of vertices connected by edges in tessellation 
     # Use incidence matrix indexing for vertices, and exclude outer vertices 
@@ -65,7 +66,7 @@ function initialSystemLayout(nRows; spiky=false)
     # Ensure lowest index is first in tuple, and remove duplicates 
     orderedPairs = unique([(min(p...), max(p...)) for p in pairs])
 
-    nVerts = length(R)
+    nVerts = length(Rtmp)
     nEdges = length(orderedPairs)
     nCells = length(cellPoints)
 
@@ -110,15 +111,21 @@ function initialSystemLayout(nRows; spiky=false)
                 push!(edgesToRemove, edges[1])
             end
         end
-        for i in verticesToRemove
-            edges = findall(x -> x != 0, @view A[:, i])
-            otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
-            A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
-            A[edges[1], otherVertexOnEdge1] = 0
-        end
-        A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
-        B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
-        R = R[setdiff(1:size(R, 1), verticesToRemove)]
+    end
+    for i in verticesToRemove
+        edges = findall(x -> x != 0, @view A[:, i])
+        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
+        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
+        A[edges[1], otherVertexOnEdge1] = 0
+    end
+    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
+    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
+    Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+
+    R = SVector{2, Float64}[]
+    for r in Rtmp 
+        push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 - 1.0 ), initialEdgeLength*r[2]))
+    end
 
         senseCheck(A, B; marker="Removing peropheral vertices")
     end

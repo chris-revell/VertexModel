@@ -2,10 +2,7 @@
 #  VertexModelContainers.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 05/12/2021.
-#
-#
-# Structs to hold system parameters and matrices, allowing us avoid passing dozens of arguments to each function
+#  Structs to hold system parameters and matrices, allowing us avoid passing dozens of arguments to each function
 
 module VertexModelContainers
 
@@ -36,7 +33,7 @@ using CircularArrays
     t1Threshold        ::Float64            # Length of edge below which a T1 transition occurs
     peripheralTension  ::Float64            # Tension at system periphery
     seed               ::Int64              # Random number seed 
-    rng                ::MersenneTwister    # Random number seed 
+    rng                ::MersenneTwister    # Random number sequence
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
     energyModel        ::String             # Choice of energy function (eg log, quadratic)
     vertexWeighting    ::Bool               # Flag controlling whether vertices experience drag proportional to their surrounding area 

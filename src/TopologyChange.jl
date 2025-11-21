@@ -2,10 +2,7 @@
 #  TopologyChange.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 01/02/2021.
-#
-#
-# Function to recalculate derived matrices (Ā, Aᵀ etc.) for any change in vertex network topology (ie any change to A or B matrices).
+#  Function to recalculate derived matrices (Ā, Aᵀ etc.) for any change in vertex network topology (ie any change to A or B matrices).
 
 module TopologyChange
 

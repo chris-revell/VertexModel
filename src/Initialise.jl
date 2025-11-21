@@ -2,10 +2,7 @@
 #  Initialise.jl
 #  VertexModel
 #
-#  Created by Christopher Revell on 31/01/2021.
-#
-#
-# Function to initialise vertex model system matrices and derived parameters
+#  Function to initialise vertex model system matrices and derived parameters
 
 module Initialise
 
@@ -39,7 +36,7 @@ function initialise(; initialSystem = "new",
         outputTotal = 100,
         t1Threshold = 0.05,
         peripheralTension = 0.0,
-        setRandomSeed = 0,
+        randomSeed = 0,
         nRows = 9,
         energyModel = "log",
         vertexWeighting = 1,
@@ -47,6 +44,7 @@ function initialise(; initialSystem = "new",
         A_in= spzeros(2),
         B_in= spzeros(2),
         spiky = false,
+        initialEdgeLength = 0.75,
     )
 
     # Calculate derived parameters
@@ -57,15 +55,15 @@ function initialise(; initialSystem = "new",
 
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
-    # unless non zero value of setRandomSeed is passed, in which case random seed is passed value of setRandomSeed
-    seed = (setRandomSeed == 0 ? floor(Int64, datetime2unix(now())) : setRandomSeed)
+    # unless non zero value of randomSeed is passed, in which case random seed is passed value of randomSeed
+    seed = (randomSeed == 0 ? floor(Int64, datetime2unix(now())) : randomSeed)
     Random.seed!(seed)
     rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R = initialSystemLayout(nRows; spiky=spiky)
+        A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=initialEdgeLength=5*L₀/6)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
         R = R_in
