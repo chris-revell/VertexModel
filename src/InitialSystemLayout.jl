@@ -17,6 +17,7 @@ using FromFile
 using DelaunayTriangulation
 using FromFile
 using Random
+using InvertedIndices
 
 @from "SenseCheck.jl" using SenseCheck
 
@@ -98,9 +99,9 @@ function initialSystemLayout(;
 
     # Prune peripheral vertices with 2 edges that both belong to the same cell
     # Making the assumption that there will never be two such vertices adjacent to each other
-    if !spiky
-        verticesToRemove = Int64[]
-        edgesToRemove = Int64[]
+    verticesToRemove = Int64[]
+    edgesToRemove = Int64[]
+    if !spiky        
         for i = 1:nVerts
             edges = findall(x -> x != 0, @view A[:, i])
             cells1 = findall(x -> x != 0, @view B[:, edges[1]])
@@ -111,24 +112,26 @@ function initialSystemLayout(;
                 push!(edgesToRemove, edges[1])
             end
         end
+        for i in verticesToRemove
+            edges = findall(x -> x != 0, @view A[:, i])
+            otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
+            A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
+            A[edges[1], otherVertexOnEdge1] = 0
+        end
     end
-    for i in verticesToRemove
-        edges = findall(x -> x != 0, @view A[:, i])
-        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
-        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
-        A[edges[1], otherVertexOnEdge1] = 0
-    end
-    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
-    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
-    Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+    # A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
+    A = A[Not(edgesToRemove), Not(verticesToRemove)]
+    # B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
+    B = B[:, Not(edgesToRemove)]
+    # Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+    Rtmp = Rtmp[Not(verticesToRemove)]
 
     R = SVector{2, Float64}[]
     for r in Rtmp 
         push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 - 1.0 ), initialEdgeLength*r[2]))
     end
 
-        senseCheck(A, B; marker="Removing peropheral vertices")
-    end
+    senseCheck(A, B; marker="Removing peropheral vertices")
 
     return A, B, R
 
