@@ -50,7 +50,8 @@ function topologyChange!(R,params,matrices)
     @.. thread = false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
-    C .= B̄ * Ā ./ 2
+    C .= B̄ * Ā ./2
+   
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))

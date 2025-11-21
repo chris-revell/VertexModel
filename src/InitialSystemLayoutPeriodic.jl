@@ -27,6 +27,8 @@ using CairoMakie
 
 @from "SenseCheck.jl" using SenseCheck
 
+export initialSystemLayoutPeriodic
+
 function periodic_distance(p, q, Lx, Ly)
     # Function to calculate distance between points p and q, wrapped around the periodic boundaries: 
     dx = abs(p[1] - q[1])
@@ -73,7 +75,7 @@ function copy_domain_x9(ptsArray,L_x,L_y)
     # Function which copies the cell centres onto a 9x9 grid
     # for Delaunay triangulation on periodic domain 
 
-    len = length(ptsArray[1,:])
+    len = size(ptsArray,2)
     extendedPtsArray = zeros(Float64, (2, 9*len))
     
     extendedPtsArray[:,1:len] = ptsArray 
@@ -90,14 +92,114 @@ function copy_domain_x9(ptsArray,L_x,L_y)
 end
 
 
-function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+function keptEdgeList(ptsArray,triangulation)
 
+    # Function to edit the Delaunay connectivity list such that only edges which dip into the original domain are kept. 
+    n = size(ptsArray,2)
+    edges = Set{Tuple{Int,Int}}() # Using a set to avoid duplicate edges
+
+    for tri in triangulation.triangles
+        # Remap indices to original range 
+        tri_mod = [(i-1)%n+1 for i in tri] # mod n and adjusting for 1-based indexing
+        # Add edges of the triangle
+        push!(edges, Tuple(sort([tri_mod[1], tri_mod[2]])))
+        push!(edges, Tuple(sort([tri_mod[2], tri_mod[3]])))
+        push!(edges, Tuple(sort([tri_mod[3], tri_mod[1]])))
+
+    end
+
+    # Convert the set of edges to an array 
+    edges_array = collect(edges)
     
+    return edges_array
+end
+
+function keptVerticesList(tessellation,L_x,L_y)
+    # Function to only keep vertices which lie within the original periodic domain
+    vor_points = SVector{2,Float64}[] # Vector of kept vertices
+    kept_indices = Int[]    # Original indices
+
+
+    for (i,vert) in enumerate(tessellation.polygon_points)
+        x, y = vert[1], vert[2]
+        if 0.0 <= x <= L_x && 0.0 <= y <= L_y
+            push!(vor_points, vert)
+            push!(kept_indices, i)
+        end
+    end
+    return kept_indices, vor_points
+end
+
+
+
+function edges_from_polygons(polygons)
+    # Function to build edges from the vertex network
+    edges = Set{Tuple{Int,Int}}()
+
+    for poly in polygons
+        n = length(poly)
+        for i in 1:n-1
+            a = poly[i]
+            b = poly[i+1]
+            push!(edges, (a,b)) # Keep the edge orientation given by polygon order 
+        end
+    end
+
+    return collect(edges)
+end
+
+function buildA(edges, nVerts)
+    nEdges = length(edges) # This is okay because edges is a set. 
+    A = spzeros(Int, nEdges, nVerts)
+
+    for (ei, (v1,v2)) in enumerate(edges)
+        A[ei, v1] = 1
+        A[ei, v2] = -1
+    end
+
+    return A
+end
+
+function buildB(polygons, edges)
+
+    nCells = length(polygons)
+    nEdges = length(edges)
+    B = spzeros(Int, nCells, nEdges)
+    
+    # Loop over cells
+    for (i,poly) in enumerate(polygons)
+        # println(poly)
+        # Loop over edges
+        n = length(poly)
+        for (j,edge) in enumerate(edges)
+            v1, v2 = edge 
+            # Loop over cell vertices
+            if (v1 in poly) && (v2 in poly)
+                for k in 1:n-1
+                    a = poly[k]
+                    b = poly[k+1]
+                    # println("a=",a,"b=",b,"v1=",v1,"v2=",v2)
+                    if a == v1 && b == v2
+                        # edge orientation agrees with cell orientation
+                        B[i,j] = 1
+                    elseif a == v2 && b == v1
+                        B[i,j] = -1
+                    end
+                end
+            end
+        end
+    end 
+    return B
+end
+
+
+function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+    # Main function to create periodic initial system layout
 
     if L0_A == L0_B
         # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
         # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
-        a,b,c,d = 9/2, 0, (-sqrt(3) + 12*γ), -2*γ*L0_A
+        a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_A
         p = Polynomial([d, c, b, a])
         roots_p = roots(p)
         # Choose the greatest of these: 
@@ -117,17 +219,8 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         # Solve for exclusion radius: 
         r_ex = solve_exclusion_radius(λₚ, λₜ)
 
-        # Let's try by just making exclusion radius the smallest 
-        # distance between hexagon cell centres 
-        # r_ex = 2*√3*l/3
-        # r_ex = l
-
         println("r_ex = ",r_ex)
         
-
-
-        
-
     else
         error("Cell number calculation for differing L0_A, L0_B not implemented.")
     end
@@ -146,7 +239,9 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         kept = matern_typeII(parents, marks, rad, L_x, L_y)  
     end
 
-    println("N_c=",N_c)
+    # Truncate to N_c of random permutation
+    kept = kept[randperm(length(kept))[1:N_c]]
+
     println("length(kept)=",length(kept))
 
     # Rewriting to be in line with InitialSystemLayout.jl
@@ -167,35 +262,67 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     triangulation = triangulate(extendedPtsArray)
     tessellation = voronoi(triangulation, clip=true)
 
+    # Only keep vertices within original domain, tracking the old index from tessellation: 
+    kept_indices, vor_points = keptVerticesList(tessellation,L_x,L_y)
+    println(size(vor_points))
+    println("size(kept_indices)",size(kept_indices))
 
-    fig = Figure(resolution=(600,600))
-    ax = Axis(fig[1,1], aspect=1, xlabel="x", ylabel="y", title="Voronoi Tessellation")
-    
-    # Plot Voronoi polygons
-    for (gen, vert_indices) in tessellation.polygons
-        verts = tessellation.polygon_points[vert_indices]
-        xs = [v[1] for v in verts]
-        ys = [v[2] for v in verts]
-        # Close the polygon
-        push!(xs, xs[1])
-        push!(ys, ys[1])
-        lines!(ax, xs, ys, color=:black)
+    # Create a dictionary from old vertex indices to new: 
+    idx_map = Dict(old => new for (new, old) in enumerate(kept_indices))
+    # println(kept_indices)
+    # println(enumerate(kept_indices))
+
+
+    # Convert voronoi_points to an array, R: 
+    N_v = length(kept_indices)
+    R = zeros(Float64,2,N_v)
+    for (i,v) in enumerate(vor_points)
+        R[:,i] = v
     end
-    
-    # Plot original cell centers
-    scatter!(ax, extendedPtsArray[1, :], extendedPtsArray[2, :], color=:red, markersize=8)
 
-    # Draw domain boundary
-    lines!(ax, [0,L_x,L_x,0,0], [0,0,L_y,L_y,0], color=:blue, linewidth=2)
-    
-    display(fig)
+    # The polygon index matches the Delaunay index, so we only keep the first N_c cells which correspond to elements of ptsArray
+    N_c = size(ptsArray,2)
+    # Generate kept_polygons of same type as tessellation.polygons
+    kept_polygons = Vector{Vector{Int}}()
+    for i in 1:N_c
+        push!(kept_polygons, copy(tessellation.polygons[i]))
+    end
+    # println("kept_polygons=",kept_polygons)
+    for poly in kept_polygons
+        
+        for (k,old_idx) in enumerate(poly)
+            
+            if old_idx in keys(idx_map)
+                poly[k] = idx_map[old_idx] # map to new index 
+            else
+                # Find the equivalent point within the domain using mod: 
+                vertex = tessellation.polygon_points[old_idx]
+                wrapped_vertex = SVector(mod(vertex[1],L_x), mod(vertex[2],L_y))
+                new_idx = findfirst(x -> isapprox(x, wrapped_vertex), vor_points)
 
+                if new_idx === nothing
+                    println("failed wrapped_vertex=",wrapped_vertex,"failed vertex=",vertex)
+                    error("Couldn't find wrapped vertex in vor_points")
+                end
+                poly[k] = new_idx
+            end
+        end
+        
+    end
 
-    # return A, B, R
-    return roots_p
+    # Now determine the cell edges from these kept polygons: 
+    edges = edges_from_polygons(kept_polygons)
+
+    A = buildA(edges, N_v)
+    B = buildB(kept_polygons, edges)
+
+    println("Size A: ", size(A))
+    println("Size B: ", size(B))
+
+    return A, B, R
 
 end
 
-export initialSystemLayoutPeriodic
+
 
 end

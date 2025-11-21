@@ -107,12 +107,14 @@ function initialise(; initialSystem,
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        A, B, R = periodicA, periodicB, periodicR
-        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-        cellPositions = cellPositionsPeriodic
+        # A, B, R = periodicA, periodicB, periodicR
+        # cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        # cellPositions = cellPositionsPeriodic
 
-        roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
-        println("roots_p=",roots_p)
+        # roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+        # println("roots_p=",roots_p)
+        A,B,R = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
     elseif initialSystem == "argument"
         R = R_in
@@ -176,8 +178,8 @@ function initialise(; initialSystem,
         boundaryVertices  = zeros(Int64, nVerts),
         boundaryEdges     = zeros(Int64, nEdges),
         boundaryCells     = zeros(Int64, nCells),
-        # cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
-        cellPositions     = cellPositions,
+        cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
+        # cellPositions     = cellPositions,
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
