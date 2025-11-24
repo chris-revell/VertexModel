@@ -54,7 +54,7 @@ function initialSystemLayout(;
         push!(usableVertices, a...)
     end
     sort!(unique!(usableVertices))
-    outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
+    # outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
 
     # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
     vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
@@ -119,19 +119,16 @@ function initialSystemLayout(;
             A[edges[1], otherVertexOnEdge1] = 0
         end
     end
-    # A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
     A = A[Not(edgesToRemove), Not(verticesToRemove)]
-    # B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
     B = B[:, Not(edgesToRemove)]
-    # Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
     Rtmp = Rtmp[Not(verticesToRemove)]
+    senseCheck(A, B; marker="Error after removing peropheral vertices")
 
     R = SVector{2, Float64}[]
     for r in Rtmp 
         push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 - 1.0 ), initialEdgeLength*r[2]))
     end
 
-    senseCheck(A, B; marker="Removing peropheral vertices")
 
     return A, B, R
 
