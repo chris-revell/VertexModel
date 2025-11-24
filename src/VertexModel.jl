@@ -35,7 +35,7 @@ using Printf
 function vertexModel(;
     initialSystem = "periodic",
     nRows = 9,
-    nCycles = 0.01,
+    nCycles = 0.1,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
     γ = 0.2,

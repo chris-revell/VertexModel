@@ -143,10 +143,6 @@ function initialise(; initialSystem,
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
 
-    # Preferred perimeter depends on cell type
-    # L0_A = 0.5    # preferred perimeter for Type A
-    # L0_B = 1.0     # preferred perimeter for Type B
-
     cellL₀s = zeros(nCells)
     for i in 1:nCells
         if i in cellsTypeA
@@ -247,8 +243,8 @@ function initialise(; initialSystem,
     spatialData!(R, params, matrices)
 
     # Checking the boundary cells match my Matlab vector: 
-    println(length(periodicBoundaryCellIndices))
-    println(count(!=(0), matrices.boundaryCells))
+    println("length(periodicBoundaryCellIndices)=",length(periodicBoundaryCellIndices))
+    println("count(!=(0), matrices.boundaryCells)=",count(!=(0), matrices.boundaryCells))
     
 
     # Convert vector of SVectors to flat vector of Float64

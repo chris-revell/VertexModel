@@ -279,6 +279,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     for (i,v) in enumerate(vor_points)
         R[:,i] = v
     end
+    R = reinterpret(SVector{2,Float64}, R)
 
     # The polygon index matches the Delaunay index, so we only keep the first N_c cells which correspond to elements of ptsArray
     N_c = size(ptsArray,2)
@@ -316,9 +317,13 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     A = buildA(edges, N_v)
     B = buildB(kept_polygons, edges)
 
+    # Store cell positions: 
+    # cellPositions = 
+
     println("Size A: ", size(A))
     println("Size B: ", size(B))
 
+    
     return A, B, R
 
 end
