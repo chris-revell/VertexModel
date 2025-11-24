@@ -67,6 +67,7 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
+    spiky = false,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -90,6 +91,7 @@ function vertexModel(;
         R_in = R_in,
         A_in = A_in,
         B_in = B_in,
+        spiky = spiky,
     )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.

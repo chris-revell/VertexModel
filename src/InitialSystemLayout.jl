@@ -17,12 +17,14 @@ using FromFile
 using DelaunayTriangulation
 using FromFile
 using Random
+using InvertedIndices
 
 @from "SenseCheck.jl" using SenseCheck
 
 function initialSystemLayout(;
         nRows = 9,
         initialEdgeLength = 5.0*0.75/6, # Need to find a better value for this than 5*L₀/6
+        spiky = false,
     )
 
     # nRows = 9 # Must be an odd number
@@ -99,25 +101,30 @@ function initialSystemLayout(;
     # Making the assumption that there will never be two such vertices adjacent to each other
     verticesToRemove = Int64[]
     edgesToRemove = Int64[]
-    for i = 1:nVerts
-        edges = findall(x -> x != 0, @view A[:, i])
-        cells1 = findall(x -> x != 0, @view B[:, edges[1]])
-        cells2 = findall(x -> x != 0, @view B[:, edges[2]])
-        if cells1 == cells2
-            # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
-            push!(verticesToRemove, i)
-            push!(edgesToRemove, edges[1])
+    if !spiky        
+        for i = 1:nVerts
+            edges = findall(x -> x != 0, @view A[:, i])
+            cells1 = findall(x -> x != 0, @view B[:, edges[1]])
+            cells2 = findall(x -> x != 0, @view B[:, edges[2]])
+            if cells1 == cells2
+                # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
+                push!(verticesToRemove, i)
+                push!(edgesToRemove, edges[1])
+            end
+        end
+        for i in verticesToRemove
+            edges = findall(x -> x != 0, @view A[:, i])
+            otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
+            A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
+            A[edges[1], otherVertexOnEdge1] = 0
         end
     end
-    for i in verticesToRemove
-        edges = findall(x -> x != 0, @view A[:, i])
-        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
-        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
-        A[edges[1], otherVertexOnEdge1] = 0
-    end
-    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
-    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
-    Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+    # A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
+    A = A[Not(edgesToRemove), Not(verticesToRemove)]
+    # B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
+    B = B[:, Not(edgesToRemove)]
+    # Rtmp = Rtmp[setdiff(1:size(Rtmp, 1), verticesToRemove)]
+    Rtmp = Rtmp[Not(verticesToRemove)]
 
     R = SVector{2, Float64}[]
     for r in Rtmp 
