@@ -27,6 +27,7 @@ function energy(params,matrices)
     # Quadratic energy
     energyTotal = sum(μ.*(0.5 .* (cellAreas .- cellA₀s).^2 .+ 0.5 .* Γ .* (cellPerimeters .- cellL₀s).^2))
     
+    
 
     return energyTotal
 end

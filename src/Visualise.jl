@@ -54,7 +54,9 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     empty!(ax)
 
     ax.title = "t = $(@sprintf("%.3f", t))"
-    ax.limits = ((0,L_x),(0,L_y))
+    if initialSystem == "periodic"
+        ax.limits = ((0,L_x),(0,L_y))
+    end
 
     # Plot cells
     if plotCells == 1

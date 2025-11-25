@@ -51,6 +51,7 @@ function topologyChange!(R,params,matrices)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
     C .= B̄ * Ā ./2
+    println(C)
    
 
     # Update transpose matrices

@@ -26,6 +26,7 @@ using Roots
 using CairoMakie
 
 @from "SenseCheck.jl" using SenseCheck
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 export initialSystemLayoutPeriodic
 
@@ -192,7 +193,6 @@ function buildB(polygons, edges)
     return B
 end
 
-
 function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     # Main function to create periodic initial system layout
 
@@ -202,8 +202,14 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_A
         p = Polynomial([d, c, b, a])
         roots_p = roots(p)
-        # Choose the greatest of these: 
-        l = maximum(roots_p)
+        # Only consider real roots
+        tol = 1e-10
+        real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
+        if isempty(real_roots)
+            error("No real roots from l cubic")
+        else
+            l = maximum(real_roots)
+        end
         println("l=",l)
         if l<=0 
             println("Error: negative hexagon sidelength")
@@ -312,13 +318,20 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     end
 
     # Now determine the cell edges from these kept polygons: 
-    edges = edges_from_polygons(kept_polygons)
+    # edges = edges_from_polygons(kept_polygons)
+    edges = Set{Tuple{Int,Int}}()
+    for poly in kept_polygons
+        for i in 1:length(poly)-1
+            a, b = poly[i], poly[i+1]
+            push!(edges, (a,b))  # preserve clockwise order
+        end
+    end
+    edges_array = collect(edges)
 
-    A = buildA(edges, N_v)
-    B = buildB(kept_polygons, edges)
 
-    # Store cell positions: 
-    # cellPositions = 
+
+    A = buildA(edges_array, N_v)
+    B = buildB(kept_polygons, edges_array)
 
     println("Size A: ", size(A))
     println("Size B: ", size(B))
