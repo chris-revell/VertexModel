@@ -32,6 +32,9 @@ using Printf
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
 
+
+
+
 function vertexModel(;
     initialSystem = "periodic",
     nRows = 9,
@@ -117,7 +120,7 @@ function vertexModel(;
     # Set up ODE integrator 
     prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    integrator = init(prob, solver; tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
     outputCounter = [1]
 
    
@@ -126,6 +129,12 @@ function vertexModel(;
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
+        if any(!isfinite, integrator.u)
+            @show integrator.t
+            @show integrator.u
+            error("NaN or Inf detected in integrator.u")
+        end
+
         # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
         # Output data to file 

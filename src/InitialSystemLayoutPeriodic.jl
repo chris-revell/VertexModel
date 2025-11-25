@@ -210,7 +210,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         else
             l = maximum(real_roots)
         end
-        println("l=",l)
+        # println("l=",l)
         if l<=0 
             println("Error: negative hexagon sidelength")
         end
@@ -225,7 +225,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         # Solve for exclusion radius: 
         r_ex = solve_exclusion_radius(λₚ, λₜ)
 
-        println("r_ex = ",r_ex)
+        # println("r_ex = ",r_ex)
         
     else
         error("Cell number calculation for differing L0_A, L0_B not implemented.")
@@ -248,7 +248,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     # Truncate to N_c of random permutation
     kept = kept[randperm(length(kept))[1:N_c]]
 
-    println("length(kept)=",length(kept))
+    # println("length(kept)=",length(kept))
 
     # Rewriting to be in line with InitialSystemLayout.jl
     cellPoints = [SVector(p[1], p[2]) for p in kept]
@@ -270,8 +270,8 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
     # Only keep vertices within original domain, tracking the old index from tessellation: 
     kept_indices, vor_points = keptVerticesList(tessellation,L_x,L_y)
-    println(size(vor_points))
-    println("size(kept_indices)",size(kept_indices))
+    # println(size(vor_points))
+    # println("size(kept_indices)",size(kept_indices))
 
     # Create a dictionary from old vertex indices to new: 
     idx_map = Dict(old => new for (new, old) in enumerate(kept_indices))
@@ -319,22 +319,40 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
     # Now determine the cell edges from these kept polygons: 
     # edges = edges_from_polygons(kept_polygons)
-    edges = Set{Tuple{Int,Int}}()
+    orderedPairs = Set{Tuple{Int,Int}}()
     for poly in kept_polygons
         for i in 1:length(poly)-1
             a, b = poly[i], poly[i+1]
-            push!(edges, (a,b))  # preserve clockwise order
+            push!(orderedPairs, (min(a,b),max(a,b)))  # preserve clockwise order
         end
     end
-    edges_array = collect(edges)
 
+    nVerts = length(R)
+    nEdges = length(orderedPairs)
+    nCells = length(cellPoints)
 
+    # Construct A matrix mapping tessellation edges to tessellation vertices 
+    A = spzeros(Int64, nEdges, nVerts)
+    for (edgeIndex, vertices) in enumerate(orderedPairs)
+        A[edgeIndex, vertices[1]] = 1
+        A[edgeIndex, vertices[2]] = -1
+    end
 
-    A = buildA(edges_array, N_v)
-    B = buildB(kept_polygons, edges_array)
+    B = spzeros(Int64, nCells, nEdges)
+    for c = 1:nCells
+        for i = 2:length(kept_polygons[c])
+            vertexLeading = kept_polygons[c][i-1]  # Leading with respect to *clockwise* direction around cell
+            vertexTrailing = kept_polygons[c][i]
+            # Find index of edge connecting these vertices 
+            edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
+            if A[edge, vertexLeading] > 0
+                B[c, edge] = 1
+            else
+                B[c, edge] = -1
+            end
+        end
+    end
 
-    println("Size A: ", size(A))
-    println("Size B: ", size(B))
 
     
     return A, B, R

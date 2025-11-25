@@ -61,7 +61,7 @@ areaVecPeriodic = Matrix{Float64}(dfAreaVec)
 
 # Find mean area and scale by this
 meanArea = sum(areaVecPeriodic)/length(areaVecPeriodic)
-println("mean area:",meanArea)
+# println("mean area:",meanArea)
 
 function initialise(; initialSystem,
         nCycles,
@@ -132,7 +132,7 @@ function initialise(; initialSystem,
     end
 
     nCells = size(B, 1)
-    println(nCells)
+    # println(nCells)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 
@@ -243,8 +243,8 @@ function initialise(; initialSystem,
     spatialData!(R, params, matrices)
 
     # Checking the boundary cells match my Matlab vector: 
-    println("length(periodicBoundaryCellIndices)=",length(periodicBoundaryCellIndices))
-    println("count(!=(0), matrices.boundaryCells)=",count(!=(0), matrices.boundaryCells))
+    # println("length(periodicBoundaryCellIndices)=",length(periodicBoundaryCellIndices))
+    # println("count(!=(0), matrices.boundaryCells)=",count(!=(0), matrices.boundaryCells))
     
 
     # Convert vector of SVectors to flat vector of Float64
