@@ -43,7 +43,6 @@ function initialise(; initialSystem = "new",
         R_in= spzeros(2),
         A_in= spzeros(2),
         B_in= spzeros(2),
-        spiky = false,
         initialEdgeLength = 0.75,
         spiky = false,
     )
