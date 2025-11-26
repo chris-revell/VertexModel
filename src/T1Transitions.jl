@@ -148,7 +148,7 @@ function t1Transitions!(integrator, params, matrices)
                     t̂ = ϵ * (edgeTangents[j] / (norm(edgeTangents[j]) + 1e-12))
 
                     # Small controlled separation distance
-                    δ = 0.005   # small number you choose
+                    δ = 0.1*t1Threshold   # small number you choose
 
                     # Apply displacement
                     R_u[b] = R_u[b] .+ δ * t̂
