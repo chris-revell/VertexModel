@@ -36,18 +36,25 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && timeSinceT1[j] > nonDimCycleTime / 100.0
+        if edgeLengths[j] < t1Threshold #&& timeSinceT1[j] > nonDimCycleTime / 100.0
+            
             
             println("t1 transition triggerred.")
+            
 
             timeSinceT1[j] = 0
 
             # Find vertices a and b at either end of the short edge j
             a = findall(x -> x > 0, @view A[j, :])[1]
             b = findall(x -> x < 0, @view A[j, :])[1]
+            println("a: ", a)
+            println("b: ", b)
             # Find cells around vertices a and b
             aCells = findall(x -> x != 0, @view C[:, a])
             bCells = findall(x -> x != 0, @view C[:, b])
+            println("aCells: ", aCells)
+            println("bCells: ", bCells)
+
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
                 if initialSystem == "new" 
                     if boundaryEdges[j] == 0
@@ -134,8 +141,19 @@ function t1Transitions!(integrator, params, matrices)
                         # Remove vertex b from edge m 
                         A[m, b] = 0    
 
-                    R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
-                    R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+                    # R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                    # R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+
+                    # Normalized tangent with orientation applied
+                    t̂ = ϵ * (edgeTangents[j] / (norm(edgeTangents[j]) + 1e-12))
+
+                    # Small controlled separation distance
+                    δ = 0.005   # small number you choose
+
+                    # Apply displacement
+                    R_u[b] = R_u[b] .+ δ * t̂
+                    R_u[a] = R_u[a] .- δ * t̂
+
                    
                     # Wrap into the periodic boundary
                     R_u[b] = SVector(mod(R_u[b][1], params.L_x),

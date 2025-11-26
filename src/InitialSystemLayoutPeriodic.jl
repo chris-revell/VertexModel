@@ -220,7 +220,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         
         # Determine parameters for the Matérn type II process
         λₜ = N_c / (L_x*L_y) # Target intensity 
-        λₚ = 10*λₜ # Starting poisson intensity 
+        λₚ = 3*λₜ # Starting poisson intensity 
 
         # Solve for exclusion radius: 
         r_ex = solve_exclusion_radius(λₚ, λₜ)
@@ -252,6 +252,14 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
     # Rewriting to be in line with InitialSystemLayout.jl
     cellPoints = [SVector(p[1], p[2]) for p in kept]
+
+    ε = min(r_ex/5, 0.1)
+    for i in 1:length(cellPoints)
+        cellPoints[i] += SVector(randn()*ε, randn()*ε)
+        cellPoints[i] = SVector(mod(cellPoints[i][1], L_x),
+                            mod(cellPoints[i][2], L_y))
+    end
+
 
 
     xs = [x[1] for x in cellPoints]

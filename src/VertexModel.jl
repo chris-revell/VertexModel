@@ -41,10 +41,10 @@ function vertexModel(;
     nCycles = 0.5,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
-    γ = 0.2,
-    L0_A = 0.75,
-    L0_B = 0.75,
-    L₀ = 0.75,
+    γ = 0.04,
+    L0_A = 0.5,
+    L0_B = 0.5,
+    L₀ = 0.5,
     A₀ = 1.0,
     viscousTimeScale = 1000.0,
     pressureExternal = 0.0,
@@ -63,7 +63,7 @@ function vertexModel(;
     videoToggle = 1,
     plotCells = 1,
     scatterEdges = 0,
-    scatterVertices = 0,
+    scatterVertices = 1,
     scatterCells = 1,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
@@ -75,8 +75,8 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
-    L_x = 10,
-    L_y = 10
+    L_x = 5,
+    L_y = 5
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
