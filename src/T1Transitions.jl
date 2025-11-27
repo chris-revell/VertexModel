@@ -37,8 +37,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || transitionCount==0)
-            
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || integrator.t < nonDimCycleTime / 100.0) 
             
             println("t1 transition triggerred.")
             
@@ -149,8 +148,8 @@ function t1Transitions!(integrator, params, matrices)
                     println("ϵ*edgeTangents[j]= ",ϵ*edgeTangents[j])
                 end
                 
-
                 transitionCount += 1
+                
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
             end 
