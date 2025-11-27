@@ -162,6 +162,7 @@ function spatialData!(R,params,matrices)
 
         # Find cell areas and shape tensors 
         for i = 1:nCells
+
             cellAreas[i] = abs(area(Point{2,Float64}.(R[cellVertexOrders[i]])))
 
             Rα = [R[kk].-matrices.cellPositions[i] for kk in cellVertexOrders[i]]
@@ -175,14 +176,17 @@ function spatialData!(R,params,matrices)
         for j in 1:nEdges
             
             # Get the vertices of edge j: 
-            verts = findall(x -> x!=0, A[j,:])
-            v1, v2 = R[verts[1]], R[verts[2]]
             
+            a = findall(x -> x > 0, @view A[j, :])[1]
+            b = findall(x -> x < 0, @view A[j, :])[1]
+            
+            v1 = R[a]
+            v2 = R[b]
             # unwrap v2 relative to v1
-            v2unwr  = unwrapEdge(v1,v2,L_x,L_y)
+            v2unwr  = unwrapVertex(v2,v1,L_x,L_y)
     
             # tangent and length
-            tangent = v2unwr - v1
+            tangent = v1 - v2unwr
             
             edgeTangents[j] = tangent
             edgeLengths[j]  = norm(tangent)
@@ -228,14 +232,19 @@ function spatialData!(R,params,matrices)
             end
         end
 
-        # Calculate oriented cell areas
-        fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
-        for i=1:nCells
-            for j in nzrange(Bᵀ,i)
-                cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
-            end
-            cellAreas[i] = cellOrientedAreas[i][1,2]
+        if sum(cellAreas) > L_x*L_y + 1e-8 || sum(cellAreas) < L_x*L_y - 1e-8
+
+            error("⚠️ Error: Total cell area exceeds box area in periodic system")
         end
+
+        # Calculate oriented cell areas
+        # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
+        # for i=1:nCells
+        #     for j in nzrange(Bᵀ,i)
+        #         cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
+        #     end
+        #     cellAreas[i] = cellOrientedAreas[i][1,2]
+        # end
 
         # Recalculate cells at the periodic boundary
         fill!(boundaryCells, 0)
@@ -274,7 +283,7 @@ function spatialData!(R,params,matrices)
                 # Second adjacent cell
                 edgesSharedBy_i2_And_k = findall(x -> x != 0, B[k_is[2], :] .* A[:, k])
 
-                vertexAreas[k] = 0.5^3 *orm([edgeTangents[edgesSharedBy_i1_And_k[1]]..., 0.0] ×
+                vertexAreas[k] = 0.5^3 *norm([edgeTangents[edgesSharedBy_i1_And_k[1]]..., 0.0] ×
                          [edgeTangents[edgesSharedBy_i1_And_k[2]]..., 0.0]) +
                     0.5^3 *
                     norm([edgeTangents[edgesSharedBy_i2_And_k[1]]..., 0.0] ×
@@ -287,7 +296,9 @@ function spatialData!(R,params,matrices)
                     0.5 *norm([edgeMidpointLinks[k_is[1], k]..., 0.0] ×[edgeMidpointLinks[k_is[2], k]..., 0.0])
 
             end
-
+            if !isfinite(vertexAreas[k]) || vertexAreas[k] <= 0
+                println("⚠️ Warning: Vertex $k has suspicious area = ", vertexAreas[k])
+            end
 
 
 

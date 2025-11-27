@@ -193,7 +193,7 @@ function buildB(polygons, edges)
     return B
 end
 
-function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+function initialSystemLayoutPeriodic(cellLayout,L0_A,L0_B,γ,L_x,L_y)
     # Main function to create periodic initial system layout
 
     if L0_A == L0_B
@@ -232,138 +232,142 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     end
 
 
-    # Matern type II process to generate periodic cell centres:
-    rad = r_ex    
-    area = L_x * L_y          # parent intensity guess
-    kept = NTuple{2,Float64}[]
+        # Matern type II process to generate periodic cell centres:
+        rad = r_ex    
+        area = L_x * L_y          # parent intensity guess
+        kept = NTuple{2,Float64}[]
 
-    while length(kept) < N_c
-        n_parent = rand(Poisson(λₚ * area))
-        parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
-        marks   = rand(n_parent)
-    
-        kept = matern_typeII(parents, marks, rad, L_x, L_y)  
-    end
-
-    # Truncate to N_c of random permutation
-    kept = kept[randperm(length(kept))[1:N_c]]
-
-    # println("length(kept)=",length(kept))
-
-    # Rewriting to be in line with InitialSystemLayout.jl
-    cellPoints = [SVector(p[1], p[2]) for p in kept]
-
-    ε = min(r_ex/5, 0.1)
-    for i in 1:length(cellPoints)
-        cellPoints[i] += SVector(randn()*ε, randn()*ε)
-        cellPoints[i] = SVector(mod(cellPoints[i][1], L_x),
-                            mod(cellPoints[i][2], L_y))
-    end
-
-
-
-    xs = [x[1] for x in cellPoints]
-    ys = [x[2] for x in cellPoints]
-
-    ptsArray = zeros(Float64, (2, length(cellPoints)))
-    for (i, point) in enumerate(cellPoints)
-        ptsArray[1, i] = point[1]
-        ptsArray[2, i] = point[2]
-    end
-
-    extendedPtsArray = copy_domain_x9(ptsArray,L_x,L_y)
-
-    triangulation = triangulate(extendedPtsArray)
-    tessellation = voronoi(triangulation, clip=true)
-
-    # Only keep vertices within original domain, tracking the old index from tessellation: 
-    kept_indices, vor_points = keptVerticesList(tessellation,L_x,L_y)
-    # println(size(vor_points))
-    # println("size(kept_indices)",size(kept_indices))
-
-    # Create a dictionary from old vertex indices to new: 
-    idx_map = Dict(old => new for (new, old) in enumerate(kept_indices))
-    # println(kept_indices)
-    # println(enumerate(kept_indices))
-
-
-    # Convert voronoi_points to an array, R: 
-    N_v = length(kept_indices)
-    R = zeros(Float64,2,N_v)
-    for (i,v) in enumerate(vor_points)
-        R[:,i] = v
-    end
-    R = reinterpret(SVector{2,Float64}, R)
-
-    # The polygon index matches the Delaunay index, so we only keep the first N_c cells which correspond to elements of ptsArray
-    N_c = size(ptsArray,2)
-    # Generate kept_polygons of same type as tessellation.polygons
-    kept_polygons = Vector{Vector{Int}}()
-    for i in 1:N_c
-        push!(kept_polygons, copy(tessellation.polygons[i]))
-    end
-    # println("kept_polygons=",kept_polygons)
-    for poly in kept_polygons
+        while length(kept) < N_c
+            n_parent = rand(Poisson(λₚ * area))
+            parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
+            marks   = rand(n_parent)
         
-        for (k,old_idx) in enumerate(poly)
+            kept = matern_typeII(parents, marks, rad, L_x, L_y)  
+        end
+
+        # Truncate to N_c of random permutation
+        kept = kept[randperm(length(kept))[1:N_c]]
+
+        # println("length(kept)=",length(kept))
+
+        # Rewriting to be in line with InitialSystemLayout.jl
+        cellPoints = [SVector(p[1], p[2]) for p in kept]
+
+        ε = min(r_ex/5, 0.1)
+        for i in 1:length(cellPoints)
+            cellPoints[i] += SVector(randn()*ε, randn()*ε)
+            cellPoints[i] = SVector(mod(cellPoints[i][1], L_x),
+                                mod(cellPoints[i][2], L_y))
+        end
+
+
+
+        xs = [x[1] for x in cellPoints]
+        ys = [x[2] for x in cellPoints]
+
+        ptsArray = zeros(Float64, (2, length(cellPoints)))
+        for (i, point) in enumerate(cellPoints)
+            ptsArray[1, i] = point[1]
+            ptsArray[2, i] = point[2]
+        end
+
+        extendedPtsArray = copy_domain_x9(ptsArray,L_x,L_y)
+
+        triangulation = triangulate(extendedPtsArray)
+        tessellation = voronoi(triangulation, clip=true)
+
+        # Only keep vertices within original domain, tracking the old index from tessellation: 
+        kept_indices, vor_points = keptVerticesList(tessellation,L_x,L_y)
+        # println(size(vor_points))
+        # println("size(kept_indices)",size(kept_indices))
+
+        # Create a dictionary from old vertex indices to new: 
+        idx_map = Dict(old => new for (new, old) in enumerate(kept_indices))
+        # println(kept_indices)
+        # println(enumerate(kept_indices))
+
+
+        # Convert voronoi_points to an array, R: 
+        N_v = length(kept_indices)
+        R = zeros(Float64,2,N_v)
+        for (i,v) in enumerate(vor_points)
+            R[:,i] = v
+        end
+        R = reinterpret(SVector{2,Float64}, R)
+
+        # The polygon index matches the Delaunay index, so we only keep the first N_c cells which correspond to elements of ptsArray
+        N_c = size(ptsArray,2)
+        # Generate kept_polygons of same type as tessellation.polygons
+        kept_polygons = Vector{Vector{Int}}()
+        for i in 1:N_c
+            push!(kept_polygons, copy(tessellation.polygons[i]))
+        end
+        # println("kept_polygons=",kept_polygons)
+        for poly in kept_polygons
             
-            if old_idx in keys(idx_map)
-                poly[k] = idx_map[old_idx] # map to new index 
-            else
-                # Find the equivalent point within the domain using mod: 
-                vertex = tessellation.polygon_points[old_idx]
-                wrapped_vertex = SVector(mod(vertex[1],L_x), mod(vertex[2],L_y))
-                new_idx = findfirst(x -> isapprox(x, wrapped_vertex), vor_points)
+            for (k,old_idx) in enumerate(poly)
+                
+                if old_idx in keys(idx_map)
+                    poly[k] = idx_map[old_idx] # map to new index 
+                else
+                    # Find the equivalent point within the domain using mod: 
+                    vertex = tessellation.polygon_points[old_idx]
+                    wrapped_vertex = SVector(mod(vertex[1],L_x), mod(vertex[2],L_y))
+                    new_idx = findfirst(x -> isapprox(x, wrapped_vertex), vor_points)
 
-                if new_idx === nothing
-                    println("failed wrapped_vertex=",wrapped_vertex,"failed vertex=",vertex)
-                    error("Couldn't find wrapped vertex in vor_points")
+                    if new_idx === nothing
+                        println("failed wrapped_vertex=",wrapped_vertex,"failed vertex=",vertex)
+                        error("Couldn't find wrapped vertex in vor_points")
+                    end
+                    poly[k] = new_idx
                 end
-                poly[k] = new_idx
+            end
+            
+        end
+
+        # Now determine the cell edges from these kept polygons: 
+        # edges = edges_from_polygons(kept_polygons)
+        orderedPairs = Set{Tuple{Int,Int}}()
+        for poly in kept_polygons
+            for i in 1:length(poly)-1
+                a, b = poly[i], poly[i+1]
+                push!(orderedPairs, (min(a,b),max(a,b)))  # preserve clockwise order
             end
         end
+
+        nVerts = length(R)
+        nEdges = length(orderedPairs)
+        nCells = length(cellPoints)
+
+        # Construct A matrix mapping tessellation edges to tessellation vertices 
+        A = spzeros(Int64, nEdges, nVerts)
+        for (edgeIndex, vertices) in enumerate(orderedPairs)
+            A[edgeIndex, vertices[1]] = 1
+            A[edgeIndex, vertices[2]] = -1
+        end
+
+        B = spzeros(Int64, nCells, nEdges)
+        for c = 1:nCells
+            for i = 2:length(kept_polygons[c])
+                vertexLeading = kept_polygons[c][i-1]  # Leading with respect to *clockwise* direction around cell
+                vertexTrailing = kept_polygons[c][i]
+                # Find index of edge connecting these vertices 
+                edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
+                if A[edge, vertexLeading] > 0
+                    B[c, edge] = 1
+                else
+                    B[c, edge] = -1
+                end
+            end
+        end
+
+
         
-    end
-
-    # Now determine the cell edges from these kept polygons: 
-    # edges = edges_from_polygons(kept_polygons)
-    orderedPairs = Set{Tuple{Int,Int}}()
-    for poly in kept_polygons
-        for i in 1:length(poly)-1
-            a, b = poly[i], poly[i+1]
-            push!(orderedPairs, (min(a,b),max(a,b)))  # preserve clockwise order
-        end
-    end
-
-    nVerts = length(R)
-    nEdges = length(orderedPairs)
-    nCells = length(cellPoints)
-
-    # Construct A matrix mapping tessellation edges to tessellation vertices 
-    A = spzeros(Int64, nEdges, nVerts)
-    for (edgeIndex, vertices) in enumerate(orderedPairs)
-        A[edgeIndex, vertices[1]] = 1
-        A[edgeIndex, vertices[2]] = -1
-    end
-
-    B = spzeros(Int64, nCells, nEdges)
-    for c = 1:nCells
-        for i = 2:length(kept_polygons[c])
-            vertexLeading = kept_polygons[c][i-1]  # Leading with respect to *clockwise* direction around cell
-            vertexTrailing = kept_polygons[c][i]
-            # Find index of edge connecting these vertices 
-            edge = (findall(x -> x != 0, @view A[:, vertexLeading])∩findall(x -> x != 0, @view A[:, vertexTrailing]))[1]
-            if A[edge, vertexLeading] > 0
-                B[c, edge] = 1
-            else
-                B[c, edge] = -1
-            end
-        end
-    end
-
+        return A, B, R
 
     
-    return A, B, R
+
+    
 
 end
 

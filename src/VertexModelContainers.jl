@@ -17,6 +17,7 @@ using CircularArrays
 
 @kwdef mutable struct ParametersContainer
     initialSystem      ::String             # System used for initialising simulations
+    cellLayout         ::String             # Cell layout used: hexagon or random 
     nCells             ::Int64              # Number of cells
     nEdges             ::Int64              # Number of edges
     nVerts             ::Int64              # Number of vertices

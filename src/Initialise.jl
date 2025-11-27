@@ -64,6 +64,7 @@ meanArea = sum(areaVecPeriodic)/length(areaVecPeriodic)
 # println("mean area:",meanArea)
 
 function initialise(; initialSystem,
+        cellLayout,
         nCycles,
         realCycleTime,
         realTimetMax,
@@ -93,6 +94,7 @@ function initialise(; initialSystem,
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
+    println("nonDimCycleTime=",nonDimCycleTime)
 
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
@@ -113,7 +115,7 @@ function initialise(; initialSystem,
 
         # roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         # println("roots_p=",roots_p)
-        A,B,R = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+        A,B,R = initialSystemLayoutPeriodic(cellLayout,L0_A,L0_B,γ,L_x,L_y)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
     elseif initialSystem == "argument"
@@ -205,6 +207,7 @@ function initialise(; initialSystem,
     # Pack parameters into a struct for convenience
     params = ParametersContainer(
         initialSystem     = initialSystem,
+        cellLayout        = cellLayout,
         nCells            = nCells,
         nEdges            = nEdges,
         nVerts            = nVerts,

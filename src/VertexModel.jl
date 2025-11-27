@@ -19,6 +19,7 @@ using SparseArrays
 using StaticArrays
 using CairoMakie
 using Printf
+using DifferentialEquations
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -31,14 +32,16 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
+@from "Energy.jl" using Energy
 
 
 
 
 function vertexModel(;
     initialSystem = "periodic",
+    cellLayout = "random",
     nRows = 9,
-    nCycles = 0.5,
+    nCycles = 1,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
     γ = 0.04,
@@ -49,13 +52,13 @@ function vertexModel(;
     viscousTimeScale = 1000.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
-    t1Threshold = 0.05,
-    β = 0.01,
+    t1Threshold = 0.01,
+    β = 0.0,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
-    outputTotal = 100,
+    outputTotal = 200,
     outputToggle = 1,
     frameDataToggle = 1,
     frameImageToggle = 1,
@@ -75,14 +78,15 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
-    L_x = 5,
-    L_y = 5
+    L_x = 4,
+    L_y = 4
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem = initialSystem,
+        cellLayout = cellLayout,
         nCycles = nCycles,
         realCycleTime = realCycleTime,
         realTimetMax = realTimetMax,
@@ -127,6 +131,7 @@ function vertexModel(;
     # Iterate until integrator time reaches max system time 
     while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
+        
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
         if any(!isfinite, integrator.u)
@@ -155,8 +160,14 @@ function vertexModel(;
             
         end
 
+        # let E = energy(params, matrices)
+        #     println("t=$(integrator.t): energy BEFORE step = ", E)
+        # end
+
         # Step integrator forwards in time to update vertex positions 
         step!(integrator)
+
+        # println("t=$(integrator.t): energy AFTER step = ", energy(params, matrices))
 
         if initialSystem == "periodic"
             # Wrap vertices into the periodic domain
@@ -177,12 +188,16 @@ function vertexModel(;
         # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
         spatialData!(R, params, matrices)
 
+        # println("t=$(integrator.t): energy AFTER spatialData = ", energy(params, matrices))
+
         # Check system for T1 transitions 
         if t1Transitions!(integrator, params, matrices) > 0
             u_modified!(integrator, true)
             # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
             topologyChange!(R,params,matrices) # Update system matrices after T1 transition
             spatialData!(R, params, matrices) # Update spatial data after T1 transition  
+
+            # println("t=$(integrator.t): energy AFTER T1 = ", energy(params, matrices))
         end
         if divisionToggle==1
             if division!(integrator, params, matrices) > 0
@@ -195,11 +210,16 @@ function vertexModel(;
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
+
+        # println("Area sum=", sum(matrices.cellAreas))
     end
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
+    
+
+    
     return integrator, matrices
 end
 

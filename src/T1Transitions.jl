@@ -28,7 +28,8 @@ function t1Transitions!(integrator, params, matrices)
     @unpack initialSystem,
         nEdges,
         t1Threshold,
-        nonDimCycleTime = params
+        nonDimCycleTime,
+        tMax = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
@@ -36,7 +37,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold #&& timeSinceT1[j] > nonDimCycleTime / 100.0
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || transitionCount==0)
             
             
             println("t1 transition triggerred.")
@@ -141,26 +142,11 @@ function t1Transitions!(integrator, params, matrices)
                         # Remove vertex b from edge m 
                         A[m, b] = 0    
 
-                    # R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
-                    # R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+                    R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                    R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
-                    # Normalized tangent with orientation applied
-                    t̂ = ϵ * (edgeTangents[j] / (norm(edgeTangents[j]) + 1e-12))
-
-                    # Small controlled separation distance
-                    δ = 0.1*t1Threshold   # small number you choose
-
-                    # Apply displacement
-                    R_u[b] = R_u[b] .+ δ * t̂
-                    R_u[a] = R_u[a] .- δ * t̂
-
-                   
-                    # Wrap into the periodic boundary
-                    R_u[b] = SVector(mod(R_u[b][1], params.L_x),
-                                    mod(R_u[b][2], params.L_y))
-
-                    R_u[a] = SVector(mod(R_u[a][1], params.L_x),
-                                    mod(R_u[a][2], params.L_y))
+                    println("edgetangents[j]=",edgeTangents[j])
+                    println("ϵ*edgeTangents[j]= ",ϵ*edgeTangents[j])
                 end
                 
 
