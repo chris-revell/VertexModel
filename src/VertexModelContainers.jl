@@ -48,9 +48,10 @@ using CircularArrays
     cellsTypeB       ::Vector{Int64}        # Vector storing indices of type B population
     L_x              ::Float64
     L_y              ::Float64
+    firstT1            ::Int64              # Flag controlling whether the first T1 transition has occured
 end
 
-@kwdef mutable struct MatricesContainer
+@kwdef mutable struct MatricesContainer                               
     A                ::SparseMatrixCSC{Int64, Int64}                # Incidence matrix mapping edges to vertices. Rows => edges; columns => vertices.
     B                ::SparseMatrixCSC{Int64, Int64}                # Incidence matrix mapping cells to edges. Rows => cells; columns => edges. (Values +/-1 for orientation)
     Aᵀ               ::SparseMatrixCSC{Int64, Int64}                # Transpose of incidence matrix A

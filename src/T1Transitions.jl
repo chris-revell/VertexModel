@@ -29,7 +29,8 @@ function t1Transitions!(integrator, params, matrices)
         nEdges,
         t1Threshold,
         nonDimCycleTime,
-        tMax = params
+        tMax,
+        firstT1 = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
@@ -37,7 +38,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || integrator.t < nonDimCycleTime / 100.0) 
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || firstT1 == 0) 
             
             println("t1 transition triggerred.")
             
@@ -149,6 +150,7 @@ function t1Transitions!(integrator, params, matrices)
                 end
                 
                 transitionCount += 1
+                params.firstT1 = 1
                 
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break

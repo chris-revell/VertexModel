@@ -140,7 +140,7 @@ function initialise(; initialSystem,
 
     # Define the number of A and B cells
     # nACells = Int(floor(nCells/2))
-    nACells = nCells
+    nACells = Int(floor(nCells/2))
 
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
@@ -156,6 +156,9 @@ function initialise(; initialSystem,
 
     # Define contractility
     λs = -2.0 .* γ .* cellL₀s
+
+    # Initialise the T1 tracker 
+    firstT1 = 0
 
 
 
@@ -237,7 +240,8 @@ function initialise(; initialSystem,
         cellsTypeA        = cellsTypeA,
         cellsTypeB        = cellsTypeB,
         L_x               = L_x,
-        L_y               = L_y
+        L_y               = L_y,
+        firstT1           = firstT1
 
     )
 
