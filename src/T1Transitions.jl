@@ -38,7 +38,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0 || firstT1 == 0) 
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 1000.0 || firstT1 == 0) 
             
             println("t1 transition triggerred.")
             

@@ -140,7 +140,8 @@ function initialise(; initialSystem,
 
     # Define the number of A and B cells
     # nACells = Int(floor(nCells/2))
-    nACells = Int(floor(nCells/2))
+    # nACells = Int(floor(nCells/2))
+    nACells = nCells
 
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder

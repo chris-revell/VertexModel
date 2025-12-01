@@ -203,7 +203,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
             scatter!(ax, [p], color=col)
             
-            annotations!(ax, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions), color=col)
+            annotations!(ax, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions))
         end
     end
 
