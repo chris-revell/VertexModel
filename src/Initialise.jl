@@ -87,7 +87,10 @@ function initialise(; initialSystem,
         A_in,
         B_in,
         L_x,
-        L_y
+        L_y,
+        Λ_00,
+        Λ_01,
+        Λ_11,
     )
 
     # Calculate derived parameters
@@ -109,13 +112,7 @@ function initialise(; initialSystem,
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        # A, B, R = periodicA, periodicB, periodicR
-        # cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
-        # cellPositions = cellPositionsPeriodic
-
-        # roots_p = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
-        # println("roots_p=",roots_p)
-        A,B,R = initialSystemLayoutPeriodic(cellLayout,L0_A,L0_B,γ,L_x,L_y)
+        A,B,R = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
     elseif initialSystem == "argument"
@@ -139,9 +136,8 @@ function initialise(; initialSystem,
     nVerts = size(A, 2)
 
     # Define the number of A and B cells
-    # nACells = Int(floor(nCells/2))
-    # nACells = Int(floor(nCells/2))
-    nACells = nCells
+    nACells = Int(floor(nCells/2))
+    # nACells = nCells
 
     cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
     cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
@@ -155,13 +151,12 @@ function initialise(; initialSystem,
         end
     end
 
-    # Define contractility
-    λs = -2.0 .* γ .* cellL₀s
+    # Label A cells as 0, B cells as 1.
+    cellLabels = zeros(Int64, nCells)
+    cellLabels[cellsTypeB] .= 1
 
     # Initialise the T1 tracker 
     firstT1 = 0
-
-
 
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
@@ -206,6 +201,8 @@ function initialise(; initialSystem,
                                 -1.0 0.0
                             ]),
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
+        cellLabels        = cellLabels,
+        Λs                = zeros(nEdges),
     )
 
     # Pack parameters into a struct for convenience
@@ -216,7 +213,6 @@ function initialise(; initialSystem,
         nEdges            = nEdges,
         nVerts            = nVerts,
         γ                 = γ,
-        λs                = λs,
         L0_A              = L0_A,
         L0_B              = L0_B,
         L₀                = L₀,
@@ -242,18 +238,15 @@ function initialise(; initialSystem,
         cellsTypeB        = cellsTypeB,
         L_x               = L_x,
         L_y               = L_y,
-        firstT1           = firstT1
-
+        firstT1           = firstT1,
+        Λ_00              = Λ_00,
+        Λ_01              = Λ_01,
+        Λ_11              = Λ_11,
     )
 
     # Initial evaluation of matrices based on system topology
     topologyChange!(R,params,matrices)
     spatialData!(R, params, matrices)
-
-    # Checking the boundary cells match my Matlab vector: 
-    # println("length(periodicBoundaryCellIndices)=",length(periodicBoundaryCellIndices))
-    # println("count(!=(0), matrices.boundaryCells)=",count(!=(0), matrices.boundaryCells))
-    
 
     # Convert vector of SVectors to flat vector of Float64
     u0 = Float64[]

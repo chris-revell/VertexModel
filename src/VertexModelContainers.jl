@@ -22,7 +22,6 @@ using CircularArrays
     nEdges             ::Int64              # Number of edges
     nVerts             ::Int64              # Number of vertices
     γ                  ::Float64            # Parameter in energy relaxation
-    λs                 ::Vector{Float64}    # Parameter in energy relaxation
     L0_A               ::Float64
     L0_B               ::Float64
     L₀                 ::Float64            # Cell preferred perimeter length L₀ = -λ/(2*γ)
@@ -44,11 +43,14 @@ using CircularArrays
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
     energyModel        ::String             # Choice of energy function (eg log, quadratic)
     vertexWeighting    ::Bool               # Flag controlling whether vertices experience drag proportional to their surrounding area 
-    cellsTypeA       ::Vector{Int64}        # Vector storing indices of type A population
-    cellsTypeB       ::Vector{Int64}        # Vector storing indices of type B population
-    L_x              ::Float64
-    L_y              ::Float64
+    cellsTypeA         ::Vector{Int64}        # Vector storing indices of type A population
+    cellsTypeB         ::Vector{Int64}        # Vector storing indices of type B population
+    L_x                ::Float64
+    L_y                ::Float64
     firstT1            ::Int64              # Flag controlling whether the first T1 transition has occured
+    Λ_00               ::Float64            # Line tension for type A to type A cell-cell interfaces
+    Λ_01               ::Float64            # Line tension for type A to type B cell-cell interfaces
+    Λ_11               ::Float64            # Line tension for type B to type B cell-cell interfaces
 end
 
 @kwdef mutable struct MatricesContainer                               
@@ -89,6 +91,8 @@ end
     totalF           ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing resultant force vectors acting on each vertex
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
+    cellLabels       ::Vector{Int64}                                # Vector of 0s and 1s denoting cell labels 
+    Λs               ::Vector{Float64}                              # Vector of line tensions for each edge               
 end
 
 export ParametersContainer,MatricesContainer

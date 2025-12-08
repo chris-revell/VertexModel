@@ -193,10 +193,10 @@ function buildB(polygons, edges)
     return B
 end
 
-function initialSystemLayoutPeriodic(cellLayout,L0_A,L0_B,γ,L_x,L_y)
+function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
     # Main function to create periodic initial system layout
 
-    # if L0_A == L0_B
+    # if 
         # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
         # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
         a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_A
@@ -228,7 +228,8 @@ function initialSystemLayoutPeriodic(cellLayout,L0_A,L0_B,γ,L_x,L_y)
         # println("r_ex = ",r_ex)
         
     # else
-    #     error("Cell number calculation for differing L0_A, L0_B not implemented.")
+        # Case with two populations:
+
     # end
 
 

@@ -26,7 +26,10 @@ function topologyChange!(R,params,matrices)
     @unpack initialSystem, 
         nCells,
         nVerts,
-        nEdges = params
+        nEdges,
+        Λ_00,
+        Λ_01,
+        Λ_11 = params
 
     @unpack A,
         B,
@@ -43,18 +46,16 @@ function topologyChange!(R,params,matrices)
         boundaryVertices,
         boundaryEdges,
         boundaryCells,
-        cellPositions = matrices
+        cellPositions,
+        cellLabels,
+        Λs = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread = false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
     @.. thread = false B̄ .= abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices. C .= B̄*Ā.÷2 (NB Integer division)
-    # println(A)
-    # println(B)
     C .= B̄ * Ā ./2
-    # println(C)
-   
 
     # Update transpose matrices
     Aᵀ .= sparse(transpose(A))
@@ -75,6 +76,19 @@ function topologyChange!(R,params,matrices)
     # Calculate additional topology data
     # Number of edges around each cell found by summing columns of B̄
     cellEdgeCount .= sum.(eachrow(B̄))  # FastBroadcast doesn't work for this line; not sure why
+
+    # Define vectos of Λs:
+    for j in 1:nEdges
+        sj = dot(matrices.B̄[:, j], cellLabels)  # sparse matrix multiplication
+
+        if sj == 0
+            Λs[j] = Λ_00       # edge between two A cells
+        elseif sj == 1
+            Λs[j] = Λ_01       # edge between A and B cell
+        else
+            Λs[j] = Λ_11       # edge between two B cells
+        end
+    end 
 
     # Only do the following if the initialSystem isn't periodic: 
 
