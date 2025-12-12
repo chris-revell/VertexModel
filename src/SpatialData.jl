@@ -108,14 +108,13 @@ function spatialData!(R,params,matrices)
         edgeMidpointLinks,
         vertexAreas,
         μ,
-        Γ = matrices
+        Γ,
+        Λs = matrices
     @unpack initialSystem,
         nCells,
         nEdges,
         nVerts,
         γ,
-        L0_A,
-        L0_B,
         L₀,
         A₀,
         energyModel,
@@ -315,12 +314,17 @@ function spatialData!(R,params,matrices)
         cellTensions .= μ .* Γ .* cellL₀s .* log.(cellPerimeters ./ cellL₀s)
         # Calculate cell internal pressures
         cellPressures .= μ .* cellA₀s .* log.(cellAreas ./ cellA₀s)
-    else
+    elseif energyModel == "quadratic"
         # Quadratic energy model
         # Calculate cell boundary tensions
         cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
         # Calculate cell internal pressures
         cellPressures .= μ .*(cellAreas - cellA₀s)
+    elseif energyModel == "quadratic2pops"
+        # Quadratic energy model with two cell populations 
+        cellTensions .= Γ .* cellPerimeters 
+        cellPressures .= cellAreas .- 1.0
+        
     end
 
     return nothing

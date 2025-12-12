@@ -38,14 +38,16 @@ function model!(du, u, p, t)
         ϵ,
         boundaryVertices,
         boundaryEdges,
-        vertexAreas = matrices
+        vertexAreas,
+        Λs = matrices
     @unpack initialSystem, 
         nVerts,
         nCells,
         nEdges,
         pressureExternal,
         peripheralTension,
-        vertexWeighting = params
+        vertexWeighting,
+        energyModel = params
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, u)
@@ -71,6 +73,10 @@ function model!(du, u, p, t)
                 
                 externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
 
+                if energyModel == "quadratic2pops"
+                    # We have the separate edge tension term in that case: 
+                    F[k, rowvals(B)[i]] -= Λs[rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+                end
                 
             end
             # Force on vertex from peripheral tension -- only for boundary edges 

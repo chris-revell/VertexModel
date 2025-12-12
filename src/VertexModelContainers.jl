@@ -22,8 +22,6 @@ using CircularArrays
     nEdges             ::Int64              # Number of edges
     nVerts             ::Int64              # Number of vertices
     γ                  ::Float64            # Parameter in energy relaxation
-    L0_A               ::Float64
-    L0_B               ::Float64
     L₀                 ::Float64            # Cell preferred perimeter length L₀ = -λ/(2*γ)
     A₀                 ::Float64            # Cell preferred area
     pressureExternal   ::Float64            # External pressure applied uniformly to system

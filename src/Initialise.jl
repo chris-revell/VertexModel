@@ -69,8 +69,6 @@ function initialise(; initialSystem,
         realCycleTime,
         realTimetMax,
         γ,
-        L0_A,
-        L0_B,
         L₀,
         A₀ = 1.0,
         pressureExternal,
@@ -112,7 +110,7 @@ function initialise(; initialSystem,
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        A,B,R = initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
     elseif initialSystem == "argument"
@@ -135,21 +133,12 @@ function initialise(; initialSystem,
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 
-    # Define the number of A and B cells
-    nACells = Int(floor(nCells/2))
-    # nACells = nCells
 
-    cellsTypeA = randperm(rng, nCells)[1:nACells]   # random subset of cells
-    cellsTypeB = setdiff(1:nCells, cellsTypeA)      # the remainder
+    cellsTypeA = 1:nACells 
+    cellsTypeB = nACells+1:nCells   
 
-    cellL₀s = zeros(nCells)
-    for i in 1:nCells
-        if i in cellsTypeA
-            cellL₀s[i] = L0_A
-        else
-            cellL₀s[i] = L0_B
-        end
-    end
+    cellL₀s = L₀.*ones(nCells)
+    
 
     # Label A cells as 0, B cells as 1.
     cellLabels = zeros(Int64, nCells)
@@ -213,8 +202,6 @@ function initialise(; initialSystem,
         nEdges            = nEdges,
         nVerts            = nVerts,
         γ                 = γ,
-        L0_A              = L0_A,
-        L0_B              = L0_B,
         L₀                = L₀,
         A₀                = A₀,
         pressureExternal  = pressureExternal,

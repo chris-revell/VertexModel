@@ -23,6 +23,7 @@ function createRunDirectory(params,subFolder)
     @unpack initialSystem,
         realTimetMax,
         γ,
+        β,
         A₀,
         pressureExternal,
         viscousTimeScale,
@@ -32,6 +33,9 @@ function createRunDirectory(params,subFolder)
         nVerts,
         nCells,
         nEdges,
+        Λ_00,
+        Λ_01,
+        Λ_11,
         L₀,
         outputInterval,
         tMax,
@@ -39,13 +43,23 @@ function createRunDirectory(params,subFolder)
 
     repo = LibGit2.GitRepo(projectdir())
     branchname = LibGit2.shortname(LibGit2.head(repo))
-    # Create directory for run data labelled with current time.
-    paramsName = @savename nCells L₀ γ realTimetMax
-    # folderName = joinpath(branchname, subFolder, "$(branchname)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
-    folderName = joinpath("sims", branchname, subFolder, "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)")
-    # Create frames subdirectory to store system state at each output time
-    mkpath(datadir(folderName, "frameImages"))
-    mkpath(datadir(folderName, "frameData"))
+
+    if initialSystem == "periodic"
+        paramsName = @savename Λ_00 Λ_01 Λ_11 γ β
+        folderName = joinpath("sims", branchname, subFolder, "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)")
+        mkpath(datadir(folderName, "frameImages"))
+        mkpath(datadir(folderName, "frameData"))
+    else 
+        # Create directory for run data labelled with current time.
+        paramsName = @savename nCells L₀ γ realTimetMax
+        # folderName = joinpath(branchname, subFolder, "$(branchname)_$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)"
+        folderName = joinpath("sims", branchname, subFolder, "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)")
+        # Create frames subdirectory to store system state at each output time
+        mkpath(datadir(folderName, "frameImages"))
+        mkpath(datadir(folderName, "frameData"))
+    end
+
+    
 
     return folderName
 

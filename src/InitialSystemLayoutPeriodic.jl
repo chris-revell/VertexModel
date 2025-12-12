@@ -193,12 +193,21 @@ function buildB(polygons, edges)
     return B
 end
 
-function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
+function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
     # Main function to create periodic initial system layout
 
-    # if 
+        # Compute effective preferred perimeters for isolated A- or B-cells
+        L0_A = -Λ_00/(2*γ)
+        L0_B = -Λ_11/(2*γ)
+        println("L0_A=", L0_A)
+        println("L0_B=", L0_B)
+
+        # Desired ratio of nACells:nBCells
+        ABratio = 0.5
+
         # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
         # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
+
         a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_A
         p = Polynomial([d, c, b, a])
         roots_p = roots(p)
@@ -215,31 +224,47 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
             println("Error: negative hexagon sidelength")
         end
         Area_hex = 3*sqrt(3)*l^2/2
-        N_c = Int(ceil(L_x*L_y / Area_hex))
+        N_cA = Int(ceil(L_x*L_y*ABratio / Area_hex))
+
+        a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_B
+        p = Polynomial([d, c, b, a])
+        roots_p = roots(p)
+        # Only consider real roots
+        tol = 1e-10
+        real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
+        if isempty(real_roots)
+            error("No real roots from l cubic")
+        else
+            l = maximum(real_roots)
+        end
+        # println("l=",l)
+        if l<=0 
+            println("Error: negative hexagon sidelength")
+        end
+        Area_hex = 3*sqrt(3)*l^2/2
+        N_cB = Int(ceil(L_x*L_y*(1-ABratio) / Area_hex))
+        
 
         
         # Determine parameters for the Matérn type II process
-        λₜ = N_c / (L_x*L_y) # Target intensity 
-        λₚ = 3*λₜ # Starting poisson intensity 
+        λₜA = N_cA / (L_x*L_y*ABratio) # Target intensity 
+        λₚA = 3*λₜA # Starting poisson intensity 
+
+        λₜB = N_cB / (L_x*L_y*(1-ABratio)) # Target intensity 
+        λₚB = 3*λₜB # Starting poisson intensity
+
 
         # Solve for exclusion radius: 
-        r_ex = solve_exclusion_radius(λₚ, λₜ)
-
-        # println("r_ex = ",r_ex)
-        
-    # else
-        # Case with two populations:
-
-    # end
-
+        r_exA = solve_exclusion_radius(λₚA, λₜA)
+        r_exB = solve_exclusion_radius(λₚB, λₜB)
 
         # Matern type II process to generate periodic cell centres:
-        rad = r_ex    
+        rad = r_exA    
         area = L_x * L_y          # parent intensity guess
         kept = NTuple{2,Float64}[]
 
-        while length(kept) < N_c
-            n_parent = rand(Poisson(λₚ * area))
+        while length(kept) < N_cA
+            n_parent = rand(Poisson(λₚA * area))
             parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
             marks   = rand(n_parent)
         
@@ -247,14 +272,28 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
         end
 
         # Truncate to N_c of random permutation
-        kept = kept[randperm(length(kept))[1:N_c]]
+        kept = kept[randperm(length(kept))[1:N_cA]]
 
-        # println("length(kept)=",length(kept))
+        # Now add B cells:
+        rad = r_exB
+        while length(kept) < N_cA + N_cB
+            n_parent = rand(Poisson(λₚB * area))
+            parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
+            marks   = rand(n_parent)
+        
+            new_kept = matern_typeII(parents, marks, rad, L_x, L_y)  
+            append!(kept, new_kept)
+        end
+
+        # Truncate to N_c of random permutation
+        kept = kept[randperm(length(kept))[1:N_cA+N_cB]]
+
+       
 
         # Rewriting to be in line with InitialSystemLayout.jl
         cellPoints = [SVector(p[1], p[2]) for p in kept]
 
-        ε = min(r_ex/5, 0.1)
+        ε = min(r_exA/5, 0.1)
         for i in 1:length(cellPoints)
             cellPoints[i] += SVector(randn()*ε, randn()*ε)
             cellPoints[i] = SVector(mod(cellPoints[i][1], L_x),
@@ -279,13 +318,9 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
         # Only keep vertices within original domain, tracking the old index from tessellation: 
         kept_indices, vor_points = keptVerticesList(tessellation,L_x,L_y)
-        # println(size(vor_points))
-        # println("size(kept_indices)",size(kept_indices))
 
         # Create a dictionary from old vertex indices to new: 
         idx_map = Dict(old => new for (new, old) in enumerate(kept_indices))
-        # println(kept_indices)
-        # println(enumerate(kept_indices))
 
 
         # Convert voronoi_points to an array, R: 
@@ -364,7 +399,7 @@ function initialSystemLayoutPeriodic(L0_A,L0_B,γ,L_x,L_y)
 
 
         
-        return A, B, R
+        return A, B, R, N_cA
 
     
 

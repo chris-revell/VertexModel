@@ -38,7 +38,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 1000.0 || firstT1 == 0) 
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 10000.0 || firstT1 == 0) 
             
             println("t1 transition triggerred.")
             
@@ -48,13 +48,13 @@ function t1Transitions!(integrator, params, matrices)
             # Find vertices a and b at either end of the short edge j
             a = findall(x -> x > 0, @view A[j, :])[1]
             b = findall(x -> x < 0, @view A[j, :])[1]
-            println("a: ", a)
-            println("b: ", b)
+            # println("a: ", a)
+            # println("b: ", b)
             # Find cells around vertices a and b
             aCells = findall(x -> x != 0, @view C[:, a])
             bCells = findall(x -> x != 0, @view C[:, b])
-            println("aCells: ", aCells)
-            println("bCells: ", bCells)
+            # println("aCells: ", aCells)
+            # println("bCells: ", bCells)
 
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
                 if initialSystem == "new" 
@@ -145,8 +145,8 @@ function t1Transitions!(integrator, params, matrices)
                     R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
                     R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
-                    println("edgetangents[j]=",edgeTangents[j])
-                    println("ϵ*edgeTangents[j]= ",ϵ*edgeTangents[j])
+                    # println("edgetangents[j]=",edgeTangents[j])
+                    # println("ϵ*edgeTangents[j]= ",ϵ*edgeTangents[j])
                 end
                 
                 transitionCount += 1
