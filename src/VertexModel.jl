@@ -33,6 +33,7 @@ using DifferentialEquations
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
 @from "Energy.jl" using Energy
+@from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
 
@@ -69,8 +70,8 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
-    abstol = 1e-7, 
-    reltol = 1e-4,
+    abstol = 1e-6, 
+    reltol = 1e-3,
     energyModel = "quadratic2pops",
     vertexWeighting = 1,
     R_in = spzeros(2),
@@ -123,106 +124,129 @@ function vertexModel(;
         end
     end
 
-    # Set up ODE integrator 
-    prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
-    alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver; tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
-    outputCounter = [1]
-
+    ########################################################################################################################
+    #           ADDING A GLOBAL TRY SO THAT MOVIE STILL GETS SAVED IF SOMETHING FAILS
+    ########################################################################################################################
    
-    # Iterate until integrator time reaches max system time 
-    while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
-        
-        
-        # Reinterpret state vector as a vector of SVectors 
-        R = reinterpret(SVector{2,Float64}, integrator.u)
-        if any(!isfinite, integrator.u)
-            @show integrator.t
-            @show integrator.u
-            error("NaN or Inf detected in integrator.u")
-        end
+    try 
 
-        # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
+        # Set up ODE integrator 
+        prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
+        alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
+        integrator = init(prob, solver; tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        outputCounter = [1]
 
-        # Output data to file 
-        if integrator.t == alltStops[outputCounter[1]]
-            # Update progress on command line 
-            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
-            if frameDataToggle == 1
-                # Save system data to file 
-                jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
-            end
-            if frameImageToggle == 1 || videoToggle == 1
-                # Render visualisation of system and add frame to movie
-                visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
-            end
-            # Save still image of this time step 
-            frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
-            outputCounter[1] += 1
+        # Iterate until integrator time reaches max system time 
+        while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
             
-        end
-
-        # let E = energy(params, matrices)
-        #     println("t=$(integrator.t): energy BEFORE step = ", E)
-        # end
-
-        # Step integrator forwards in time to update vertex positions 
-        step!(integrator)
-
-        # println("t=$(integrator.t): energy AFTER step = ", energy(params, matrices))
-
-        if initialSystem == "periodic"
-            # Wrap vertices into the periodic domain
+            
+            # Reinterpret state vector as a vector of SVectors 
             R = reinterpret(SVector{2,Float64}, integrator.u)
-            for k in 1:length(R)
-                x = R[k][1]
-                y=R[k][2]
-                # wrap 
-                x = mod(x,L_x)
-                y = mod(y,L_y)
-
-                # Write back to state vector
-                integrator.u[2k-1] = x 
-                integrator.u[2k] = y
+            if any(!isfinite, integrator.u)
+                @show integrator.t
+                @show integrator.u
+                error("NaN or Inf detected in integrator.u")
             end
-        end
 
-        # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
-        spatialData!(R, params, matrices)
+            # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
-        # println("t=$(integrator.t): energy AFTER spatialData = ", energy(params, matrices))
+            # Output data to file 
+            if integrator.t == alltStops[outputCounter[1]]
+                # Update progress on command line 
+                printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+                if frameDataToggle == 1
+                    # Save system data to file 
+                    jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
+                end
+                if frameImageToggle == 1 || videoToggle == 1
+                    # Render visualisation of system and add frame to movie
+                    visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                end
+                # Save still image of this time step 
+                frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
+                outputCounter[1] += 1
+                
+            end
 
-        # Check system for T1 transitions 
-        if t1Transitions!(integrator, params, matrices) > 0
-            u_modified!(integrator, true)
-            # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
-            topologyChange!(R,params,matrices) # Update system matrices after T1 transition
-            spatialData!(R, params, matrices) # Update spatial data after T1 transition  
+            # let E = energy(params, matrices)
+            #     println("t=$(integrator.t): energy BEFORE step = ", E)
+            # end
 
-            # println("t=$(integrator.t): energy AFTER T1 = ", energy(params, matrices))
-        end
-        if divisionToggle==1
-            if division!(integrator, params, matrices) > 0
+            # Step integrator forwards in time to update vertex positions 
+            step!(integrator)
+
+            # println("t=$(integrator.t): energy AFTER step = ", energy(params, matrices))
+
+            if initialSystem == "periodic"
+                # Wrap vertices into the periodic domain
+                R = reinterpret(SVector{2,Float64}, integrator.u)
+                for k in 1:length(R)
+                    x = R[k][1]
+                    y=R[k][2]
+                    # wrap 
+                    x = mod(x,L_x)
+                    y = mod(y,L_y)
+
+                    # Write back to state vector
+                    integrator.u[2k-1] = x 
+                    integrator.u[2k] = y
+                end
+            end
+
+            # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
+            spatialData!(R, params, matrices)
+
+            # println("t=$(integrator.t): energy AFTER spatialData = ", energy(params, matrices))
+
+            # Check system for T1 transitions 
+            if t1Transitions!(integrator, params, matrices) > 0
                 u_modified!(integrator, true)
-                # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
-                topologyChange!(R,params,matrices) # Update system matrices after division 
-                spatialData!(R, params, matrices) # Update spatial data after division 
+                # senseCheck(matrices.A, matrices.B; marker="T1") # Check for nonzero values in B*A indicating error in incidence matrices           
+                topologyChange!(R,params,matrices) # Update system matrices after T1 transition
+                spatialData!(R, params, matrices) # Update spatial data after T1 transition  
+
+                # println("t=$(integrator.t): energy AFTER T1 = ", energy(params, matrices))
+            end
+            if divisionToggle==1
+                if division!(integrator, params, matrices) > 0
+                    u_modified!(integrator, true)
+                    # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
+                    topologyChange!(R,params,matrices) # Update system matrices after division 
+                    spatialData!(R, params, matrices) # Update spatial data after division 
+                end
+            end
+            # Update cell ages with (variable) timestep used in integration step
+            matrices.cellTimeToDivide .-= integrator.dt
+            matrices.timeSinceT1 .+= integrator.dt
+
+            # println("Area sum=", sum(matrices.cellAreas))
+        end
+    
+    catch err
+        @error "VertexModel crashed — writing partial movie." exception=(err, catch_backtrace())
+
+    finally
+
+        # This will save the video even if an error occurs during the simulation
+
+        if outputToggle == 1 && videoToggle == 1
+            try
+                save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov)
+                @warn "Movie saved successfully (partial or complete)."
+            catch saveErr
+                @error "Movie failed to save in finally block." exception=(saveErr, catch_backtrace())
             end
         end
-        # Update cell ages with (variable) timestep used in integration step
-        matrices.cellTimeToDivide .-= integrator.dt
-        matrices.timeSinceT1 .+= integrator.dt
 
-        # println("Area sum=", sum(matrices.cellAreas))
     end
 
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
+    P_eff = matrices.cellPressures .+ matrices.cellTensions.*matrices.cellPerimeters./(2.0.*matrices.cellAreas)
+    println("Sum of effective cell pressures = ", sum(P_eff))
     
 
-    
-    return integrator, matrices
 end
 
 # Function to load previously saved simulation data 

@@ -45,7 +45,6 @@ using CircularArrays
     cellsTypeB         ::Vector{Int64}        # Vector storing indices of type B population
     L_x                ::Float64
     L_y                ::Float64
-    firstT1            ::Int64              # Flag controlling whether the first T1 transition has occured
     Λ_00               ::Float64            # Line tension for type A to type A cell-cell interfaces
     Λ_01               ::Float64            # Line tension for type A to type B cell-cell interfaces
     Λ_11               ::Float64            # Line tension for type B to type B cell-cell interfaces
@@ -90,7 +89,8 @@ end
     ϵ                ::SMatrix{2, 2, Float64, 4}                    # Antisymmetric rotation matrix
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
     cellLabels       ::Vector{Int64}                                # Vector of 0s and 1s denoting cell labels 
-    Λs               ::Vector{Float64}                              # Vector of line tensions for each edge               
+    Λs               ::Vector{Float64}                              # Vector of line tensions for each edge  
+    firstT1onEdge    ::Vector{Int64}                                # Flag controlling whether the first T1 transition on an edge has occured             
 end
 
 export ParametersContainer,MatricesContainer

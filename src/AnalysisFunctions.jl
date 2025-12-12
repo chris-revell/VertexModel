@@ -25,7 +25,12 @@ using CircularArrays
 
 getRandomColor(seed) = RGB(rand(Xoshiro(seed),3)...)
 
-effectiveCellPressure(cellPressures,cellTensions,cellPerimeters,cellAreas) = cellPressures .+ cellTensions.*cellPerimeters./(2.0.*cellAreas)
+# effectiveCellPressure(cellPressures,cellTensions,cellPerimeters,cellAreas) = cellPressures .+ cellTensions.*cellPerimeters./(2.0.*cellAreas)
+
+function effectiveCellPressure(cellPressures,cellTensions,cellPerimeters,cellAreas)
+    P_eff = cellPressures .+ cellTensions.*cellPerimeters./(2.0.*cellAreas)
+    return P_eff
+end
 
 function cellQs(cellPerimeters,edgeTangents,B̄) 
     Q = Matrix{Float64}[]

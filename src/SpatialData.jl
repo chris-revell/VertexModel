@@ -234,6 +234,7 @@ function spatialData!(R,params,matrices)
         if sum(cellAreas) > L_x*L_y + 1e-8 || sum(cellAreas) < L_x*L_y - 1e-8
 
             error("⚠️ Error: Total cell area exceeds box area in periodic system")
+            println(sum(cellAreas) , " vs ", L_x*L_y)
         end
 
         # Calculate oriented cell areas

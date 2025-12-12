@@ -144,8 +144,6 @@ function initialise(; initialSystem,
     cellLabels = zeros(Int64, nCells)
     cellLabels[cellsTypeB] .= 1
 
-    # Initialise the T1 tracker 
-    firstT1 = 0
 
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
@@ -192,6 +190,7 @@ function initialise(; initialSystem,
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellLabels        = cellLabels,
         Λs                = zeros(nEdges),
+        firstT1onEdge     = zeros(Int64, nEdges),
     )
 
     # Pack parameters into a struct for convenience
@@ -225,7 +224,6 @@ function initialise(; initialSystem,
         cellsTypeB        = cellsTypeB,
         L_x               = L_x,
         L_y               = L_y,
-        firstT1           = firstT1,
         Λ_00              = Λ_00,
         Λ_01              = Λ_01,
         Λ_11              = Λ_11,
