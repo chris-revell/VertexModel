@@ -165,6 +165,15 @@ function vertexModel(;
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
                 outputCounter[1] += 1
+
+                energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
+                energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
+                energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
+
+                # Print the three components of energy: 
+                println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
+                
+                
                 
             end
 
@@ -244,7 +253,7 @@ function vertexModel(;
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
     P_eff = matrices.cellPressures .+ matrices.cellTensions.*matrices.cellPerimeters./(2.0.*matrices.cellAreas)
-    println("Sum of effective cell pressures = ", sum(P_eff))
+    println("Sum of effective cell pressures = ", sum(matrices.cellAreas.*P_eff))
     
 
 end

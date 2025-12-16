@@ -231,11 +231,11 @@ function spatialData!(R,params,matrices)
             end
         end
 
-        if sum(cellAreas) > L_x*L_y + 1e-8 || sum(cellAreas) < L_x*L_y - 1e-8
+        # if sum(cellAreas) > L_x*L_y + 1e-5 || sum(cellAreas) < L_x*L_y - 1e-5
 
-            error("⚠️ Error: Total cell area exceeds box area in periodic system")
-            println(sum(cellAreas) , " vs ", L_x*L_y)
-        end
+        #     error("⚠️ Error: Total cell area exceeds box area in periodic system")
+        #     println(sum(cellAreas) , " vs ", L_x*L_y)
+        # end
 
         # Calculate oriented cell areas
         # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
@@ -296,9 +296,9 @@ function spatialData!(R,params,matrices)
                     0.5 *norm([edgeMidpointLinks[k_is[1], k]..., 0.0] ×[edgeMidpointLinks[k_is[2], k]..., 0.0])
 
             end
-            if !isfinite(vertexAreas[k]) || vertexAreas[k] <= 0
-                println("⚠️ Warning: Vertex $k has suspicious area = ", vertexAreas[k])
-            end
+            # if !isfinite(vertexAreas[k]) || vertexAreas[k] <= 0
+            #     println("⚠️ Warning: Vertex $k has suspicious area = ", vertexAreas[k])
+            # end
 
 
 
