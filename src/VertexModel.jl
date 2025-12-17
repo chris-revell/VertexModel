@@ -68,6 +68,7 @@ function vertexModel(;
     A_in = spzeros(2),
     B_in = spzeros(2), 
     spiky = false,
+    hideDecorationsSpines = true,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -99,7 +100,7 @@ function vertexModel(;
         folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
         if frameImageToggle==1 || videoToggle==1
-            fig, ax, mov = plotSetup()
+            fig, ax, mov = plotSetup(hideDecorationsSpines=hideDecorationsSpines)
         end
     end
 
