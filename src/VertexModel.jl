@@ -118,7 +118,7 @@ function vertexModel(;
         # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
         # Output data to file 
-        if integrator.t == alltStops[outputCounter[1]]
+        if integrator.t == alltStops[outputCounter[1]] && outputToggle==1
             # Update progress on command line 
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
             if frameDataToggle == 1
