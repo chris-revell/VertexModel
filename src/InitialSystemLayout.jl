@@ -18,16 +18,34 @@ using DelaunayTriangulation
 using FromFile
 using Random
 using InvertedIndices
+using NonlinearSolve
 
 @from "SenseCheck.jl" using SenseCheck
 
-function initialSystemLayout(;
+# Solve cubic equation balancing pressure and tension in a regular hexagon to find initial edge lengths 
+f(u, p) = (sqrt(3)*cos(π/6).*u.^3.0)./288 .+ p.γ*cos(π/3).*u .- p.A₀*cos(π/6).*u/12 .- p.γ*p.L₀*cos(π/3) 
+hexagonPerimeter(A) = 6*sqrt(2*A/(3*sqrt(3)))
+hexagonArea(L) = 3*sqrt(3)*((L/6)^2)/2
+function initialEdgeLength(γ, L₀; A₀=1.0)
+    p = (γ=γ, L₀=L₀, A₀=A₀)
+    u0 = [(min(p.L₀, hexagonPerimeter(p.A₀))-0.001)]
+    prob = NonlinearProblem(f, u0, p)
+    sol = solve(prob)
+    return sol.u[1]/6
+end
+
+function initialSystemLayout(
+        γ, 
+        L₀;
         nRows = 9,
-        initialEdgeLength = 5.0*0.75/6, # Need to find a better value for this than 5*L₀/6
         spiky = false,
     )
 
-    # nRows = 9 # Must be an odd number
+    equilibriumEdgeLength = initialEdgeLength(γ, L₀)
+    horizontalCellSpacing = 2.0*equilibriumEdgeLength*sin(π/3)
+    verticalCellSpacing = 1.5*equilibriumEdgeLength
+
+    # nRows must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
     for j = 1:(floor(Int64,nRows/2))
         for i = 1:nRows-j
@@ -122,11 +140,12 @@ function initialSystemLayout(;
     A = A[Not(edgesToRemove), Not(verticesToRemove)]
     B = B[:, Not(edgesToRemove)]
     Rtmp = Rtmp[Not(verticesToRemove)]
-    senseCheck(A, B; marker="Error after removing peropheral vertices")
+    senseCheck(A, B; marker="Error after removing peripheral vertices")
+
 
     R = SVector{2, Float64}[]
     for r in Rtmp 
-        push!(R, SVector(initialEdgeLength*(r[1] - (nRows-1)/2 - 1.0 ), initialEdgeLength*r[2]))
+        push!(R, SVector(horizontalCellSpacing*(r[1] - (nRows-1)/2 - 1.0 ), horizontalCellSpacing*r[2]))
     end
 
 

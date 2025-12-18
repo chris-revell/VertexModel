@@ -43,7 +43,6 @@ function initialise(; initialSystem = "new",
         R_in= spzeros(2),
         A_in= spzeros(2),
         B_in= spzeros(2),
-        initialEdgeLength = 0.75,
         spiky = false,
     )
 
@@ -63,7 +62,7 @@ function initialise(; initialSystem = "new",
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R = initialSystemLayout(nRows=nRows, initialEdgeLength=initialEdgeLength=5*L₀/6, spiky=spiky)
+        A, B, R = initialSystemLayout(γ, L₀; nRows=nRows, spiky=spiky)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "argument"
         R = R_in
@@ -120,7 +119,7 @@ function initialise(; initialSystem = "new",
         F                 = spzeros(SVector{2,Float64}, nVerts, nCells),
         externalF         = fill(SVector{2,Float64}(zeros(2)), nVerts),
         totalF            = fill(SVector{2,Float64}(zeros(2)), nVerts),
-        ϵ                 = SMatrix{2, 2, Float64}([
+        ϵ                 = SMatrix{2, 2, Float64}([        # Default rotation matrix is clockwise with respect to cell faces (right hand rule arrow down into cell face from viewpoint)
                                 0.0 1.0
                                 -1.0 0.0
                             ]),

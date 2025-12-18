@@ -98,6 +98,7 @@ function spatialData!(R,params,matrices)
     end
 
     # Calculate cell pressures and tensions according to energy model choice 
+    # For cell in equilibrium typically Tension > 0 (cell perimeter > preferred perimeter) balances pressure < 0 (cell area < preferred area) 
     if energyModel == "log"
         # Model per Cowley et al. 2024 Section 2a
         # Calculate cell boundary tensions
@@ -107,9 +108,9 @@ function spatialData!(R,params,matrices)
     else
         # Quadratic energy model
         # Calculate cell boundary tensions
-        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters - cellL₀s)
+        @.. thread = false cellTensions .= μ .* Γ .*(cellPerimeters .- cellL₀s)
         # Calculate cell internal pressures
-        @.. thread = false cellPressures .= μ .*(cellAreas - cellA₀s)
+        @.. thread = false cellPressures .= μ .*(cellAreas .- cellA₀s)
     end
 
     return nothing
