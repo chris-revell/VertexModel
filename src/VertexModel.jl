@@ -171,7 +171,7 @@ function vertexModel(;
                 energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
 
                 # Print the three components of energy: 
-                println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
+                # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
                 
                 
                 
