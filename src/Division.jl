@@ -84,7 +84,7 @@ function division!(integrator,params,matrices, folderName)
             shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
             # Test cell edges for an intersection
-            poly = LineString(Point{2, Float64}.(R[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+            poly = Line.(Point{2,Float64}.(R[cellVertexOrders[i][0:end-1]]), Point{2,Float64}.(R[cellVertexOrders[i][1:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
             intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
             
