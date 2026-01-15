@@ -28,7 +28,7 @@ using CircularArrays
 @from "SpatialData.jl" using SpatialData
 
 function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,viscousTimeScale,outputTotal,t1Threshold,realCycleTime,peripheralTension,setRandomSeed; nRows=9,modelChoice="quadratic",
-    vertexWeighting=0, stretchType="none", realStretchTime=0, λs=0, κ=1, maxCells=1)
+    vertexWeighting=0, stretchType="none", realStretchTime=0, λs=0, κ=1, maxCells=1,L₀_std=0)
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
@@ -44,6 +44,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     Random.seed!(seed)
 
     distLogNormal = LogNormal(0.0, 0.2) #Distribution for division
+    distNormalL₀ = Normal(L₀, L₀_std)
 
     # Initialise system matrices from function or file
     if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_eq", "sixteen"]
@@ -93,7 +94,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
         cellA₀s           = fill(A₀, nCells),
-        cellL₀s           = fill(L₀, nCells),
+        cellL₀s           = rand(distNormalL₀, nCells),
         cellTensions      = zeros(nCells),
         cellPressures     = zeros(nCells),
         cellTimeToDivide  = cellTimeToDivide,
@@ -143,6 +144,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         peripheralTension = peripheralTension,
         seed              = seed,
         distLogNormal     = distLogNormal,
+        distNormalL₀      = distNormalL₀,
         modelChoice       = modelChoice,
         vertexWeighting   = vertexWeighting,
         λs                = λs,
@@ -151,7 +153,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         tStretch          = tStretch,
         tMemChange        = 0,
         κ                 = κ,
-        maxCells          = maxCells
+        maxCells          = maxCells,
+        L₀_std            = L₀_std
     )
 
     matrices.R_membrane.=R

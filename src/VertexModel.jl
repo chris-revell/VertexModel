@@ -46,7 +46,6 @@ using DiffEqCallbacks
 
 
 function conditionMaxCells(u, t, integrator)
-    @show params.nCells
     integrator.p[1].nCells >= integrator.p[1].maxCells ? true : false
 
 end
@@ -54,8 +53,8 @@ end
 function conditionSteadyState(u, t, integrator)
 
     @show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
-    #(maximum(norm.(get_du(integrator))) < 1e-6 )&(integrator.p[1].nCells >= 1024) ? true : false
-    maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator)))) < 1e-4 ? true : false
+    (maximum(norm.(get_du(integrator))) < 1e-5 )&(integrator.p[1].nCells >= 1024) ? true : false
+    #maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator)))) < 1e-4 ? true : false
     # Use integrator.opts.abstol as threshold?
 end
 
@@ -78,13 +77,13 @@ function vertexModel(;
     γ=0.172, #from ANB parameter inference Xenopus animal caps
     L₀=0.753, #from ANB parameter inference Xenopus animal caps
     A₀=1.0,
-    viscousTimeScale=100.0,
+    viscousTimeScale=1000.0,
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
-    #solver=TanYam7(),
+    solver=TanYam7(),
     #solver=Tsit5(),
-    solver=Vern7(lazy=false),
+    #solver=Vern7(lazy=false),
     nBlasThreads=4,
     subFolder="",
     outputTotal=100,
@@ -100,8 +99,8 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     setRandomSeed = 0,
-    abstol = 1e-8, 
-    reltol = 1e-8,
+    abstol = 1e-9, 
+    reltol = 1e-9,
     modelChoice="quadratic",
     vertexWeighting=0,
     stretchType="none", 
@@ -109,6 +108,7 @@ function vertexModel(;
     λs=0,
     κ=0,
     maxCells=1,
+    L₀_std=0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -117,7 +117,7 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
-    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ, maxCells=maxCells )
+    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ, maxCells=maxCells, L₀_std=L₀_std )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
 
@@ -143,8 +143,10 @@ function vertexModel(;
     ###Need to set up tstops with max stretch time and then regular intervals relative to stretch
 
     prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
+    #alltStops=collect(0.0+params.tStretch:300/params.viscousTimeScale:params.tMax)
     alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    push!(alltStops,params.tStretch )
+    #pushfirst!(alltStops,0.0)
+    push!(alltStops,params.tStretch)
     #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=params.tStretch+1))
     #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=TerminateSteadyState(min_t=2*params.nonDimCycleTime))
     #integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true, callback=cb_maxCells)
@@ -164,6 +166,7 @@ function vertexModel(;
         if integrator.t == alltStops[outputCounter[1]]
             # Update progress on command line 
             printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+            @show params.nCells
             if frameDataToggle == 1
                 # Save system data to file 
                 jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1]-1)).jld2"); matrices, params, R)
