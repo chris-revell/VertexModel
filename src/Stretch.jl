@@ -31,6 +31,8 @@ using GeometryBasics
 
         if stretchType=="uniaxial"
             Λt=Diagonal([1+(λs*t)/tStretch, 1-(λs*t)/(tStretch*(1+λs))])
+        elseif stretchType=="uniaxial_from_dat"
+            Λt=Diagonal([1+(0.25*t)/tStretch, 1-(0.1*t)/tStretch])
         elseif stretchType=="biaxial"
             Λt=Diagonal([1+(λs*t)/tStretch, 1+(λs*t)/tStretch])
         end
@@ -43,8 +45,10 @@ using GeometryBasics
 
         if stretchType=="uniaxial"
             dΛt=Diagonal([λs/tStretch, -λs/(tStretch*(1+λs))])
+        elseif stretchType=="uniaxial_from_dat"
+            dΛt=Diagonal([0.25/tStretch, -0.1/tStretch])
         elseif stretchType=="biaxial"
-           dΛt=Diagonal([λs/tStretch, λs/tStretch])
+            dΛt=Diagonal([λs/tStretch, λs/tStretch])
         end
 
         return dΛt
