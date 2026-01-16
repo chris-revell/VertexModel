@@ -41,7 +41,8 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
         edgeMidpointLinks,
         μ,
         R_membrane,
-        cellL₀s = matrices
+        cellL₀s,
+        cellA₀s = matrices
     @unpack nEdges,
         nVerts,
         nCells= params
@@ -89,7 +90,7 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
     if plotCells == 1
         cellPolygons = makeCellPolygons(R,params,matrices)
         for i=1:nCells
-            poly!(ax,cellPolygons[i],color=cellL₀s[i],colormap=:viridis,colorrange=(minimum(cellL₀s)-1e-6, maximum(cellL₀s)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
+            poly!(ax,cellPolygons[i],color=cellA₀s[i],colormap=:viridis,colorrange=(minimum(cellA₀s)-1e-6, maximum(cellA₀s)+1e-6),strokecolor=(:black,1.0),strokewidth=1)
             #poly!(ax,cellPolygons[i], color=cellEdgeCount[i], colorrange=(3, 10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),strokecolor=:black, strokewidth=1)
             #poly!(ax,cellPolygons[i],color=delArea[i],colormap=:bwr,colorrange=clims,strokecolor=(:black,1.0),strokewidth=1)
 
@@ -98,7 +99,7 @@ function visualise(R0,R, t, fig, ax, mov, params, matrices, plotCells, scatterEd
 
     #vlines!(ax, [-3.0312244824201207,-2.8066893355741858,2.8066893355741858, 3.0312244824201207])
     
-    cbar=Colorbar(fig[1,2],limits=(minimum(cellL₀s)-1e-6, maximum(cellL₀s)+1e-6),colormap=:viridis,flipaxis=true)
+    cbar=Colorbar(fig[1,2],limits=(minimum(cellA₀s)-1e-6, maximum(cellA₀s)+1e-6),colormap=:viridis,flipaxis=true)
 
     #cbar=Colorbar(fig[1,2],limits=(3,10),colormap=cgrad(ColorSchemes.jet, 8, categorical=true),flipaxis=true)
     #cbar.ticks = ([3+0.5*(7/8), 3+1.5*(7/8),  3+2.5*(7/8), 3+3.5*(7/8),  3+4.5*(7/8),  3+5.5*(7/8),  3+6.5*(7/8),  3+7.5*(7/8)], ["3", "4", "5","6", "7", "8", "9", "10"])

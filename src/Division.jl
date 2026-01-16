@@ -37,6 +37,7 @@ function division!(integrator,params,matrices, folderName)
         realCycleTime,
         distLogNormal,
         distNormalL₀,
+        distNormalA₀,
         L₀, γ, t1Threshold, tStretch,tMemChange, stretchType = params
     @unpack A, 
         B, C,
@@ -56,7 +57,8 @@ function division!(integrator,params,matrices, folderName)
         cellLineage,
         cellGeneration,
         cellIndex,
-        cellL₀s = matrices
+        cellL₀s,
+        cellA₀s = matrices
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -207,10 +209,12 @@ function division!(integrator,params,matrices, folderName)
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             cellL₀s[i] = rand(distNormalL₀)
+            cellA₀s[i] = rand(distNormalA₀)
             cellGeneration[i]+=1
             cellIndex[i]=maxIndex+1
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             push!(cellL₀s,rand(distNormalL₀))
+            push!(cellA₀s,rand(distNormalA₀))
             push!(cellLineage,cellLineage[i])
             push!(cellGeneration,cellGeneration[i])
             push!(cellIndex, maxIndex+2)

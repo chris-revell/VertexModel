@@ -48,7 +48,10 @@ function spatialData!(R,params,matrices)
         edgeMidpointLinks,
         vertexAreas,
         μ,
-        Γ = matrices
+        Γ,
+        cellTimeToDivide,
+        nonDimCycleTime,
+        t= matrices
     @unpack nCells,
         nEdges,
         nVerts,
@@ -100,6 +103,9 @@ function spatialData!(R,params,matrices)
         Rα = [R[kk].-matrices.cellPositions[i] for kk in cellVertexOrders[i]]
         cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
     end
+
+    #update cell A_0s for linear growth
+    #cellA₀s.=((2.0/3.0)*A₀).*(2.0.-(cellTimeToDivide./nonDimCycleTime))
 
     #can expand model choices, set quadratic as standard.
 

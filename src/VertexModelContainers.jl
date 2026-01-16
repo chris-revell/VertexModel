@@ -37,6 +37,7 @@ using CircularArrays
     seed               ::Int64              # Random number seed 
     distLogNormal      ::LogNormal{Float64} # Log normal distribution 
     distNormalL₀       ::Normal{Float64}    # Normal distribution
+    distNormalA₀       ::Normal{Float64}    # Normal distribution
     modelChoice        ::String             # 2D model of choice (eg log, quadratic)
     vertexWeighting    ::Bool               # Flag for drag weighted by vertex area
     λs                 ::Float64            # stretch
@@ -47,6 +48,8 @@ using CircularArrays
     κ                  ::Float64            # spring constant tethering vertices to membrane
     maxCells           ::Float64            # number of cells for division cutoff
     L₀_std             ::Float64            # standard deviation of normal distribution for L_0
+    A₀_std             ::Float64            # standard deviation of normal distribution for A_0
+
 end
 
 @kwdef mutable struct MatricesContainer

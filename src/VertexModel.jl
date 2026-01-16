@@ -109,6 +109,7 @@ function vertexModel(;
     κ=0,
     maxCells=1,
     L₀_std=0,
+    A₀_std=0,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -117,7 +118,7 @@ function vertexModel(;
 
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem, realTimetMax, γ, L₀, A₀, pressureExternal, viscousTimeScale, outputTotal, t1Threshold, realCycleTime, peripheralTension, setRandomSeed; nRows=nRows,modelChoice=modelChoice,
-    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ, maxCells=maxCells, L₀_std=L₀_std )
+    vertexWeighting=vertexWeighting, stretchType=stretchType, realStretchTime=realStretchTime, λs=λs, κ=κ, maxCells=maxCells, L₀_std=L₀_std,A₀_std=A₀_std )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
 
