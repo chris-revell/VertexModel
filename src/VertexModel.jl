@@ -82,6 +82,7 @@ function vertexModel(;
     Λ_00 = -0.04, #L0 = 0.5
     Λ_01 = 0.0,
     Λ_11 = -0.08, #L0 = 1.0
+    Area_A_ratio = 0.5,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -113,6 +114,7 @@ function vertexModel(;
         Λ_00 = Λ_00,
         Λ_01 = Λ_01,
         Λ_11 = Λ_11,
+        Area_A_ratio = Area_A_ratio,
     )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.

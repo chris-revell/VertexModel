@@ -89,6 +89,7 @@ function initialise(; initialSystem,
         Λ_00,
         Λ_01,
         Λ_11,
+        Area_A_ratio,
     )
 
     # Calculate derived parameters
@@ -110,7 +111,7 @@ function initialise(; initialSystem,
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
     elseif initialSystem == "periodic"
-        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
+        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
     elseif initialSystem == "argument"
@@ -227,6 +228,7 @@ function initialise(; initialSystem,
         Λ_00              = Λ_00,
         Λ_01              = Λ_01,
         Λ_11              = Λ_11,
+        Area_A_ratio      = Area_A_ratio,
     )
 
     # Initial evaluation of matrices based on system topology

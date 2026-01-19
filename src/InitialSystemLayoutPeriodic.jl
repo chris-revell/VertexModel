@@ -193,7 +193,7 @@ function buildB(polygons, edges)
     return B
 end
 
-function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
+function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
     # Main function to create periodic initial system layout
 
         # Compute effective preferred perimeters for isolated A- or B-cells
@@ -202,8 +202,12 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
         println("L0_A=", L0_A)
         println("L0_B=", L0_B)
 
-        # Desired ratio of nACells:nBCells
-        ABratio = 0.5
+        # Desired ratio of Area_A : Area_B
+        Area_A_ratio = 0.3
+        Area_B_ratio = 1.0 - Area_A_ratio
+
+        Area_A = Area_A_ratio * (L_x * L_y)
+        Area_B = Area_B_ratio * (L_x * L_y)
 
         # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
         # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
@@ -224,7 +228,8 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
             println("Error: negative hexagon sidelength")
         end
         Area_hex = 3*sqrt(3)*l^2/2
-        N_cA = Int(ceil(L_x*L_y*ABratio / Area_hex))
+        N_cA = Int(ceil(Area_A/ Area_hex))
+        # N_cA = Int(ceil(L_x*L_y*ABratio / Area_hex))
 
         a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_B
         p = Polynomial([d, c, b, a])
@@ -242,15 +247,16 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11)
             println("Error: negative hexagon sidelength")
         end
         Area_hex = 3*sqrt(3)*l^2/2
-        N_cB = Int(ceil(L_x*L_y*(1-ABratio) / Area_hex))
+        N_cB = Int(ceil(Area_B/ Area_hex))
+        # N_cB = Int(ceil(L_x*L_y*(1-ABratio) / Area_hex))
         
 
         
         # Determine parameters for the Matérn type II process
-        λₜA = N_cA / (L_x*L_y*ABratio) # Target intensity 
+        λₜA = N_cA / (L_x*L_y*Area_A_ratio) # Target intensity 
         λₚA = 3*λₜA # Starting poisson intensity 
 
-        λₜB = N_cB / (L_x*L_y*(1-ABratio)) # Target intensity 
+        λₜB = N_cB / (L_x*L_y*(Area_B_ratio)) # Target intensity 
         λₚB = 3*λₜB # Starting poisson intensity
 
 

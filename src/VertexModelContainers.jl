@@ -48,6 +48,7 @@ using CircularArrays
     Λ_00               ::Float64            # Line tension for type A to type A cell-cell interfaces
     Λ_01               ::Float64            # Line tension for type A to type B cell-cell interfaces
     Λ_11               ::Float64            # Line tension for type B to type B cell-cell interfaces
+    Area_A_ratio       ::Float64            # Fraction of domain area occupied by A cells 
 end
 
 @kwdef mutable struct MatricesContainer                               
