@@ -74,6 +74,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     nCells = size(B, 1)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
+    #cellTimeToDivide=ones(nCells)*nonDimCycleTime
     #cellTimeToDivide = rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*rand(LogNormal(0.0, 0.2), size(B, 1)).*nonDimCycleTime
     # Fill preallocated matrices into struct for convenience
     matrices = MatricesContainer(
@@ -100,6 +101,7 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellTensions      = zeros(nCells),
         cellPressures     = zeros(nCells),
         cellTimeToDivide  = cellTimeToDivide,
+        cellCycleLength   =  nonDimCycleTime.*ones(nCells),
         μ                 = ones(nCells),
         Γ                 = γ.*ones(nCells),
         edgeLengths       = zeros(nEdges),

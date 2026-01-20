@@ -38,10 +38,11 @@ function division!(integrator,params,matrices, folderName)
         distLogNormal,
         distNormalL₀,
         distNormalA₀,
-        L₀, γ, t1Threshold, tStretch,tMemChange, stretchType = params
+        L₀,A₀, γ, t1Threshold, tStretch,tMemChange, stretchType = params
     @unpack A, 
         B, C,
-        cellTimeToDivide, 
+        cellTimeToDivide,
+        cellCycleLength, 
         cellPositions, 
         edgeMidpoints, 
         cellEdgeCount, 
@@ -208,13 +209,19 @@ function division!(integrator,params,matrices, folderName)
 
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
+            cellCycleLength[i] = cellTimeToDivide[i]
+
             cellL₀s[i] = rand(distNormalL₀)
-            cellA₀s[i] = rand(distNormalA₀)
+            #cellA₀s[i] = rand(distNormalA₀)
+            cellA₀s[i] = (2.0/3.0)*A₀
+
             cellGeneration[i]+=1
             cellIndex[i]=maxIndex+1
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
+            push!(cellCycleLength,cellTimeToDivide[end])
             push!(cellL₀s,rand(distNormalL₀))
-            push!(cellA₀s,rand(distNormalA₀))
+            #push!(cellA₀s,rand(distNormalA₀))
+            push!(cellA₀s,(2.0/3.0)*A₀)
             push!(cellLineage,cellLineage[i])
             push!(cellGeneration,cellGeneration[i])
             push!(cellIndex, maxIndex+2)
