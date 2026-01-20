@@ -130,7 +130,7 @@ function initialise(; initialSystem,
     end
 
     nCells = size(B, 1)
-    # println(nCells)
+    println("N_c =" ,nCells)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 

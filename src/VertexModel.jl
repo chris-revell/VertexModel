@@ -34,6 +34,7 @@ using DifferentialEquations
 @from "SenseCheck.jl" using SenseCheck
 @from "Energy.jl" using Energy
 @from "AnalysisFunctions.jl" using AnalysisFunctions
+@from "CubicSolutions.jl" using CubicSolutions
 
 
 
@@ -52,7 +53,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.05,
-    β = 0.0,
+    β = 0.05,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -84,6 +85,10 @@ function vertexModel(;
     Λ_11 = -0.08, #L0 = 1.0
     Area_A_ratio = 0.5,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
+
+
+    plot_parameter_space(100)    
+
 
     BLAS.set_num_threads(nBlasThreads)
 

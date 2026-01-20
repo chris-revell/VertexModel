@@ -203,7 +203,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         println("L0_B=", L0_B)
 
         # Desired ratio of Area_A : Area_B
-        Area_A_ratio = 0.3
+        # Area_A_ratio = 0.3
         Area_B_ratio = 1.0 - Area_A_ratio
 
         Area_A = Area_A_ratio * (L_x * L_y)
