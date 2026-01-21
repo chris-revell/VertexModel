@@ -53,18 +53,24 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         # Create matrices for one, three, or seven cells geometrically
         A, B, R = initialCellConfig(initialSystem)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellA₀s=rand(distNormalA₀, nCells)
+        cellL₀s=rand(distNormalL₀, nCells)
     elseif initialSystem == "hex"
         A, B, R = initialSystemLayout(nRows, x=0)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellA₀s=rand(distNormalA₀, nCells)
+        cellL₀s=rand(distNormalL₀, nCells)
     elseif initialSystem == "hex_smooth"
         A, B, R = initialSystemLayout(nRows, edgeCells=true)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        cellA₀s=rand(distNormalA₀, nCells)
+        cellL₀s=rand(distNormalL₀, nCells)
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
-        @unpack A,B = importedData["matrices"]
+        @unpack A,B, cellA₀s, cellL₀s = importedData["matrices"]
         cellTimeToDivide = rand(Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
     end
@@ -96,8 +102,8 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
-        cellA₀s           = rand(distNormalA₀, nCells),
-        cellL₀s           = rand(distNormalL₀, nCells),
+        cellA₀s           = cellA₀s,
+        cellL₀s           = cellL₀s,
         cellTensions      = zeros(nCells),
         cellPressures     = zeros(nCells),
         cellTimeToDivide  = cellTimeToDivide,
