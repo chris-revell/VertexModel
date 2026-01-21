@@ -25,6 +25,7 @@ function t1Transitions!(integrator, params, matrices)
         timeSinceT1,
         cellTimeToDivide,
         boundaryEdges,
+        cellEdgeCount,
         ϵ= matrices
     @unpack nEdges,
         t1Threshold,
@@ -37,7 +38,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > nonDimCycleTime / 100.0)
+        if edgeLengths[j] < t1Threshold && 3 ∉ cellEdgeCount[findall(x->x!=0, B[:,j])] && (timeSinceT1[j] > nonDimCycleTime / 100.0)
 
             timeSinceT1[j] = 0
 
