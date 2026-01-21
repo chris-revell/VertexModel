@@ -20,18 +20,17 @@ function cubic_roots(Γ, Λ)
     # Function to compute the roots of the cubic for given Γ and Λ
     a, b, c, d = cubic_coeffs(Γ, Λ)
     p = Polynomial([d, c, b, a])  # Coefficients are in ascending order
-    roots = roots(p)
-    return roots
-
+    roots_p = roots(p)
+    return roots_p
 end
 
 function num_real_roots(Γ,Λ)
     # Count the number of real roots of the cubic 
-    roots = cubic_roots(Γ, Λ)
-    return count(isreal, roots)
+    roots_p = cubic_roots(Γ, Λ)
+    return count(r -> isreal(r)  , roots_p)
 end
 
-function plot_parameter_space(len)
+function plot_parameter_space(len,Λ_00,Λ_11,Γ)
     Λs = range(-2.0,0.0,length = len)
     Γs = range(0.0,2.0,length = len)
 
@@ -47,6 +46,20 @@ function plot_parameter_space(len)
     colorbar_ticks=([1, 2, 3], ["1", "2", "3"]),
     aspect_ratio=:equal
     )
+
+    scatter!(plt,[Γ], [Λ_00],
+            markersize=8,
+            marker=:circle,
+            color=:red,
+            markerstrokecolor=:black,
+            label="Current (Γ, Λ_00)")
+
+    scatter!(plt,[Γ], [Λ_11],
+            markersize=8,
+            marker=:circle,
+            color=:red,
+            markerstrokecolor=:black,
+            label="Current (Γ, Λ_11)")       
 
     display(plt)
     return plt

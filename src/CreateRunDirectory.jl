@@ -39,13 +39,14 @@ function createRunDirectory(params,subFolder)
         L₀,
         outputInterval,
         tMax,
-        nonDimCycleTime = params
+        nonDimCycleTime,
+        nCells = params
 
     repo = LibGit2.GitRepo(projectdir())
     branchname = LibGit2.shortname(LibGit2.head(repo))
 
     if initialSystem == "periodic"
-        paramsName = @savename Λ_00 Λ_01 Λ_11 γ β
+        paramsName = @savename Λ_00 Λ_01 Λ_11 γ β nCells
         folderName = joinpath("sims", branchname, subFolder, "$(Dates.format(Dates.now(),"yy-mm-dd-HH-MM-SS"))_$(paramsName)")
         mkpath(datadir(folderName, "frameImages"))
         mkpath(datadir(folderName, "frameData"))

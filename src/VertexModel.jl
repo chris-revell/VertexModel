@@ -52,7 +52,7 @@ function vertexModel(;
     viscousTimeScale = 1.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
-    t1Threshold = 0.05,
+    t1Threshold = 0.1,
     β = 0.05,
     divisionToggle = 0,
     solver = SRIW1(),
@@ -86,8 +86,9 @@ function vertexModel(;
     Area_A_ratio = 0.5,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
+    
 
-    plot_parameter_space(100)    
+    # plot_parameter_space(300,Λ_00,Λ_11,γ)    
 
 
     BLAS.set_num_threads(nBlasThreads)
@@ -122,6 +123,15 @@ function vertexModel(;
         Area_A_ratio = Area_A_ratio,
     )
 
+    @unpack γ,Λ_00,Λ_11 = params
+    # Statement to check whether params are in floppy regime: 
+    if γ < -0.14*Λ_00
+        println("A cells in floppy regime")
+    end
+    if γ < -0.14*Λ_11
+        println("B cells in floppy regime")
+    end
+
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
         folderName = createRunDirectory(params,subFolder)
@@ -146,7 +156,17 @@ function vertexModel(;
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
             
-            
+            # if any(matrices.cellAreas .<= 1e-12)
+            #     collapsed_cell = findall(matrices.cellAreas .<= 1e-12)
+            #     c = collapsed_cell[1]
+            #     A = matrices.cellAreas[c]
+            #     error("Cell $c collapsed (A=$A) at t=$(integrator.t) collapsed at t=$(integrator.t), t1 transition not triggered in time.", )
+            # end
+            # if any(matrices.edgeLengths .<= 1e-12)
+            #     error("Edge collapsed at t=$(integrator.t)")
+            # end
+
+
             # Reinterpret state vector as a vector of SVectors 
             R = reinterpret(SVector{2,Float64}, integrator.u)
             if any(!isfinite, integrator.u)
