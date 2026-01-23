@@ -334,7 +334,7 @@ function spatialData!(R,params,matrices)
             for j=1:nEdges
                 T_effs[i] += 0.5*(1/cellPerimeters[i])*B̄[i,j]*Λs[j]*edgeLengths[j]
             end
-            P_effs[i] = cellPressures[i] + (cellPerimeters[i]/2*cellAreas[i])*T_effs[i]
+            P_effs[i] = cellPressures[i] + (cellPerimeters[i]/(2*cellAreas[i]))*T_effs[i]
         end
     end
 
