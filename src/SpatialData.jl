@@ -109,7 +109,9 @@ function spatialData!(R,params,matrices)
         vertexAreas,
         μ,
         Γ,
-        Λs = matrices
+        Λs,
+        P_effs,
+        T_effs = matrices
     @unpack initialSystem,
         nCells,
         nEdges,
@@ -323,9 +325,17 @@ function spatialData!(R,params,matrices)
         cellPressures .= μ .*(cellAreas - cellA₀s)
     elseif energyModel == "quadratic2pops"
         # Quadratic energy model with two cell populations 
-        cellTensions .= Γ .* cellPerimeters 
         cellPressures .= cellAreas .- 1.0
+        cellTensions .= Γ .* cellPerimeters
         
+        # Update effective tensions and pressures for each cell
+        for i=1:nCells
+            T_effs[i] = cellTensions[i]
+            for j=1:nEdges
+                T_effs[i] += 0.5*(1/cellPerimeters[i])*B̄[i,j]*Λs[j]*edgeLengths[j]
+            end
+            P_effs[i] = cellPressures[i] + (cellPerimeters[i]/2*cellAreas[i])*T_effs[i]
+        end
     end
 
     return nothing

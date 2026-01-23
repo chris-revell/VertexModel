@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -51,11 +51,17 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     L_x,
     L_y = params
 
-    empty!(ax)
+    empty!(ax1)
+    empty!(ax2)
 
-    ax.title = "t = $(@sprintf("%.3f", t))"
+    ax1.title = "t = $(@sprintf("%.3f", t))"
     if initialSystem == "periodic"
-        ax.limits = ((0,L_x),(0,L_y))
+        ax1.limits = ((0,L_x),(0,L_y))
+    end
+
+    ax2.title = "Plot of effective pressures at t = $(@sprintf("%.3f", t))"
+    if initialSystem == "periodic"
+        ax2.limits = ((0,L_x),(0,L_y))
     end
 
     # Plot cells
@@ -135,45 +141,48 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
                     # Draw a polygon for cell i with colour determined by cell type
                     if i in cellsTypeA
-                        poly!(ax, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                     else
-                        poly!(ax, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                    
                     end
                     
 
                 else # the cell isn't on the periodic boundary
                     if i in cellsTypeA
-                        poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                     else
-                        poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                     end
                 end
 
+                # Now let's plot the effective pressures: 
+
+                
                 
 
 
             else
                 if i in cellsTypeA
-                    poly!(ax, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                 else
-                    poly!(ax, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                 end
 
             end
@@ -183,14 +192,14 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
 
     # Scatter vertices
     if scatterVertices == 1
-        scatter!(ax, Point{2,Float64}.(R), color=:green)
-        annotations!(ax, string.(collect(1:length(R))), Point{2,Float64}.(R), color=:green)
+        scatter!(ax1, Point{2,Float64}.(R), color=:green)
+        annotations!(ax1, string.(collect(1:length(R))), Point{2,Float64}.(R), color=:green)
     end
 
     # Scatter edge midpoints
     if scatterEdges == 1
-        scatter!(ax, Point{2,Float64}.(edgeMidpoints), color=:blue)
-        annotations!(ax, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
+        scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
     end
 
     # Scatter cell positions
@@ -201,22 +210,22 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
             # choose color
             col = boundaryCells[i] == 1 ? :red : :blue
 
-            scatter!(ax, [p], color=col)
+            scatter!(ax1, [p], color=col)
             
-            annotations!(ax, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions))
+            annotations!(ax1, string.(collect(1:length(cellPositions))), Point{2,Float64}.(cellPositions))
         end
     end
 
     # Plot resultant forces on vertices (excluding external pressure)
     # NB these forces will be those calculated in the previous integration step and thus will not be exactly up to date for the current vertex positions
     if plotForces == 1
-        arrows!(ax, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
+        arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
 
     if plotEdgeMidpointLinks == 1
         for i = 1:nCells
             for j = 1:cellEdgeCount[i]
-                lines!(ax,
+                lines!(ax1,
                     Point{2,Float64}.([edgeMidpoints[cellEdgeOrders[i][j]],(edgeMidpoints[cellEdgeOrders[i][j]] .+ edgeMidpointLinks[i, cellVertexOrders[i][j]])]),
                     linestyle=:dot,
                     color=:black)
@@ -225,7 +234,7 @@ function visualise(R, t, fig, ax, mov, params, matrices, plotCells, scatterEdges
     end
 
     # Set limits
-    reset_limits!(ax)
+    reset_limits!(ax1)
 
     # Add frame to movie 
     recordframe!(mov)

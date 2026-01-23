@@ -137,7 +137,7 @@ function vertexModel(;
         folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
         if frameImageToggle==1 || videoToggle==1
-            fig, ax, mov = plotSetup()
+            fig, ax1, ax2, mov = plotSetup()
         end
     end
 
@@ -187,7 +187,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    visualise(R, integrator.t, fig, ax, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                    visualise(R, integrator.t, fig, ax1, ax2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing

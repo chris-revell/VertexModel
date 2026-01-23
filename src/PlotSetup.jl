@@ -17,15 +17,18 @@ function plotSetup()
 
     # Create plot canvas
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    fig = Figure(size=(1000,1000))
+    fig = Figure(size=(1200,600))
     grid = fig[1,1] = GridLayout()
-    ax = Axis(grid[1,1],aspect=DataAspect())
-    hidedecorations!(ax)
-    hidespines!(ax)
+    ax1 = Axis(grid[1,1],aspect=DataAspect())
+    ax2 = Axis(grid[1,2],aspect=DataAspect())
+    hidedecorations!(ax1)
+    hidedecorations!(ax2)
+    hidespines!(ax1)
+    hidespines!(ax2)
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     
-    return fig, ax, mov
+    return fig, ax1, ax2, mov
    
 end
 

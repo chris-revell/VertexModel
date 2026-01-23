@@ -91,7 +91,9 @@ end
     cellShapeTensor  ::Vector{SMatrix{2, 2, Float64}}               # Shape tensor of a cell
     cellLabels       ::Vector{Int64}                                # Vector of 0s and 1s denoting cell labels 
     Λs               ::Vector{Float64}                              # Vector of line tensions for each edge  
-    firstT1onEdge    ::Vector{Int64}                                # Flag controlling whether the first T1 transition on an edge has occured             
+    firstT1onEdge    ::Vector{Int64}                                # Flag controlling whether the first T1 transition on an edge has occured
+    P_effs           ::Vector{Float64}                              # Effective pressure for each cell
+    T_effs           ::Vector{Float64}                              # Effective tension for each cell             
 end
 
 export ParametersContainer,MatricesContainer
