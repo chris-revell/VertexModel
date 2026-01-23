@@ -70,20 +70,31 @@ function model!(du, u, p, t)
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure -- only applies to boundary vertices 
+                if initialSystem == "new"
+                    externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+                end
                 
-                externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
-
                 if energyModel == "quadratic2pops"
                     # We have the separate edge tension term in that case: 
-                    F[k, rowvals(B)[i]] -= Λs[rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-                end
+                    # Factor of 1/2 because this is added for each cell that meets at j
+                    F[k, rowvals(B)[i]] -= 0.5 * Λs[rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+                end 
                 
             end
             # Force on vertex from peripheral tension -- only for boundary edges 
-            externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+            if initialSystem == "new"
+                externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+            end
+        end
+        if initialSystem == "new"
+            dR[k] = (sum(@view F[k, :]) .+ externalF[k])
+        elseif initialSystem == "periodic"
+            # F_k_sum_over_cells = sum(@view F[k, :])
+            # F_k_sum_over_edges = 
+            dR[k] = sum(@view F[k, :])
         end
         
-        dR[k] = (sum(@view F[k, :]) .+ externalF[k])
+        
     end
     
     vertexWeighting == 1 ? dR ./= vertexAreas : nothing 

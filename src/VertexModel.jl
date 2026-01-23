@@ -74,7 +74,7 @@ function vertexModel(;
     abstol = 1e-6, 
     reltol = 1e-3,
     energyModel = "quadratic2pops",
-    vertexWeighting = 1,
+    vertexWeighting = 0,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
@@ -125,11 +125,11 @@ function vertexModel(;
 
     @unpack γ,Λ_00,Λ_11 = params
     # Statement to check whether params are in floppy regime: 
-    if γ < -0.14*Λ_00
-        println("A cells in floppy regime")
+    if γ < -0.2*Λ_00
+        println("A cells in floppy region")
     end
-    if γ < -0.14*Λ_11
-        println("B cells in floppy regime")
+    if γ < -0.2*Λ_11
+        println("B cells in floppy region")
     end
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
@@ -196,6 +196,8 @@ function vertexModel(;
                 energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
                 energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
                 energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
+
+                # println("t=$(integrator.t): Energy = ", energy(params, matrices))
 
                 # Print the three components of energy: 
                 # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
