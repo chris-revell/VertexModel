@@ -137,7 +137,7 @@ function vertexModel(;
         folderName = createRunDirectory(params,subFolder)
         # Create plot object for later use 
         if frameImageToggle==1 || videoToggle==1
-            fig, ax1, ax2, mov = plotSetup()
+            fig, ax1, ax2, cbar, mov = plotSetup()
         end
     end
 
@@ -187,7 +187,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    visualise(R, integrator.t, fig, ax1, ax2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                    cbar = visualise(R, integrator.t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
@@ -202,6 +202,8 @@ function vertexModel(;
                 # Print the three components of energy: 
                 # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
                 
+                println("Area sum=", sum(matrices.cellAreas))
+                println("Sum of effective cell pressures = ", sum(matrices.P_effs))
                 
                 
             end
@@ -257,7 +259,7 @@ function vertexModel(;
             matrices.cellTimeToDivide .-= integrator.dt
             matrices.timeSinceT1 .+= integrator.dt
 
-            # println("Area sum=", sum(matrices.cellAreas))
+            
         end
     
     catch err
@@ -281,8 +283,9 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
-    P_eff = matrices.cellPressures .+ matrices.cellTensions.*matrices.cellPerimeters./(2.0.*matrices.cellAreas)
-    println("Sum of effective cell pressures = ", sum(matrices.cellAreas.*P_eff))
+    # P_eff = matrices.cellPressures .+ matrices.cellTensions.*matrices.cellPerimeters./(2.0.*matrices.cellAreas)
+
+    
     
 
 end

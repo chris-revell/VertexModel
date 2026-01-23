@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -41,7 +41,8 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
         F,
         edgeMidpointLinks,
         μ,
-        boundaryCells = matrices
+        boundaryCells,
+        P_effs = matrices
     @unpack initialSystem,
     nEdges, 
     nVerts, 
@@ -53,6 +54,8 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
 
     empty!(ax1)
     empty!(ax2)
+    delete!(cbar)
+
 
     ax1.title = "t = $(@sprintf("%.3f", t))"
     if initialSystem == "periodic"
@@ -64,6 +67,24 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
         ax2.limits = ((0,L_x),(0,L_y))
     end
 
+    # Compute mean effective cell pressure: 
+    P_eff = sum(P_effs)
+
+    # Generate a colour map for effective pressures: 
+    cmap = cmap = cgrad([
+        RGB(1.0, 0.0, 0.0),   # red
+        RGB(1.0, 1.0, 1.0),   # white, zero
+        RGB(0.0, 0.0, 1.0)    # blue
+    ], 256)
+
+    # Generate a vector deviations about the mean 
+    ΔP = P_effs .- P_eff
+    maxΔP = maximum(ΔP)
+    minΔP = minimum(ΔP)
+    clims = (minΔP, maxΔP)
+
+    
+    
     # Plot cells
     if plotCells == 1
         cellPolygons = makeCellPolygons(R, params, matrices)
@@ -162,6 +183,17 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
                         poly!(ax1, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                    
                     end
+
+                    # Plot effective pressures in ax2
+                    poly!(ax2, oppositePolygon1, color=ΔP[i], colorrange = clims, colormap = cmap, strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon2, color=ΔP[i], colorrange = clims, colormap = cmap, strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon3, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon4, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon5, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon6, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon7, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, oppositePolygon8, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, newCellPolygon, color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
                     
 
                 else # the cell isn't on the periodic boundary
@@ -170,11 +202,19 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
                     else
                         poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                     end
+
+
+                    # Plot effective pressures in ax2
+                    poly!(ax2, cellPolygons[i], color=ΔP[i], colorrange = clims, colormap = cmap,  strokecolor=(:black, 1.0), strokewidth=2)
+
+
+                    
                 end
 
-                # Now let's plot the effective pressures: 
+                
 
                 
+
                 
 
 
@@ -186,9 +226,16 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
                 end
 
             end
-            
+         
         end
     end
+
+    
+
+    # Add the colorbar
+    cbar = Colorbar(fig[1,3],colormap = cmap,colorrange=clims, label="ΔP_eff", width=20,height=Relative(0.6))
+
+    
 
     # Scatter vertices
     if scatterVertices == 1
@@ -239,7 +286,7 @@ function visualise(R, t, fig, ax1, ax2, mov, params, matrices, plotCells, scatte
     # Add frame to movie 
     recordframe!(mov)
 
-    return nothing
+    return cbar
 
 end
 

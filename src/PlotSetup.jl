@@ -25,10 +25,17 @@ function plotSetup()
     hidedecorations!(ax2)
     hidespines!(ax1)
     hidespines!(ax2)
+
+    # Create an empty colorbar in fig[1,3]
+    dummy_cmap = cgrad([:white, :white], 2)
+    dummy_range = (0.0, 1.0)
+    cbar = Colorbar(fig[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+    
+
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     
-    return fig, ax1, ax2, mov
+    return fig, ax1, ax2, cbar,mov
    
 end
 
