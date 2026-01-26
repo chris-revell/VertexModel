@@ -46,14 +46,16 @@ using DiffEqCallbacks
 
 
 function conditionMaxCells(u, t, integrator)
-    integrator.p[1].nCells >= integrator.p[1].maxCells ? true : false
+    #@show integrator.p[1].nCells
+    @show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
 
+    integrator.p[1].nCells >= integrator.p[1].maxCells ? true : false
 end
 
 function conditionSteadyState(u, t, integrator)
 
     @show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
-    (maximum(norm.(get_du(integrator))) < 1e-5 )&(integrator.p[1].nCells >= 1024) ? true : false
+    (maximum(norm.(get_du(integrator))) < 1e-5 )&(integrator.p[1].nCells >= integrator.p[1].maxCells) ? true : false
     #maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator)))) < 1e-4 ? true : false
     # Use integrator.opts.abstol as threshold?
 end
@@ -66,7 +68,6 @@ end
 # Create callback using two user-defined functions above
 cb = DiscreteCallback(conditionSteadyState, affectTerminate!)
 cb_maxCells = DiscreteCallback(conditionMaxCells, affectTerminate!)
-
 
 function vertexModel(;
     initialSystem="hex",
@@ -81,7 +82,7 @@ function vertexModel(;
     pressureExternal=0.0,
     peripheralTension=0.0,
     t1Threshold=0.01,
-    solver=TanYam7(),
+    solver=TanYam7(), #getting stuck for growing cells
     #solver=Tsit5(),
     #solver=Vern7(lazy=false),
     nBlasThreads=4,
@@ -122,7 +123,7 @@ function vertexModel(;
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
 
-            fname=@savename L₀ γ realCycleTime
+            fname=@savename L₀ L₀_std γ realCycleTime
 
             R0 = reinterpret(SVector{2,Float64}, u0)
     if outputToggle == 1
@@ -213,6 +214,8 @@ function vertexModel(;
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
+        #spatialData!(R, params, matrices)
+
         #@show params.nCells
         #@show maximum(norm.(reinterpret(SVector{2,Float64}, get_du(integrator))))
         #@show energy(params,matrices)

@@ -105,7 +105,7 @@ function spatialData!(R,params,matrices)
     end
 
     #update cell A_0s for linear growth
-    cellA₀s.=((2.0/3.0)*A₀).*(2.0.-(cellTimeToDivide./cellCycleLength))
+    #cellA₀s.=((2.0/3.0)*A₀).*(2.0.-(cellTimeToDivide./cellCycleLength))
 
     #can expand model choices, set quadratic as standard.
 

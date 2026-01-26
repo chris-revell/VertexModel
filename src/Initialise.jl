@@ -46,22 +46,25 @@ function initialise(initialSystem,realTimetMax,γ,L₀,A₀,pressureExternal,vis
     distLogNormal = LogNormal(0.0, 0.2) #Distribution for division
     distNormalL₀ = Normal(L₀, L₀_std)
     distNormalA₀ = Normal(A₀, A₀_std)
-
+    #distLogNormalΓ = LogNormal(γ, Γ_std)
 
     # Initialise system matrices from function or file
     if initialSystem in ["one", "three", "seven", "three_uneq", "three_neq2", "seven_eq", "sixteen"]
         # Create matrices for one, three, or seven cells geometrically
         A, B, R = initialCellConfig(initialSystem)
+        nCells = size(B, 1)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         cellA₀s=rand(distNormalA₀, nCells)
         cellL₀s=rand(distNormalL₀, nCells)
     elseif initialSystem == "hex"
         A, B, R = initialSystemLayout(nRows, x=0)
+        nCells = size(B, 1)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         cellA₀s=rand(distNormalA₀, nCells)
         cellL₀s=rand(distNormalL₀, nCells)
     elseif initialSystem == "hex_smooth"
         A, B, R = initialSystemLayout(nRows, edgeCells=true)
+        nCells = size(B, 1)
         cellTimeToDivide = rand(Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         cellA₀s=rand(distNormalA₀, nCells)
         cellL₀s=rand(distNormalL₀, nCells)

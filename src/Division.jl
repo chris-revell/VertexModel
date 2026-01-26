@@ -212,16 +212,16 @@ function division!(integrator,params,matrices, folderName)
             cellCycleLength[i] = cellTimeToDivide[i]
 
             cellL₀s[i] = rand(distNormalL₀)
-            #cellA₀s[i] = rand(distNormalA₀)
-            cellA₀s[i] = (2.0/3.0)*A₀
+            cellA₀s[i] = rand(distNormalA₀)
+            #cellA₀s[i] = (2.0/3.0)*A₀
 
             cellGeneration[i]+=1
             cellIndex[i]=maxIndex+1
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             push!(cellCycleLength,cellTimeToDivide[end])
             push!(cellL₀s,rand(distNormalL₀))
-            #push!(cellA₀s,rand(distNormalA₀))
-            push!(cellA₀s,(2.0/3.0)*A₀)
+            push!(cellA₀s,rand(distNormalA₀))
+            #push!(cellA₀s,(2.0/3.0)*A₀)
             push!(cellLineage,cellLineage[i])
             push!(cellGeneration,cellGeneration[i])
             push!(cellIndex, maxIndex+2)
