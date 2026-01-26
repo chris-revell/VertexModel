@@ -202,7 +202,7 @@ function vertexModel(;
                 # Print the three components of energy: 
                 # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
                 
-                println("Area sum=", sum(matrices.cellAreas))
+                # println("Area sum=", sum(matrices.cellAreas))
                 println("Sum of effective cell pressures = ", sum(matrices.P_effs))
                 
                 

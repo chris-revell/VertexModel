@@ -69,9 +69,10 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
 
     # Compute mean effective cell pressure: 
     P_eff = sum(P_effs)
+    # println("P_eff = ",P_eff)
 
     # Generate a colour map for effective pressures: 
-    cmap = cmap = cgrad([
+    cmap = cgrad([
         RGB(1.0, 0.0, 0.0),   # red
         RGB(1.0, 1.0, 1.0),   # white, zero
         RGB(0.0, 0.0, 1.0)    # blue
