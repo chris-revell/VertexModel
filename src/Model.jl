@@ -77,7 +77,7 @@ function model!(du, u, p, t)
                 if energyModel == "quadratic2pops"
                     # We have the separate edge tension term in that case: 
                     # Factor of 1/2 because this is added for each cell that meets at j
-                    F[k, rowvals(B)[i]] -=  Λs[rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+                    F[k, rowvals(B)[i]] -=  0.5 * Λs[rowvals(A)[j]] * B̄[rowvals(B)[i], rowvals(A)[j]] *  A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 end 
                 
             end
