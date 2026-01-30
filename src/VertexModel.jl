@@ -35,6 +35,7 @@ using DifferentialEquations
 @from "Energy.jl" using Energy
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 @from "CubicSolutions.jl" using CubicSolutions
+@from "ParameterDiagram.jl" using ParameterDiagram
 
 
 
@@ -66,15 +67,15 @@ function vertexModel(;
     videoToggle = 1,
     plotCells = 1,
     scatterEdges = 0,
-    scatterVertices = 1,
-    scatterCells = 1,
+    scatterVertices = 0,
+    scatterCells = 0,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
     abstol = 1e-6, 
     reltol = 1e-3,
     energyModel = "quadratic2pops",
-    vertexWeighting = 0,
+    vertexWeighting = 1,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
@@ -141,6 +142,11 @@ function vertexModel(;
         end
     end
 
+    # Plot the parameter diagram: 
+    fig2 = parameterDiagram(params)
+    save(datadir(folderName, "parameterDiagram.png"), fig2)
+
+
     ########################################################################################################################
     #           ADDING A GLOBAL TRY SO THAT MOVIE STILL GETS SAVED IF SOMETHING FAILS
     ########################################################################################################################
@@ -203,7 +209,7 @@ function vertexModel(;
                 # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
                 
                 # println("Area sum=", sum(matrices.cellAreas))
-                println("Sum of effective cell pressures = ", sum(matrices.P_effs))
+                # println("Sum of effective cell pressures = ", sum(matrices.P_effs))
                 
                 
             end

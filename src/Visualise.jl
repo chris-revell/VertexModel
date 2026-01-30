@@ -37,6 +37,7 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
         cellVertexOrders,
         cellEdgeOrders,
         cellPositions,
+        cellAreas,
         edgeMidpoints,
         F,
         edgeMidpointLinks,
@@ -44,13 +45,13 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
         boundaryCells,
         P_effs = matrices
     @unpack initialSystem,
-    nEdges, 
-    nVerts, 
-    nCells, 
-    cellsTypeA, 
-    cellsTypeB,
-    L_x,
-    L_y = params
+        nEdges, 
+        nVerts, 
+        nCells, 
+        cellsTypeA, 
+        cellsTypeB,
+        L_x,
+        L_y = params
 
     empty!(ax1)
     empty!(ax2)
@@ -68,8 +69,10 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
     end
 
     # Compute mean effective cell pressure: 
-    P_eff = sum(P_effs)
-    # println("P_eff = ",P_eff)
+    A_iP_effs = zeros(nCells)
+    A_iP_effs .= cellAreas.*P_effs
+    P_eff = sum(A_iP_effs)
+    println("Sum A_iP_effs = ",P_eff)
 
     # Generate a colour map for effective pressures: 
     cmap = cgrad([
@@ -79,10 +82,16 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
     ], 256)
 
     # Generate a vector deviations about the mean 
-    ΔP = P_effs .- P_eff
-    maxΔP = maximum(ΔP)
-    minΔP = minimum(ΔP)
-    clims = (minΔP, maxΔP)
+    # ΔP = A_iP_effs .- P_eff
+    ΔP = A_iP_effs
+    # maxΔP = maximum(ΔP)
+    # minΔP = minimum(ΔP)
+    # clims = (minΔP, maxΔP)
+
+    # Alternative colour bar - centered at 0: 
+    maxabs = maximum(abs.(ΔP))
+    clims = (-maxabs, maxabs)
+
 
     
     
