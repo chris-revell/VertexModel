@@ -18,7 +18,7 @@ using FromFile
 using DrWatson
 using GeometryBasics: area
 
-function parameterDiagram(params)
+function parameterDiagram(params,matrices)
 
     @unpack γ,
         Λ_00,
@@ -44,24 +44,25 @@ function parameterDiagram(params)
     scatter!(ax1,[Λ_11],[γ],color=:orange,markersize=10,label="Λ_11, γ")
     axislegend(ax1)
 
-    # Separate figure for lambda space: 
-    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    fig3 = Figure(size=(600,600))
-    grid2 = fig3[1,1] = GridLayout()
-    ax2 = Axis(grid2[1,1],aspect=1)
-
-    ax2.title = "Λ_00 vs Λ_01"
-    ax2.xlabel = "Λ"
-    ax2.ylabel = "Γ"
-
-
-    
-
     return fig2 
 
 
 end # end function 
 
-export parameterDiagram
+function P_effsDiagram(t,ax,matrices)
+
+    @unpack P_effs,
+        cellAreas = matrices 
+
+    sum = sum(cellAreas.*P_effs)
+
+    scatter!(ax,t,sum,color=:purple,markersize=5)
+
+    return fig3
+
+end # end function 
+
+
+export parameterDiagram, P_effsDiagram
 
 end # end module 

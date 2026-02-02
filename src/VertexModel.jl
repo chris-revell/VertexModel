@@ -146,6 +146,15 @@ function vertexModel(;
     fig2 = parameterDiagram(params)
     save(datadir(folderName, "parameterDiagram.png"), fig2)
 
+    # Initialise a figure for tracking sum of P_effsA_i: 
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    P_eff_fig = Figure(size=(600,600))
+    grid2 = P_eff_fig[1,1] = GridLayout()
+    P_eff_ax = Axis(grid2[1,1],aspect=1)
+    P_eff_ax.title = "Sum of A_iP_eff_i over time"
+    P_eff_ax.xlabel = "t"
+    P_eff_ax.ylabel = "Σᵢ Aᵢ P_effᵢ"
+
 
     ########################################################################################################################
     #           ADDING A GLOBAL TRY SO THAT MOVIE STILL GETS SAVED IF SOMETHING FAILS
@@ -210,6 +219,9 @@ function vertexModel(;
                 
                 # println("Area sum=", sum(matrices.cellAreas))
                 # println("Sum of effective cell pressures = ", sum(matrices.P_effs))
+
+                # Plot the sum of P_effsA_i against time: 
+                
                 
                 
             end
