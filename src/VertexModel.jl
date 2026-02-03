@@ -53,8 +53,8 @@ function vertexModel(;
     viscousTimeScale = 1.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
-    t1Threshold = 0.1,
-    β = 0.05,
+    t1Threshold = 0.05,
+    β = 0.07,
     divisionToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -156,6 +156,7 @@ function vertexModel(;
     P_eff_ax.ylabel = "Σᵢ Aᵢ P_effᵢ"
 
 
+
     ########################################################################################################################
     #           ADDING A GLOBAL TRY SO THAT MOVIE STILL GETS SAVED IF SOMETHING FAILS
     ########################################################################################################################
@@ -221,7 +222,8 @@ function vertexModel(;
                 # println("Sum of effective cell pressures = ", sum(matrices.P_effs))
 
                 # Plot the sum of P_effsA_i against time: 
-                
+                P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
+                save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
                 
                 
             end
@@ -277,6 +279,10 @@ function vertexModel(;
             matrices.cellTimeToDivide .-= integrator.dt
             matrices.timeSinceT1 .+= integrator.dt
 
+            # For sufficiently small sum of P_effs, turn off noise and allow system to equilibriate. 
+            if params.β != 0.0 && abs(sum(matrices.cellAreas.*matrices.P_effs)) < 1
+                params.β = 0.0
+            end
             
         end
     

@@ -244,7 +244,7 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
 
     # Add the colorbar
     cbar = Colorbar(fig[1,3],colormap = cmap,colorrange=clims, label="ΔP_eff", width=20,height=Relative(0.6))
-
+    # cbar = Colorbar(fig[1,3],colormap = cmap,colorrange=[-0.2,0.2], label="ΔP_eff", width=20,height=Relative(0.6))
     
 
     # Scatter vertices

@@ -18,7 +18,7 @@ using FromFile
 using DrWatson
 using GeometryBasics: area
 
-function parameterDiagram(params,matrices)
+function parameterDiagram(params)
 
     @unpack γ,
         Λ_00,
@@ -49,16 +49,16 @@ function parameterDiagram(params,matrices)
 
 end # end function 
 
-function P_effsDiagram(t,ax,matrices)
+function P_effsDiagram(t,ax,fig,matrices)
 
     @unpack P_effs,
         cellAreas = matrices 
 
-    sum = sum(cellAreas.*P_effs)
+    sumP_effA_i = sum(cellAreas.*P_effs)
 
-    scatter!(ax,t,sum,color=:purple,markersize=5)
+    scatter!(ax,t,sumP_effA_i,color=:purple,markersize=5)
 
-    return fig3
+    return fig
 
 end # end function 
 
