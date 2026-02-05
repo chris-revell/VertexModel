@@ -85,6 +85,7 @@ function vertexModel(;
     Λ_01 = 0.0,
     Λ_11 = -0.08, #L0 = 1.0
     Area_A_ratio = 0.5,
+    t1timeGap = 1e-1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     
@@ -122,6 +123,7 @@ function vertexModel(;
         Λ_01 = Λ_01,
         Λ_11 = Λ_11,
         Area_A_ratio = Area_A_ratio,
+        t1timeGap = t1timeGap,
     )
 
     @unpack γ,Λ_00,Λ_11 = params
@@ -209,10 +211,6 @@ function vertexModel(;
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
                 outputCounter[1] += 1
 
-                energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
-                energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
-                energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
-
                 # println("t=$(integrator.t): Energy = ", energy(params, matrices))
 
                 # Print the three components of energy: 
@@ -224,6 +222,13 @@ function vertexModel(;
                 # Plot the sum of P_effsA_i against time: 
                 P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
                 save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
+
+                energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
+                energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
+                energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
+
+                totalEnergy = energyComponent1 + energyComponent2 + energyComponent3
+                println("totalEnergy = ",totalEnergy)
                 
                 
             end
@@ -279,10 +284,15 @@ function vertexModel(;
             matrices.cellTimeToDivide .-= integrator.dt
             matrices.timeSinceT1 .+= integrator.dt
 
+            
+            
+
             # For sufficiently small sum of P_effs, turn off noise and allow system to equilibriate. 
-            if params.β != 0.0 && abs(sum(matrices.cellAreas.*matrices.P_effs)) < 1
-                params.β = 0.0
-            end
+            # if params.β != 0.0 && abs(sum(matrices.cellAreas.*matrices.P_effs)) < 0.01
+            #     println("NOISE TURNED OFF. Sum = ",sum(matrices.cellAreas.*matrices.P_effs))
+            #     params.β = 0.0
+            #     params.t1timeGap = 1.0
+            # end
             
         end
     

@@ -90,13 +90,13 @@ function initialise(; initialSystem,
         Λ_01,
         Λ_11,
         Area_A_ratio,
+        t1timeGap,
     )
 
     # Calculate derived parameters
     tMax = realTimetMax / viscousTimeScale  # Non dimensionalised maximum system run time
     outputInterval = tMax / (outputTotal-1)     # Time interval for storing system data (non dimensionalised)
     nonDimCycleTime = realCycleTime / viscousTimeScale # Non dimensionalised cell cycle time
-    println("nonDimCycleTime=",nonDimCycleTime)
 
     # Set random seed value and allocate random number generator
     # Random seed set from current unix time, 
@@ -131,6 +131,8 @@ function initialise(; initialSystem,
 
     nCells = size(B, 1)
     println("N_c =" ,nCells)
+    println("nACells = ", nACells)
+    println("nBCells = ", nCells - nACells)
     nEdges = size(A, 1)
     nVerts = size(A, 2)
 
@@ -231,6 +233,7 @@ function initialise(; initialSystem,
         Λ_01              = Λ_01,
         Λ_11              = Λ_11,
         Area_A_ratio      = Area_A_ratio,
+        t1timeGap         = t1timeGap,
     )
 
     # Initial evaluation of matrices based on system topology

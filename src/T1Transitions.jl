@@ -30,7 +30,8 @@ function t1Transitions!(integrator, params, matrices)
         nEdges,
         t1Threshold,
         nonDimCycleTime,
-        tMax = params
+        tMax,
+        t1timeGap = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
@@ -38,7 +39,7 @@ function t1Transitions!(integrator, params, matrices)
     transitionCount = 0
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > 1e-5 || firstT1onEdge[j] == 0) 
+        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
             
             
 
@@ -55,7 +56,7 @@ function t1Transitions!(integrator, params, matrices)
             # println("aCells: ", aCells)
             # println("bCells: ", bCells)
 
-            # println("t1 transition triggerred at vertices ",a,b)
+            println("t1 transition triggerred at vertices ",a,b)
             
 
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
