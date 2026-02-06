@@ -9,6 +9,7 @@
 module VertexModel
 
 # Julia packages
+
 using PrecompileTools
 using DrWatson
 using FromFile
@@ -157,6 +158,9 @@ function vertexModel(;
     P_eff_ax.xlabel = "t"
     P_eff_ax.ylabel = "Σᵢ Aᵢ P_effᵢ"
 
+    # Initialise a variable to store the energy at the previous step: 
+    totalEnergyPrevious = 0.0
+
 
 
     ########################################################################################################################
@@ -223,12 +227,6 @@ function vertexModel(;
                 P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
                 save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
 
-                energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
-                energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
-                energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
-
-                totalEnergy = energyComponent1 + energyComponent2 + energyComponent3
-                println("totalEnergy = ",totalEnergy)
                 
                 
             end
@@ -285,14 +283,26 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             
-            
+            energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
+            energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
+            energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
+
+            totalEnergy = energyComponent1 + energyComponent2 + energyComponent3
+            println("totalEnergy = ",totalEnergy)
+
+            # Check the change in energy to see if we are close to a minimum. 
+            ΔE = totalEnergyPrevious - totalEnergy 
+
+            # println("ΔE = ", ΔE)
+
+            totalEnergyPrevious = totalEnergy
 
             # For sufficiently small sum of P_effs, turn off noise and allow system to equilibriate. 
-            # if params.β != 0.0 && abs(sum(matrices.cellAreas.*matrices.P_effs)) < 0.01
-            #     println("NOISE TURNED OFF. Sum = ",sum(matrices.cellAreas.*matrices.P_effs))
-            #     params.β = 0.0
-            #     params.t1timeGap = 1.0
-            # end
+            if params.β != 0.0 && abs(ΔE) < 1e-9
+                println("NOISE TURNED OFF. ΔE = ",ΔE)
+                params.β = 0.0
+                params.t1timeGap = 1.0
+            end
             
         end
     

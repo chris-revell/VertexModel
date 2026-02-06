@@ -89,8 +89,6 @@ function model!(du, u, p, t)
         if initialSystem == "new"
             dR[k] = (sum(@view F[k, :]) .+ externalF[k])
         elseif initialSystem == "periodic"
-            # F_k_sum_over_cells = sum(@view F[k, :])
-            # F_k_sum_over_edges = 
             dR[k] = sum(@view F[k, :])
         end
         

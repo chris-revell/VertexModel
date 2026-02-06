@@ -56,7 +56,7 @@ function t1Transitions!(integrator, params, matrices)
             # println("aCells: ", aCells)
             # println("bCells: ", bCells)
 
-            println("t1 transition triggerred at vertices ",a,b)
+            # println("t1 transition triggerred at vertices ",a,b)
             
 
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
