@@ -59,14 +59,13 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
 
 
     ax1.title = "t = $(@sprintf("%.3f", t))"
-    if initialSystem == "periodic"
-        ax1.limits = ((0,L_x),(0,L_y))
-    end
+    
+    ax1.limits = ((0,L_x),(0,L_y))
 
     ax2.title = "Plot of effective pressures at t = $(@sprintf("%.3f", t))"
-    if initialSystem == "periodic"
-        ax2.limits = ((0,L_x),(0,L_y))
-    end
+    
+    ax2.limits = ((0,L_x),(0,L_y))
+    
 
     # Compute mean effective cell pressure: 
     A_iP_effs = zeros(nCells)
@@ -101,7 +100,13 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
         for i = 1:nCells
             
 
-            if initialSystem == "periodic"
+            if initialSystem == "new"
+                if i in cellsTypeA
+                    poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                else
+                    poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                end
+            else 
                 # Check whether it is on the periodic boundary: 
                 if boundaryCells[i]==1
 
@@ -221,19 +226,6 @@ function visualise(R, t, fig, ax1, ax2, cbar, mov, params, matrices, plotCells, 
                     
                 end
 
-                
-
-                
-
-                
-
-
-            else
-                if i in cellsTypeA
-                    poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                else
-                    poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                end
 
             end
          

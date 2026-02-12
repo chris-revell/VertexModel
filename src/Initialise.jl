@@ -31,36 +31,6 @@ using MAT # For reading mat files
 @from "TopologyChange.jl" using TopologyChange
 @from "SpatialData.jl" using SpatialData
 
-# Extracting data from csv files: 
-dfR = DataFrame(CSV.File(datadir("R.csv");header=false)) 
-dfA = DataFrame(CSV.File(datadir("A.csv");header=false)) 
-dfB = DataFrame(CSV.File(datadir("B.csv");header=false)) 
-dfC = DataFrame(CSV.File(datadir("C.csv");header=false)) 
-
-
-# Import the boundary cells: 
-dfboundary = DataFrame(CSV.File(datadir("boundary_cells_indices.csv");header=false)) 
-# Import the area vector: 
-dfAreaVec = DataFrame(CSV.File(datadir("Area_vec.csv");header=false))
-# Import cell centres: 
-dfCentres = DataFrame(CSV.File(datadir("cellPositions.csv");header=false))
-# Import edge vectors: 
-dfEdges = DataFrame(CSV.File(datadir("edgeVectors.csv");header=false))
-# Import link vectors: 
-dfLinks = DataFrame(CSV.File(datadir("linkVectors.csv");header=false))
-
-periodicR = [SVector(row[1],row[2]) for row in eachrow(dfR)]
-dense_matrix_A = Matrix{Int}(dfA)
-dense_matrix_B = Matrix{Int}(dfB)
-dense_matrix_C = Matrix{Int}(dfC)
-periodicA = sparse(dense_matrix_A)
-periodicB = sparse(dense_matrix_B)
-periodicBoundaryCellIndices = [Int(col[1]) for col in eachcol(dfboundary)]
-cellPositionsPeriodic = [(Float64(row[1]), Float64(row[2])) for row in eachrow(dfCentres)]
-areaVecPeriodic = Matrix{Float64}(dfAreaVec)
-
-# Find mean area and scale by this
-meanArea = sum(areaVecPeriodic)/length(areaVecPeriodic)
 # println("mean area:",meanArea)
 
 function initialise(; initialSystem,
@@ -114,6 +84,17 @@ function initialise(; initialSystem,
         A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
+        nCells = size(B, 1)
+        println("N_c =" ,nCells)
+        println("nACells = ", nACells)
+        println("nBCells = ", nCells - nACells)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+
+
+        cellsTypeA = 1:nACells 
+        cellsTypeB = nACells+1:nCells 
+
     elseif initialSystem == "argument"
         R = R_in
         A = A_in
@@ -127,18 +108,12 @@ function initialise(; initialSystem,
         @unpack A,B = importedData["matrices"]
         cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
+        @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB = importedData["params"]
+        
+
     end
 
-    nCells = size(B, 1)
-    println("N_c =" ,nCells)
-    println("nACells = ", nACells)
-    println("nBCells = ", nCells - nACells)
-    nEdges = size(A, 1)
-    nVerts = size(A, 2)
-
-
-    cellsTypeA = 1:nACells 
-    cellsTypeB = nACells+1:nCells   
+    
 
     cellL₀s = L₀.*ones(nCells)
     

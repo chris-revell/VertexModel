@@ -118,7 +118,7 @@ function t1Transitions!(integrator, params, matrices)
                     R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
                     R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
-                elseif initialSystem == "periodic"
+                else
                     # Find cells P, Q, R, S surrounding vertices a and b
                         Q = findall(x -> x > 0, @view B[:, j])[1] # Assume edge j has positive (clockwise) orientation with respect to cell Q
                         S = findall(x -> x < 0, @view B[:, j])[1] # Assume edge j has negative (anti-clockwise) orientation with respect to cell S                

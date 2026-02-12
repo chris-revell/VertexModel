@@ -88,7 +88,7 @@ function model!(du, u, p, t)
         end
         if initialSystem == "new"
             dR[k] = (sum(@view F[k, :]) .+ externalF[k])
-        elseif initialSystem == "periodic"
+        else 
             dR[k] = sum(@view F[k, :])
         end
         

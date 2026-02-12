@@ -170,7 +170,7 @@ function spatialData!(R,params,matrices)
             cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
         end
 
-    elseif initialSystem == "periodic"
+    else 
         
         # Computing edge data: 
 

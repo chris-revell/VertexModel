@@ -227,7 +227,7 @@ function vertexModel(;
                 P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
                 save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
 
-                
+                println("totalEnergy = ",totalEnergyPrevious)
                 
             end
 
@@ -240,7 +240,8 @@ function vertexModel(;
 
             # println("t=$(integrator.t): energy AFTER step = ", energy(params, matrices))
 
-            if initialSystem == "periodic"
+            if initialSystem == "new"
+            else
                 # Wrap vertices into the periodic domain
                 R = reinterpret(SVector{2,Float64}, integrator.u)
                 for k in 1:length(R)
@@ -254,6 +255,8 @@ function vertexModel(;
                     integrator.u[2k-1] = x 
                     integrator.u[2k] = y
                 end
+
+                
             end
 
             # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
@@ -288,7 +291,7 @@ function vertexModel(;
             energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
 
             totalEnergy = energyComponent1 + energyComponent2 + energyComponent3
-            println("totalEnergy = ",totalEnergy)
+            
 
             # Check the change in energy to see if we are close to a minimum. 
             ΔE = totalEnergyPrevious - totalEnergy 
