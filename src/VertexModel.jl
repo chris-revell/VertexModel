@@ -149,33 +149,13 @@ function vertexModel(;
     fig2 = parameterDiagram(params)
     save(datadir(folderName, "parameterDiagram.png"), fig2)
 
-    # Initialise a figure for tracking sum of P_effsA_i: 
-    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    P_eff_fig = Figure(size=(600,600))
-    grid2 = P_eff_fig[1,1] = GridLayout()
-    P_eff_ax = Axis(grid2[1,1],aspect=1)
-    P_eff_ax.title = "Sum of A_iP_eff_i over time"
-    P_eff_ax.xlabel = "t"
-    P_eff_ax.ylabel = "Σᵢ Aᵢ P_effᵢ"
-
-    # Initialise a figure for tracking sum of U_i: 
-    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    U_i_fig = Figure(size=(600,600))
-    grid3 =  U_i_fig[1,1] = GridLayout()
-    U_i_ax = Axis(grid3[1,1],aspect=1)
-    U_i_ax.title = "Sum of U_i over time"
-    U_i_ax.xlabel = "t"
-    U_i_ax.ylabel = "Σᵢ Uᵢ"
+    # Initialise plot of Peff, U, ξ:
+    stressFig, axPeff, axU, axξ = stressPlotSetup()
 
     # Initialise a variable to store the energy at the previous step: 
     totalEnergyPrevious = 0.0
 
-
-
-    ########################################################################################################################
-    #           ADDING A GLOBAL TRY SO THAT MOVIE STILL GETS SAVED IF SOMETHING FAILS
-    ########################################################################################################################
-   
+    # Global try so that the movie still saves if there is an error:
     try 
 
         # Set up ODE integrator 
@@ -186,17 +166,6 @@ function vertexModel(;
 
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
-            
-            # if any(matrices.cellAreas .<= 1e-12)
-            #     collapsed_cell = findall(matrices.cellAreas .<= 1e-12)
-            #     c = collapsed_cell[1]
-            #     A = matrices.cellAreas[c]
-            #     error("Cell $c collapsed (A=$A) at t=$(integrator.t) collapsed at t=$(integrator.t), t1 transition not triggered in time.", )
-            # end
-            # if any(matrices.edgeLengths .<= 1e-12)
-            #     error("Edge collapsed at t=$(integrator.t)")
-            # end
-
 
             # Reinterpret state vector as a vector of SVectors 
             R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -224,34 +193,21 @@ function vertexModel(;
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
                 outputCounter[1] += 1
 
-                # println("t=$(integrator.t): Energy = ", energy(params, matrices))
-
-                # Print the three components of energy: 
-                # println("Energy Components:", energyComponent1 , ",",energyComponent2, ",",energyComponent3, ", Total=", energyComponent1 .+ energyComponent2 .+ energyComponent3)
-                
-                # println("Area sum=", sum(matrices.cellAreas))
-                # println("Sum of effective cell pressures = ", sum(matrices.P_effs))
-
                 # Plot the sum of P_effsA_i against time: 
-                P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
-                save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
+                stressFig = P_effsDiagram(integrator.t,axPeff,stressFig,matrices)
 
                 # Plot sum of U_i against time: 
-                U_i_fig = U_iDiagram(integrator.t,U_i_ax,U_i_fig,matrices,params)
-                save(datadir(folderName, "sum(U_i).png"), U_i_fig)
+                stressFig = U_iDiagram(integrator.t,axU,stressFig,matrices,params)
 
-                # println("totalEnergy = ",totalEnergyPrevious)
+                # Plot sum of Aᵢξᵢ against time: 
+                stressFig = ξ_iDiagram(integrator.t,axξ,stressFig,matrices,params)
+
+                save(datadir(folderName, "stressPlots.png"), stressFig)
                 
             end
 
-            # let E = energy(params, matrices)
-            #     println("t=$(integrator.t): energy BEFORE step = ", E)
-            # end
-
             # Step integrator forwards in time to update vertex positions 
             step!(integrator)
-
-            # println("t=$(integrator.t): energy AFTER step = ", energy(params, matrices))
 
             if initialSystem == "new"
             else
@@ -274,8 +230,6 @@ function vertexModel(;
 
             # Update spatial data (edge lengths, cell areas, etc.) following iteration of the integrator
             spatialData!(R, params, matrices)
-
-            # println("t=$(integrator.t): energy AFTER spatialData = ", energy(params, matrices))
 
             # Check system for T1 transitions 
             if t1Transitions!(integrator, params, matrices) > 0
@@ -309,8 +263,6 @@ function vertexModel(;
             # Check the change in energy to see if we are close to a minimum. 
             ΔE = totalEnergyPrevious - totalEnergy 
 
-            # println("ΔE = ", ΔE)
-
             totalEnergyPrevious = totalEnergy
 
             # For sufficiently small sum of P_effs, turn off noise and allow system to equilibriate. 
@@ -343,11 +295,7 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
-    # P_eff = matrices.cellPressures .+ matrices.cellTensions.*matrices.cellPerimeters./(2.0.*matrices.cellAreas)
-
     
-    
-
 end
 
 # Function to load previously saved simulation data 

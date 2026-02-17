@@ -3,7 +3,7 @@
 #  VertexModel
 #
 #  Created by Christopher Revell on 31/01/2022.
-#
+#  Edited by Charlotte Taylor Barca
 #
 
 module PlotSetup
@@ -35,10 +35,41 @@ function plotSetup()
     # Create animation object for visualisation
     mov = VideoStream(fig, framerate=5)
     
-    return fig, ax1, ax2, cbar,mov
+    return fig, ax1, ax2, cbar, mov
    
 end
 
-export plotSetup 
+function stressPlotSetup()
 
-end
+    # Initialise figure for 3 subplots 
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    stressFig = Figure(size=(1800,600))
+
+    # Initialise a figure for tracking sum of P_effsA_i: 
+    gridPeff = stressFig[1,1] = GridLayout()
+    axPeff = Axis(gridPeff[1,1],aspect=1)
+    axPeff.title = "Sum of AᵢP_effᵢ over time"
+    axPeff.xlabel = "t"
+    axPeff.ylabel = "ΣᵢAᵢP_effᵢ"
+
+    # Initialise a figure for tracking sum of U_i: 
+    gridU =  stressFig[1,2] = GridLayout()
+    axU = Axis(gridU[1,1],aspect=1)
+    axU.title = "Sum of Uᵢ over time"
+    axU.xlabel = "t"
+    axU.ylabel = "ΣᵢUᵢ"
+
+    # Initialise figure to track sum of A_iξ_i:
+    gridξ =  stressFig[1,3] = GridLayout()
+    axξ = Axis(gridξ[1,1],aspect=1)
+    axξ.title = "Sum of Aᵢξᵢ over time"
+    axξ.xlabel = "t"
+    axξ.ylabel = "ΣᵢAᵢξᵢ"
+
+    return stressFig, axPeff, axU, axξ
+
+end # end function
+
+export plotSetup, stressPlotSetup
+
+end # end module 

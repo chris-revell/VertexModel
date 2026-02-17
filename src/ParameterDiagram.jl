@@ -81,7 +81,44 @@ function U_iDiagram(t,ax,fig,matrices,params)
 
 end # end funciton
 
+function ξ_iDiagram(t,ax,fig,matrices,params)
 
-export parameterDiagram, P_effsDiagram, U_iDiagram
+    @unpack cellAreas,
+        cellTensions,
+        cellPerimeters,
+        Λs,
+        edgeTangents,
+        edgeLengths,
+        B̄,
+        T_effs = matrices
+
+    @unpack nCells,
+        nEdges = params
+
+    Jᵢ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
+    ξᵢ = zeros(nCells)
+
+    for i=1:nCells
+        Jᵢterms = fill(SMatrix{2,2,Float64}(zeros(2,2)), nEdges)
+        for j=1:nEdges
+            Jᵢterms[j] = B̄[i,j] * (cellTensions[i] + 0.5*Λs[j]) * (edgeTangents[j]*(edgeTangents[j]'/edgeLengths[j]))
+        end
+
+        Jᵢ[i] = sum(Jᵢterms)
+        I₂=Matrix{Float64}(I, 2, 2)
+        ξᵢ[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
+    end
+
+    sumAᵢξᵢ = sum(cellAreas .* ξᵢ)
+    
+    
+    scatter!(ax,t,sumAᵢξᵢ,color=:purple,markersize=5)
+
+    return fig
+
+end # end function
+
+
+export parameterDiagram, P_effsDiagram, U_iDiagram, ξ_iDiagram
 
 end # end module 
