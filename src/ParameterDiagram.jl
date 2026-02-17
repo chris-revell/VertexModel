@@ -62,7 +62,26 @@ function P_effsDiagram(t,ax,fig,matrices)
 
 end # end function 
 
+function U_iDiagram(t,ax,fig,matrices,params)
 
-export parameterDiagram, P_effsDiagram
+    @unpack cellAreas,
+        cellPerimeters,
+        edgeLengths,
+        Λs = matrices
+    @unpack γ = params
+
+    energy1 = sum((1/2).*(cellAreas .- 1).^2)
+    energy2 = sum((γ/2).*(cellPerimeters).^2)
+    energy3 = sum(Λs .* edgeLengths)
+    totalEnergy = energy1+energy2+energy3
+
+    scatter!(ax,t,totalEnergy,color=:purple,markersize=5)
+
+    return fig
+
+end # end funciton
+
+
+export parameterDiagram, P_effsDiagram, U_iDiagram
 
 end # end module 

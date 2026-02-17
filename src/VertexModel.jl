@@ -48,13 +48,13 @@ function vertexModel(;
     nCycles = 0.01,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
-    γ = 0.04,
+    γ = 0.03,
     L₀ = 0.5,
     A₀ = 1.0,
     viscousTimeScale = 1.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
-    t1Threshold = 0.05,
+    t1Threshold = 0.1,
     β = 0.07,
     divisionToggle = 0,
     solver = SRIW1(),
@@ -80,11 +80,11 @@ function vertexModel(;
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
-    L_x = 4,
-    L_y = 4,
-    Λ_00 = -0.04, #L0 = 0.5
-    Λ_01 = 0.0,
-    Λ_11 = -0.08, #L0 = 1.0
+    L_x = 10,
+    L_y = 10,
+    Λ_00 = -0.1, 
+    Λ_01 = -0.1,
+    Λ_11 = -0.1, 
     Area_A_ratio = 0.5,
     t1timeGap = 1e-1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
@@ -158,6 +158,15 @@ function vertexModel(;
     P_eff_ax.xlabel = "t"
     P_eff_ax.ylabel = "Σᵢ Aᵢ P_effᵢ"
 
+    # Initialise a figure for tracking sum of U_i: 
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    U_i_fig = Figure(size=(600,600))
+    grid3 =  U_i_fig[1,1] = GridLayout()
+    U_i_ax = Axis(grid3[1,1],aspect=1)
+    U_i_ax.title = "Sum of U_i over time"
+    U_i_ax.xlabel = "t"
+    U_i_ax.ylabel = "Σᵢ Uᵢ"
+
     # Initialise a variable to store the energy at the previous step: 
     totalEnergyPrevious = 0.0
 
@@ -227,7 +236,11 @@ function vertexModel(;
                 P_eff_fig = P_effsDiagram(integrator.t,P_eff_ax,P_eff_fig,matrices)
                 save(datadir(folderName, "sum(P_eff_A_i).png"), P_eff_fig)
 
-                println("totalEnergy = ",totalEnergyPrevious)
+                # Plot sum of U_i against time: 
+                U_i_fig = U_iDiagram(integrator.t,U_i_ax,U_i_fig,matrices,params)
+                save(datadir(folderName, "sum(U_i).png"), U_i_fig)
+
+                # println("totalEnergy = ",totalEnergyPrevious)
                 
             end
 

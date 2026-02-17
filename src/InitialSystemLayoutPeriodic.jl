@@ -254,10 +254,10 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         
         # Determine parameters for the Matérn type II process
         λₜA = N_cA / (L_x*L_y*Area_A_ratio) # Target intensity 
-        λₚA = 1.1*λₜA # Starting poisson intensity 
+        λₚA = 2*λₜA # Starting poisson intensity 
 
         λₜB = N_cB / (L_x*L_y*(Area_B_ratio)) # Target intensity 
-        λₚB = 1.1*λₜB # Starting poisson intensity
+        λₚB = 2*λₜB # Starting poisson intensity
 
 
         # Solve for exclusion radius: 
