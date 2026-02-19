@@ -94,7 +94,8 @@ end
     Λs               ::Vector{Float64}                              # Vector of line tensions for each edge  
     firstT1onEdge    ::Vector{Int64}                                # Flag controlling whether the first T1 transition on an edge has occured
     P_effs           ::Vector{Float64}                              # Effective pressure for each cell
-    T_effs           ::Vector{Float64}                              # Effective tension for each cell             
+    T_effs           ::Vector{Float64}                              # Effective tension for each cell  
+    ξs               ::Vector{Float64}                              # Magnitude of deviatoric stress for each cell
 end
 
 export ParametersContainer,MatricesContainer

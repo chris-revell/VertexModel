@@ -111,7 +111,8 @@ function spatialData!(R,params,matrices)
         Γ,
         Λs,
         P_effs,
-        T_effs = matrices
+        T_effs,
+        ξs = matrices
     @unpack initialSystem,
         nCells,
         nEdges,
@@ -335,6 +336,20 @@ function spatialData!(R,params,matrices)
                 T_effs[i] += 0.5*(1/cellPerimeters[i])*B̄[i,j]*Λs[j]*edgeLengths[j]
             end
             P_effs[i] = cellPressures[i] + (cellPerimeters[i]/(2*cellAreas[i]))*T_effs[i]
+        end
+
+        # Update the deviatoric stress: 
+        Jᵢ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
+
+        for i=1:nCells
+            Jᵢterms = fill(SMatrix{2,2,Float64}(zeros(2,2)), nEdges)
+            for j=1:nEdges
+                Jᵢterms[j] = B̄[i,j] * (cellTensions[i] + 0.5*Λs[j]) * (edgeTangents[j]*(edgeTangents[j]'/edgeLengths[j]))
+            end
+
+            Jᵢ[i] = sum(Jᵢterms)
+            I₂=Matrix{Float64}(I, 2, 2)
+            ξs[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
         end
     end
 

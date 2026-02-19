@@ -171,6 +171,7 @@ function initialise(; initialSystem,
         firstT1onEdge     = zeros(Int64, nEdges),
         P_effs            = zeros(nCells),
         T_effs            = zeros(nCells),
+        ξs                = zeros(nCells),
     )
 
     # Pack parameters into a struct for convenience
