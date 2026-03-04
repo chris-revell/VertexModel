@@ -198,5 +198,6 @@ end
 export vertexModel
 export loadData 
 export model! 
+export ParametersContainer, MatricesContainer
 
 end
