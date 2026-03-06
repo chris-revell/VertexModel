@@ -254,10 +254,10 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         
         # Determine parameters for the Matérn type II process
         λₜA = N_cA / (L_x*L_y*Area_A_ratio) # Target intensity 
-        λₚA = 2*λₜA # Starting poisson intensity 
+        λₚA = 20*λₜA # Starting poisson intensity 
 
         λₜB = N_cB / (L_x*L_y*(Area_B_ratio)) # Target intensity 
-        λₚB = 2*λₜB # Starting poisson intensity
+        λₚB = 20*λₜB # Starting poisson intensity
 
 
         # Solve for exclusion radius: 
@@ -265,7 +265,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         r_exB = solve_exclusion_radius(λₚB, λₜB)
 
         # Matern type II process to generate periodic cell centres:
-        rad = r_exA    
+        rad = r_exA +r_exB   
         area = L_x * L_y          # parent intensity guess
         kept = NTuple{2,Float64}[]
 
@@ -281,7 +281,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         kept = kept[randperm(length(kept))[1:N_cA]]
 
         # Now add B cells:
-        rad = r_exB
+        # rad = r_exB
         while length(kept) < N_cA + N_cB
             n_parent = rand(Poisson(λₚB * area))
             parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
