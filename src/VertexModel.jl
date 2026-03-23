@@ -160,8 +160,9 @@ function vertexModel(;
 
         # Set up ODE integrator 
         prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
-        alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-        integrator = init(prob, solver; tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        #alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
+        alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
+        integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
         outputCounter = [1]
 
         # Iterate until integrator time reaches max system time 
@@ -178,7 +179,7 @@ function vertexModel(;
             # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
             # Output data to file 
-            if integrator.t == alltStops[outputCounter[1]]
+            if integrator.t >= alltStops[outputCounter[1]]
                 # Update progress on command line 
                 printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
                 if frameDataToggle == 1
