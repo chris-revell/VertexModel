@@ -103,8 +103,9 @@ end
 
 function g!(du, u, p, t)
     params, matrices = p
-    du .= params.β
-    params.noiseWeighting == 1 ? du ./sqrt.(matrices.vertexAreas) : nothing
+    du .= params.β .* sqrt.(matrices.vertexAreas)
+    # If weighting noise, scale with sqrt vertex area: 
+    params.noiseWeighting == 1 ? du .= params.β .* sqrt.(matrices.vertexAreas) : du .= params.β
 end
 
 export model!
