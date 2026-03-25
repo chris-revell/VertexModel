@@ -21,6 +21,7 @@ using StaticArrays
 using CairoMakie
 using Printf
 using DifferentialEquations
+using Stochastic
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
