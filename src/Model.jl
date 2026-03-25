@@ -104,6 +104,7 @@ end
 function g!(du, u, p, t)
     params, matrices = p
     du .= params.β
+    noiseWeighting == 1 ? du ./sqrt(matrices.vertexAreas) : nothing
 end
 
 export model!

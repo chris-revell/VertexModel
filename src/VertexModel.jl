@@ -21,7 +21,6 @@ using StaticArrays
 using CairoMakie
 using Printf
 using DifferentialEquations
-using Stochastic
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -78,6 +77,7 @@ function vertexModel(;
     reltol = 1e-3,
     energyModel = "quadratic2pops",
     vertexWeighting = 1,
+    noiseWeighting = 1,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
@@ -116,6 +116,7 @@ function vertexModel(;
         nRows = nRows,
         energyModel = energyModel,
         vertexWeighting = vertexWeighting,
+        noiseWeighting = noiseWeighting,
         R_in = R_in,
         A_in = A_in,
         B_in = B_in,
