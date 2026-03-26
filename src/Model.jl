@@ -103,9 +103,13 @@ end
 
 function g!(du, u, p, t)
     params, matrices = p
-    du .= params.β .* sqrt.(matrices.vertexAreas)
+    @unpack noiseWeighting, β, nVerts = params
+    @unpack vertexAreas = matrices
+    dR = reinterpret(SVector{2,Float64}, du)
     # If weighting noise, scale with sqrt vertex area: 
-    params.noiseWeighting == 1 ? du .= params.β .* sqrt.(matrices.vertexAreas) : du .= params.β
+    for k=1:nVerts
+        noiseWeighting == 1 ? dR[k] = SVector(β * sqrt(vertexAreas[k]),β * sqrt(vertexAreas[k])) : dR[k] = SVector(β, β)
+    end
 end
 
 export model!
