@@ -60,6 +60,8 @@ function initialise(; initialSystem,
         Λ_00,
         Λ_01,
         Λ_11,
+        Λ_0E,
+        Λ_1E,
         Area_A_ratio,
         t1timeGap,
     )
@@ -81,6 +83,23 @@ function initialise(; initialSystem,
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R = initialSystemLayout(nRows)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        nCells = size(B, 1)
+        nEdges = size(A, 1)
+        nVerts = size(A, 2)
+
+        nACells = floor(Int64, nCells*Area_A_ratio)
+        
+        cellsTypeB = []
+        cellsTypeA = randperm(nCells)[1:nACells]
+        for i=1:nCells
+            if i in cellsTypeA
+            else
+                push!(cellsTypeB, i)
+            end
+        end
+
+
+        
     elseif initialSystem == "periodic"
         A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
@@ -210,6 +229,8 @@ function initialise(; initialSystem,
         Λ_00              = Λ_00,
         Λ_01              = Λ_01,
         Λ_11              = Λ_11,
+        Λ_0E              = 0.5*Λ_00,
+        Λ_1E              = 0.5*Λ_11,
         Area_A_ratio      = Area_A_ratio,
         t1timeGap         = t1timeGap,
     )

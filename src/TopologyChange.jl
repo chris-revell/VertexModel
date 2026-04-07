@@ -29,7 +29,9 @@ function topologyChange!(R,params,matrices)
         nEdges,
         Λ_00,
         Λ_01,
-        Λ_11 = params
+        Λ_11,
+        Λ_0E,
+        Λ_1E = params
 
     @unpack A,
         B,

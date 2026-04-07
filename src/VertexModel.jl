@@ -85,7 +85,7 @@ function vertexModel(;
     L_y = 10,
     Λ_00 = -0.1, 
     Λ_01 = -0.1,
-    Λ_11 = -0.1, 
+    Λ_11 = -0.1,
     Area_A_ratio = 0.5,
     t1timeGap = 1e-1,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime

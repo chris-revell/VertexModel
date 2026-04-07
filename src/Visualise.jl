@@ -62,14 +62,21 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     
 
 
-    ax1.title = "t = $(@sprintf("%.3f", t))"
-    ax1.limits = ((0,L_x),(0,L_y))
-
-    ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
-    ax2.limits = ((0,L_x),(0,L_y))
-
-    ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
-    ax3.limits = ((0,L_x),(0,L_y))
+    if initialSystem == "new"
+        ax1.title = "t = $(@sprintf("%.3f", t))"
+        ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
+        ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
+    else
+        ax1.title = "t = $(@sprintf("%.3f", t))"
+        ax1.limits = ((0,L_x),(0,L_y))
+    
+        ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
+        ax2.limits = ((0,L_x),(0,L_y))
+    
+        ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
+        ax3.limits = ((0,L_x),(0,L_y))
+    end
+   
     
     # Set colour limits for P_eff
     A_iP_effs = zeros(nCells)
