@@ -83,9 +83,9 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     A_iP_effs .= cellAreas.*P_effs
     # Generate a colour map for effective pressures: 
     cmap1 = cgrad([
-        RGB(1.0, 0.0, 0.0),   # red
+        RGB(0.0, 0.0, 1.0),    # blue
         RGB(1.0, 1.0, 1.0),   # white, zero
-        RGB(0.0, 0.0, 1.0)    # blue
+        RGB(1.0, 0.0, 0.0)   # red
     ], 256)
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
