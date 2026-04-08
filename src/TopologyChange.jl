@@ -77,23 +77,9 @@ function topologyChange!(R,params,matrices)
 
     # Calculate additional topology data
     # Number of edges around each cell found by summing columns of B̄
-    cellEdgeCount .= sum.(eachrow(B̄))  # FastBroadcast doesn't work for this line; not sure why
-
-    # Define vectos of Λs:
-    for j in 1:nEdges
-        sj = dot(matrices.B̄[:, j], cellLabels)  # sparse matrix multiplication
-
-        if sj == 0
-            Λs[j] = Λ_00       # edge between two A cells
-        elseif sj == 1
-            Λs[j] = Λ_01       # edge between A and B cell
-        else
-            Λs[j] = Λ_11       # edge between two B cells
-        end
-    end 
+    cellEdgeCount .= sum.(eachrow(B̄))  # FastBroadcast doesn't work for this line; not sure why 
 
     # Only do the following if the initialSystem isn't periodic: 
-
     if initialSystem == "new"
         # Find boundary vertices
         # Summing each column of B finds boundary edges (for all other edges, cell orientations on either side cancel);
@@ -103,6 +89,33 @@ function topologyChange!(R,params,matrices)
 
         # Find list of edges at system periphery
         boundaryEdges .= abs.([sum(x) for x in eachcol(B)])
+    end
+
+    # Define vectos of Λs:
+    for j in 1:nEdges
+
+        sj = dot(matrices.B̄[:, j], cellLabels)  # sparse matrix multiplication
+        # In the free boundary case, check whether edge is on the boundary:
+        if initialSystem=="new" && boundaryEdges[j] == 1
+            if sj == 0
+                Λs[j] = Λ_0E       # edge between A cell and external environment
+            elseif sj == 1
+                Λs[j] = Λ_1E       # edge between B cell and external environment
+            else
+                error("Error: edge with more than one cell on either side")
+            end
+        else
+
+            if sj == 0
+                Λs[j] = Λ_00       # edge between two A cells
+            elseif sj == 1
+                Λs[j] = Λ_01       # edge between A and B cell
+            else
+                Λs[j] = Λ_11       # edge between two B cells
+            end
+        end
+
+        
     end
 
 

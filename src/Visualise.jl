@@ -116,6 +116,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                 else
                     poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                 end
+
+                # Plot effective pressures in ax2
+                poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+
+                # Plot deviatoric stress in ax3
+                poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+
             else 
                 # Check whether it is on the periodic boundary: 
                 if boundaryCells[i]==1
