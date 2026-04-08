@@ -42,7 +42,7 @@ using DifferentialEquations
 
 
 function vertexModel(;
-    initialSystem = "periodic",
+    initialSystem = "new",
     cellLayout = "random",
     nRows = 9,
     nCycles = 0.01,
@@ -55,8 +55,8 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     t1Threshold = 0.1,
-    β = 0.07,
-    divisionToggle = 0,
+    β = 0.0,
+    divisionToggle = 1,
     solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
