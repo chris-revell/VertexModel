@@ -88,6 +88,7 @@ function vertexModel(;
     Λ_11 = -0.1,
     Area_A_ratio = 0.5,
     t1timeGap = 1e-1,
+    spiky = true,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     
@@ -127,16 +128,8 @@ function vertexModel(;
         Λ_11 = Λ_11,
         Area_A_ratio = Area_A_ratio,
         t1timeGap = t1timeGap,
+        spiky = spiky,
     )
-
-    @unpack γ,Λ_00,Λ_11 = params
-    # Statement to check whether params are in floppy regime: 
-    if γ < -0.2*Λ_00
-        println("A cells in floppy region")
-    end
-    if γ < -0.2*Λ_11
-        println("B cells in floppy region")
-    end
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1

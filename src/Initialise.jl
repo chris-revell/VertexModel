@@ -62,6 +62,7 @@ function initialise(; initialSystem,
         Λ_11,
         Area_A_ratio,
         t1timeGap,
+        spiky,
     )
 
     # Calculate derived parameters
