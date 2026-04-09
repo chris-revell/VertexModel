@@ -2,9 +2,12 @@
 #  InitialSystemLayout.jl
 #  VertexModel
 #
-#  Function to create a hexagonal grid of cells. 
-#  Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
-#  Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
+#  Created by Christopher Revell on 06/09/2023.
+#
+#
+# Function to create a hexagonal grid of cells. 
+# Given number of rows nRows, central row has length nRows, each adjacent row has length nRows-1 etc. 
+# Number of cells is then nRows*(nRows-1) - (floor(Int64, nRows/2)+1)*(floor(Int64, nRows/2)+2) + nRows
 
 module InitialSystemLayout
 
@@ -17,35 +20,12 @@ using FromFile
 using DelaunayTriangulation
 using FromFile
 using Random
-using InvertedIndices
-using NonlinearSolve
 
 @from "SenseCheck.jl" using SenseCheck
 
-# Solve cubic equation balancing pressure and tension in a regular hexagon to find initial edge lengths 
-f(u, p) = (sqrt(3)*cos(π/6).*u.^3.0)./288 .+ p.γ*cos(π/3).*u .- p.A₀*cos(π/6).*u/12 .- p.γ*p.L₀*cos(π/3) 
-hexagonPerimeter(A) = 6*sqrt(2*A/(3*sqrt(3)))
-hexagonArea(L) = 3*sqrt(3)*((L/6)^2)/2
-function initialEdgeLength(γ, L₀; A₀=1.0)
-    p = (γ=γ, L₀=L₀, A₀=A₀)
-    u0 = [(min(p.L₀, hexagonPerimeter(p.A₀))-0.001)]
-    prob = NonlinearProblem(f, u0, p)
-    sol = solve(prob)
-    return sol.u[1]/6
-end
+function initialSystemLayout(nRows)
 
-function initialSystemLayout(
-        γ, 
-        L₀;
-        nRows = 9,
-        spiky = false,
-    )
-
-    equilibriumEdgeLength = initialEdgeLength(γ, L₀)
-    horizontalCellSpacing = 2.0*equilibriumEdgeLength*sin(π/3)
-    verticalCellSpacing = 1.5*equilibriumEdgeLength
-
-    # nRows must be an odd number
+    # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
     for j = 1:(floor(Int64,nRows/2))
         for i = 1:nRows-j
@@ -72,12 +52,12 @@ function initialSystemLayout(
         push!(usableVertices, a...)
     end
     sort!(unique!(usableVertices))
-    # outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
+    outerVertices = setdiff(collect(1:num_polygon_vertices(tessellation_constrained)), usableVertices)
 
     # Map vertex indices in tessellation to vertex indices in incidence matrices (after excluding outer vertices)
     vertexIndexingMap = Dict(usableVertices .=> collect(1:length(usableVertices)))
 
-    Rtmp = SVector.(tessellation_constrained.polygon_points[usableVertices])
+    R = SVector.(tessellation_constrained.polygon_points[usableVertices])
 
     # Find pairs of vertices connected by edges in tessellation 
     # Use incidence matrix indexing for vertices, and exclude outer vertices 
@@ -85,7 +65,7 @@ function initialSystemLayout(
     # Ensure lowest index is first in tuple, and remove duplicates 
     orderedPairs = unique([(min(p...), max(p...)) for p in pairs])
 
-    nVerts = length(Rtmp)
+    nVerts = length(R)
     nEdges = length(orderedPairs)
     nCells = length(cellPoints)
 
@@ -119,35 +99,27 @@ function initialSystemLayout(
     # Making the assumption that there will never be two such vertices adjacent to each other
     verticesToRemove = Int64[]
     edgesToRemove = Int64[]
-    if !spiky        
-        for i = 1:nVerts
-            edges = findall(x -> x != 0, @view A[:, i])
-            cells1 = findall(x -> x != 0, @view B[:, edges[1]])
-            cells2 = findall(x -> x != 0, @view B[:, edges[2]])
-            if cells1 == cells2
-                # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
-                push!(verticesToRemove, i)
-                push!(edgesToRemove, edges[1])
-            end
-        end
-        for i in verticesToRemove
-            edges = findall(x -> x != 0, @view A[:, i])
-            otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
-            A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
-            A[edges[1], otherVertexOnEdge1] = 0
+    for i = 1:nVerts
+        edges = findall(x -> x != 0, @view A[:, i])
+        cells1 = findall(x -> x != 0, @view B[:, edges[1]])
+        cells2 = findall(x -> x != 0, @view B[:, edges[2]])
+        if cells1 == cells2
+            # If the lists of cells to which both edges of vertex i belong are identical, this implies that the edges are peripheral and only belong to one cell, so edge i should be removed.
+            push!(verticesToRemove, i)
+            push!(edgesToRemove, edges[1])
         end
     end
-    A = A[Not(edgesToRemove), Not(verticesToRemove)]
-    B = B[:, Not(edgesToRemove)]
-    Rtmp = Rtmp[Not(verticesToRemove)]
-    senseCheck(A, B; marker="Error after removing peripheral vertices")
-
-
-    R = SVector{2, Float64}[]
-    for r in Rtmp 
-        push!(R, SVector(horizontalCellSpacing*(r[1] - (nRows-1)/2 - 1.0 ), horizontalCellSpacing*r[2]))
+    for i in verticesToRemove
+        edges = findall(x -> x != 0, @view A[:, i])
+        otherVertexOnEdge1 = setdiff(findall(x -> x != 0, @view A[edges[1], :]), [i])[1]
+        A[edges[2], otherVertexOnEdge1] = A[edges[2], i]
+        A[edges[1], otherVertexOnEdge1] = 0
     end
+    A = A[setdiff(1:size(A, 1), edgesToRemove), setdiff(1:size(A, 2), verticesToRemove)]
+    B = B[:, setdiff(1:size(B, 2), edgesToRemove)]
+    R = R[setdiff(1:size(R, 1), verticesToRemove)]
 
+    senseCheck(A, B; marker="Removing peropheral vertices")
 
     return A, B, R
 
