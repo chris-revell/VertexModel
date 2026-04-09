@@ -21,6 +21,7 @@ using StaticArrays
 using CairoMakie
 using Printf
 using DifferentialEquations
+using Random
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -44,7 +45,7 @@ using DifferentialEquations
 function vertexModel(;
     initialSystem = "new",
     cellLayout = "random",
-    nRows = 9,
+    nRows = 3,
     nCycles = 0.01,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
@@ -57,7 +58,8 @@ function vertexModel(;
     t1Threshold = 0.1,
     β = 0.0,
     divisionToggle = 1,
-    solver = SRIW1(),
+    # solver = SRIW1(),
+    solver = Tsit5(),
     nBlasThreads = 1,
     subFolder = "",
     outputTotal = 100,
@@ -73,8 +75,8 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
-    abstol = 1e-6, 
-    reltol = 1e-3,
+    abstol = 1e-7, 
+    reltol = 1e-4,
     energyModel = "quadratic2pops",
     vertexWeighting = 1,
     noiseWeighting = 1,
@@ -83,18 +85,14 @@ function vertexModel(;
     B_in = spzeros(2), 
     L_x = 10,
     L_y = 10,
-    Λ_00 = -0.1, 
-    Λ_01 = -0.1,
-    Λ_11 = -0.1,
+    Λ_AA = -0.1, 
+    Λ_AB = -0.11,
+    Λ_BB = -0.2,
     Area_A_ratio = 0.5,
     t1timeGap = 1e-1,
     spiky = true,
+    desiredNumCells = 100,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
-
-    
-
-    # plot_parameter_space(300,Λ_00,Λ_11,γ)    
-
 
     BLAS.set_num_threads(nBlasThreads)
 
@@ -123,9 +121,9 @@ function vertexModel(;
         B_in = B_in,
         L_x=L_x,
         L_y=L_y,
-        Λ_00 = Λ_00,
-        Λ_01 = Λ_01,
-        Λ_11 = Λ_11,
+        Λ_AA = Λ_AA,
+        Λ_AB = Λ_AB,
+        Λ_BB = Λ_BB,
         Area_A_ratio = Area_A_ratio,
         t1timeGap = t1timeGap,
         spiky = spiky,
@@ -150,16 +148,34 @@ function vertexModel(;
     # Initialise a variable to store the energy at the previous step: 
     totalEnergyPrevious = 0.0
 
+    # Flag to track whether the cell types have been assigned 
+    cellsTypesAssigned = 0
+
     # Global try so that the movie still saves if there is an error:
     try 
 
         # Set up ODE integrator 
-        prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
-        #alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
+        # prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
+        # #alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
+        # alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
+        # integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        
+        prob = ODEProblem(model!,
+                    u0,
+                    (0.0, Inf),
+                    (params, matrices)
+                )
         alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
-        integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        integrator = init(prob,
+            solver,
+            tstops=alltStops,
+            abstol=abstol,
+            reltol=reltol,
+            save_on=false,
+            save_start=false,
+            save_end=true,
+        )  
         outputCounter = [1]
-
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
 
@@ -261,12 +277,25 @@ function vertexModel(;
 
             totalEnergyPrevious = totalEnergy
 
-            # For sufficiently small sum of P_effs, turn off noise and allow system to equilibriate. 
-            if params.β != 0.0 && abs(ΔE) < 1e-9
-                println("NOISE TURNED OFF. ΔE = ",ΔE)
-                params.β = 0.0
-                params.t1timeGap = 1.0
+            # For the case where we grow the monolayer: 
+            if initialSystem == "new" && params.nCells >= desiredNumCells && cellsTypesAssigned == 0
+                println("Desired cell number reached. Assigning cell types")
+
+                @unpack nCells,Area_A_ratio = params
+                nACells = floor(Int64, nCells*Area_A_ratio)
+                params.cellsTypeB = []
+                params.cellsTypeA = randperm(nCells)[1:nACells]
+                for i=1:nCells
+                    if i in params.cellsTypeA
+                    else
+                        push!(params.cellsTypeB, i)
+                    end
+                end
+                matrices.cellLabels = zeros(Int64, nCells)
+                matrices.cellLabels[params.cellsTypeB] .= 1
+                cellsTypesAssigned = 1
             end
+
             
         end
     

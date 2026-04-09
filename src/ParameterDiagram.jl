@@ -21,9 +21,9 @@ using GeometryBasics: area
 function parameterDiagram(params)
 
     @unpack γ,
-        Λ_00,
-        Λ_01,
-        Λ_11 = params
+        Λ_AA,
+        Λ_AB,
+        Λ_BB = params
 
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
     fig2 = Figure(size=(600,600))
@@ -39,9 +39,9 @@ function parameterDiagram(params)
     Γ_vec = -0.13 .* Λ_vec
     lines!(ax1,Λ_vec,Γ_vec,color=:red,linewidth=2,label="Floppy boundary: Γ = -0.13 Λ")
 
-    scatter!(ax1,[Λ_00],[γ],color=:blue,markersize=10,label="Λ_00, γ")
-    scatter!(ax1,[Λ_01],[γ],color=:green,markersize=10,label="Λ_01, γ")
-    scatter!(ax1,[Λ_11],[γ],color=:orange,markersize=10,label="Λ_11, γ")
+    scatter!(ax1,[Λ_AA],[γ],color=:blue,markersize=10,label="Λ_AA, γ")
+    scatter!(ax1,[Λ_AB],[γ],color=:green,markersize=10,label="Λ_AB, γ")
+    scatter!(ax1,[Λ_BB],[γ],color=:orange,markersize=10,label="Λ_BB, γ")
     axislegend(ax1)
 
     return fig2 

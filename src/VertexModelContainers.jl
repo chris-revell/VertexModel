@@ -46,11 +46,11 @@ using CircularArrays
     cellsTypeB         ::Vector{Int64}        # Vector storing indices of type B population
     L_x                ::Float64
     L_y                ::Float64
-    Λ_00               ::Float64            # Line tension for type A to type A cell-cell interfaces
-    Λ_01               ::Float64            # Line tension for type A to type B cell-cell interfaces
-    Λ_11               ::Float64            # Line tension for type B to type B cell-cell interfaces
-    Λ_0E               ::Float64            # Line tension for type A to external interfaces
-    Λ_1E               ::Float64            # Line tension for type B to external interfaces
+    Λ_AA               ::Float64            # Line tension for type A to type A cell-cell interfaces
+    Λ_AB               ::Float64            # Line tension for type A to type B cell-cell interfaces
+    Λ_BB               ::Float64            # Line tension for type B to type B cell-cell interfaces
+    Λ_AE               ::Float64            # Line tension for type A to external interfaces
+    Λ_BE               ::Float64            # Line tension for type B to external interfaces
     Area_A_ratio       ::Float64            # Fraction of domain area occupied by A cells 
     t1timeGap          ::Float64            # Time between t1 transitions
 end

@@ -93,7 +93,6 @@ function spatialData!(R,params,matrices)
         cellEdgeOrders,
         cellPositions,
         boundaryCells,
-        cellPositions,
         cellPerimeters,
         cellOrientedAreas,
         cellShapeTensor,
@@ -128,7 +127,7 @@ function spatialData!(R,params,matrices)
     
     if initialSystem == "new"
 
-        cellPositions = C*R ./ cellEdgeCount
+        cellPositions .= C*R ./ cellEdgeCount
         edgeTangents   .= A*R
         edgeLengths .= norm.(edgeTangents)
         edgeMidpoints  .= 0.5.*Ā*R
@@ -234,21 +233,6 @@ function spatialData!(R,params,matrices)
             end
         end
 
-        # if sum(cellAreas) > L_x*L_y + 1e-5 || sum(cellAreas) < L_x*L_y - 1e-5
-
-        #     error("⚠️ Error: Total cell area exceeds box area in periodic system")
-        #     println(sum(cellAreas) , " vs ", L_x*L_y)
-        # end
-
-        # Calculate oriented cell areas
-        # fill!(cellOrientedAreas,SMatrix{2,2}(zeros(2,2)))
-        # for i=1:nCells
-        #     for j in nzrange(Bᵀ,i)
-        #         cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
-        #     end
-        #     cellAreas[i] = cellOrientedAreas[i][1,2]
-        # end
-
         # Recalculate cells at the periodic boundary
         fill!(boundaryCells, 0)
         for i in 1:nCells
@@ -266,7 +250,6 @@ function spatialData!(R,params,matrices)
             end
         end
 
-        # println("boundary Cells:", boundaryCells)
 
         # Compute vertex areas: 
 
@@ -299,16 +282,12 @@ function spatialData!(R,params,matrices)
                     0.5 *norm([edgeMidpointLinks[k_is[1], k]..., 0.0] ×[edgeMidpointLinks[k_is[2], k]..., 0.0])
 
             end
-            # if !isfinite(vertexAreas[k]) || vertexAreas[k] <= 0
-            #     println("⚠️ Warning: Vertex $k has suspicious area = ", vertexAreas[k])
-            # end
 
 
 
         end
 
     end
-    # println("cell edge orders:",cellEdgeOrders[1])
     
 
     # Calculate cell pressures and tensions according to energy model choice 
@@ -349,7 +328,7 @@ function spatialData!(R,params,matrices)
 
             Jᵢ[i] = sum(Jᵢterms)
             I₂=Matrix{Float64}(I, 2, 2)
-            ξs[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
+            ξs[i] = (1/cellAreas[i]) * sqrt(max(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂),0.0))
         end
     end
 

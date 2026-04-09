@@ -30,7 +30,7 @@ function num_real_roots(Γ,Λ)
     return count(r -> isreal(r)  , roots_p)
 end
 
-function plot_parameter_space(len,Λ_00,Λ_11,Γ)
+function plot_parameter_space(len,Λ_AA,Λ_BB,Γ)
     Λs = range(-2.0,0.0,length = len)
     Γs = range(0.0,2.0,length = len)
 
@@ -47,19 +47,19 @@ function plot_parameter_space(len,Λ_00,Λ_11,Γ)
     aspect_ratio=:equal
     )
 
-    scatter!(plt,[Γ], [Λ_00],
+    scatter!(plt,[Γ], [Λ_AA],
             markersize=8,
             marker=:circle,
             color=:red,
             markerstrokecolor=:black,
-            label="Current (Γ, Λ_00)")
+            label="Current (Γ, Λ_AA)")
 
-    scatter!(plt,[Γ], [Λ_11],
+    scatter!(plt,[Γ], [Λ_BB],
             markersize=8,
             marker=:circle,
             color=:red,
             markerstrokecolor=:black,
-            label="Current (Γ, Λ_11)")       
+            label="Current (Γ, Λ_BB)")       
 
     display(plt)
     return plt

@@ -193,12 +193,12 @@ function buildB(polygons, edges)
     return B
 end
 
-function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
+function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
     # Main function to create periodic initial system layout
 
         # Compute effective preferred perimeters for isolated A- or B-cells
-        L0_A = -Λ_00/(2*γ)
-        L0_B = -Λ_11/(2*γ)
+        L0_A = -Λ_AA/(2*γ)
+        L0_B = -Λ_BB/(2*γ)
         println("L0_A=", L0_A)
         println("L0_B=", L0_B)
 

@@ -57,9 +57,9 @@ function initialise(; initialSystem,
         B_in,
         L_x,
         L_y,
-        Λ_00,
-        Λ_01,
-        Λ_11,
+        Λ_AA,
+        Λ_AB,
+        Λ_BB,
         Area_A_ratio,
         t1timeGap,
         spiky,
@@ -80,27 +80,23 @@ function initialise(; initialSystem,
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R = initialSystemLayout(nRows)
+        A, B, R = initialSystemLayout(γ,Λ_AA,nRows,spiky)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         nCells = size(B, 1)
         nEdges = size(A, 1)
         nVerts = size(A, 2)
 
-        nACells = floor(Int64, nCells*Area_A_ratio)
-        
+        # Start by assigning all cells as type A:
         cellsTypeB = []
-        cellsTypeA = randperm(nCells)[1:nACells]
+        cellsTypeA = []
         for i=1:nCells
-            if i in cellsTypeA
-            else
-                push!(cellsTypeB, i)
-            end
+            push!(cellsTypeA, i)
         end
 
 
         
     elseif initialSystem == "periodic"
-        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_00,Λ_11,Area_A_ratio)
+        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
         nCells = size(B, 1)
@@ -160,7 +156,6 @@ function initialise(; initialSystem,
         boundaryEdges     = zeros(Int64, nEdges),
         boundaryCells     = zeros(Int64, nCells),
         cellPositions     = fill(SVector{2,Float64}(zeros(2)), nCells),
-        # cellPositions     = cellPositions,
         cellPerimeters    = zeros(nCells),
         cellOrientedAreas = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellAreas         = zeros(nCells),
@@ -225,11 +220,11 @@ function initialise(; initialSystem,
         cellsTypeB        = cellsTypeB,
         L_x               = L_x,
         L_y               = L_y,
-        Λ_00              = Λ_00,
-        Λ_01              = Λ_01,
-        Λ_11              = Λ_11,
-        Λ_0E              = 0.5*Λ_00,
-        Λ_1E              = 0.5*Λ_11,
+        Λ_AA              = Λ_AA,
+        Λ_AB              = Λ_AB,
+        Λ_BB              = Λ_BB,
+        Λ_AE              = 0.5*Λ_AA,
+        Λ_BE              = 0.5*Λ_BB,
         Area_A_ratio      = Area_A_ratio,
         t1timeGap         = t1timeGap,
     )

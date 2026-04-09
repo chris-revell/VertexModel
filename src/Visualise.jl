@@ -286,7 +286,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
             p = Point{2,Float64}(cellPositions[i]...)
 
             # choose color
-            col = boundaryCells[i] == 1 ? :red : :blue
+            col =  :red 
 
             scatter!(ax1, [p], color=col)
             

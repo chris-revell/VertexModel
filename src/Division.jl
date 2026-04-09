@@ -33,7 +33,12 @@ function division!(integrator,params,matrices)
         nVerts,
         nonDimCycleTime,
         distLogNormal,
-        γ, t1Threshold = params
+        γ, 
+        t1Threshold,
+        cellsTypeA,
+        cellsTypeB,
+        Λ_AA,
+        Λ_BB = params
     @unpack A, 
         B, 
         cellTimeToDivide, 
@@ -48,7 +53,9 @@ function division!(integrator,params,matrices)
         edgeTangents,
         ϵ, 
         μ, 
-        Γ = matrices
+        Γ,
+        cellLabels,
+        Λs = matrices
 
     # Reinterpret state vector as a vector of SVectors 
     R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -59,16 +66,10 @@ function division!(integrator,params,matrices)
         if cellTimeToDivide[i]<=0.0 && cellEdgeCount[i]>3 # Cell can only divide if it has more than 3 edges
 
 
-            # Long and short axis from eigenvectors of shapetensor
+            ## Long and short axis from eigenvectors of shapetensor
             # Put some sort of tolerance that if eigenvalues are approx equal we randomly choose a division orientation, eg circ >0.95
             eigenVals, eigenVecs = eigen(matrices.cellShapeTensor[i]) # eigenvalues/vectors listed smallest to largest eigval.
             
-            # circ = abs(eigenVals[1]/eigenVals[2]) # circularity
-            # #for very circular cells randomly choose division axis
-            # if circ > 0.95 
-            #     theta = rand()*π
-            #     shortvec = [cos(theta), sin(theta)]
-            # else
             if eigenVecs[:,1][2] < 0.0 #make it so vector is pointing in positive y direction (to fit with existing code in assigning new edges)
                 shortvec = -1.0*cellPerimeters[i].*eigenVecs[:,1] # Multiplication by cell perimeter ensures this axis is long enough to completely cross the cell; eigenvector has unit length otherwise
             else
@@ -77,12 +78,13 @@ function division!(integrator,params,matrices)
             shortAxisLine = Line(Point{2,Float64}(matrices.cellPositions[i].+shortvec), Point{2,Float64}(matrices.cellPositions[i].-shortvec))
 
             # Test cell edges for an intersection
-            poly = LineString(Point{2, Float64}.(R[cellVertexOrders[i][0:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
-            intersections = [intersects(line, shortAxisLine) for line in poly] #find which edges intersect and where
+            edgeLines = Line.(Point{2,Float64}.(R[cellVertexOrders[i][0:end-1]]), Point{2,Float64}.(R[cellVertexOrders[i][1:end]])) # Start and end with the same vertex by indexing circular array from 0 to end
+
+            intersections = [intersects(line, shortAxisLine) for line in edgeLines] #find which edges intersect and where
             intersectedIndices = findall(x->x!=0, first.(intersections))
             
             intersectedEdges = cellEdgeOrders[i][intersectedIndices]
-
+            
             newCellVertices = cellVertexOrders[i][intersectedIndices[1]:intersectedIndices[2]-1] # Not including new vertices to be added later
             oldCellVertices = setdiff(cellVertexOrders[i], newCellVertices) # Not including new vertices to be added later
             newCellEdges = cellEdgeOrders[i][intersectedIndices[1]+1:intersectedIndices[2]-1] # IntersectedEdges allocated to old cell, not including new edge to be added later
@@ -92,6 +94,24 @@ function division!(integrator,params,matrices)
             newEdges = nEdges.+collect(1:3)
             newCell = nCells +1
             newVertices = nVerts.+collect(1:2)
+
+            # Update cell and edge labels: 
+            if cellLabels[i] == 0
+                push!(cellLabels, 0)
+                push!(cellsTypeA,newCell)
+                # The new DIVISION edge (newEdges[1]) will be between two As: 
+                push!(Λs, params.Λ_AA)
+            elseif cellLabels[i] == 1
+                push!(cellLabels, 1)
+                push!(cellsTypeB,newCell)
+                # The new DIVISION edge (newEdges[1]) will be between two Bs: 
+                push!(Λs, params.Λ_BB)
+            end
+            
+            # Match the edge tension for the split edge compared to what the full edge was previously: 
+            push!(Λs, Λs[intersectedEdges[1]], Λs[intersectedEdges[2]]) 
+
+            
 
             # Add 1 new row and 3 new columns to B matrix for new cell and 3 new edges
             Btmp = spzeros(Int64,newCell,newEdges[end])
