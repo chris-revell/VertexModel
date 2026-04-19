@@ -46,7 +46,7 @@ function initialSystemLayout(γ,Λ_AA, nRows,spiky)
     horizontalCellSpacing = 2.0*equilibriumEdgeLength*sin(π/3)
     verticalCellSpacing = 1.5*equilibriumEdgeLength
 
-    t1Threshold = equilibriumEdgeLength*0.1
+    t1Threshold = equilibriumEdgeLength*0.15
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
