@@ -231,6 +231,8 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         N_cA = Int(ceil(Area_A/ Area_hex))
         # N_cA = Int(ceil(L_x*L_y*ABratio / Area_hex))
 
+        t1Threshold = l*0.1
+
         a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_B
         p = Polynomial([d, c, b, a])
         roots_p = roots(p)
@@ -405,7 +407,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
 
 
         
-        return A, B, R, N_cA
+        return A, B, R, N_cA, t1Threshold
 
     
 

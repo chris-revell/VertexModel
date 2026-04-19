@@ -113,6 +113,7 @@ function spatialData!(R,params,matrices)
         T_effs,
         ξs = matrices
     @unpack initialSystem,
+        boundaryType,
         nCells,
         nEdges,
         nVerts,
@@ -125,7 +126,7 @@ function spatialData!(R,params,matrices)
 
     # cellPolygons = makeCellPolygons(R, params, matrices)
     
-    if initialSystem == "new"
+    if boundaryType == "free"
 
         cellPositions .= C*R ./ cellEdgeCount
         edgeTangents   .= A*R
@@ -170,7 +171,7 @@ function spatialData!(R,params,matrices)
             cellShapeTensor[i] = sum(Rα.*transpose.(Rα))./cellEdgeCount[i]
         end
 
-    else 
+    elseif boundaryType == "periodic"
         
         # Computing edge data: 
 

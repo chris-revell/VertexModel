@@ -41,6 +41,7 @@ function model!(du, u, p, t)
         vertexAreas,
         Λs = matrices
     @unpack initialSystem, 
+        boundaryType,
         nVerts,
         nCells,
         nEdges,
@@ -70,7 +71,7 @@ function model!(du, u, p, t)
                 # Force components from cell membrane tension parallel to edge tangents 
                 F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure -- only applies to boundary vertices 
-                if initialSystem == "new"
+                if boundaryType == "free"
                     externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
                 end
                 
@@ -82,13 +83,13 @@ function model!(du, u, p, t)
                 
             end
             # Force on vertex from peripheral tension -- only for boundary edges 
-            if initialSystem == "new"
+            if boundaryType == "free"
                 externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
             end
         end
-        if initialSystem == "new"
+        if boundaryType == "free"
             dR[k] = (sum(@view F[k, :]) .+ externalF[k])
-        else 
+        elseif boundaryType == "periodic"
             dR[k] = sum(@view F[k, :])
         end
         

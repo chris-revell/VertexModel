@@ -24,6 +24,7 @@ using DrWatson
 function topologyChange!(R,params,matrices)
 
     @unpack initialSystem, 
+        boundaryType,
         nCells,
         nVerts,
         nEdges,
@@ -80,7 +81,7 @@ function topologyChange!(R,params,matrices)
     cellEdgeCount .= sum.(eachrow(B̄))  # FastBroadcast doesn't work for this line; not sure why 
 
     # Only do the following if the initialSystem isn't periodic: 
-    if initialSystem == "new"
+    if boundaryType == "free"
         # Find boundary vertices
         # Summing each column of B finds boundary edges (for all other edges, cell orientations on either side cancel);
         # multiplying by Aᵀ gives nonzero values only where a vertex (row) has nonzero values at columns (edges) corresponding to nonzero values in the list of boundary edges.
@@ -96,7 +97,7 @@ function topologyChange!(R,params,matrices)
 
         sj = dot(matrices.B̄[:, j], cellLabels)  # sparse matrix multiplication
         # In the free boundary case, check whether edge is on the boundary:
-        if initialSystem=="new" && boundaryEdges[j] == 1
+        if boundaryType=="free" && boundaryEdges[j] == 1
             if sj == 0
                 Λs[j] = Λ_AE       # edge between A cell and external environment
             elseif sj == 1

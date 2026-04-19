@@ -46,6 +46,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         P_effs,
         ξs = matrices
     @unpack initialSystem,
+        boundaryType,
         nEdges, 
         nVerts, 
         nCells, 
@@ -62,11 +63,11 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     
 
 
-    if initialSystem == "new"
+    if boundaryType == "free"
         ax1.title = "t = $(@sprintf("%.3f", t))"
         ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
         ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
-    else
+    elseif boundaryType == "periodic"
         ax1.title = "t = $(@sprintf("%.3f", t))"
         ax1.limits = ((0,L_x),(0,L_y))
     
@@ -110,7 +111,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         for i = 1:nCells
             
 
-            if initialSystem == "new"
+            if boundaryType == "free"
                 if i in cellsTypeA
                     poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                 else
@@ -123,7 +124,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                 # Plot deviatoric stress in ax3
                 poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
 
-            else 
+            elseif boundaryType == "periodic"
                 # Check whether it is on the periodic boundary: 
                 if boundaryCells[i]==1
 

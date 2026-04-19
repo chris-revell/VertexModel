@@ -53,6 +53,7 @@ using CircularArrays
     Λ_BE               ::Float64            # Line tension for type B to external interfaces
     Area_A_ratio       ::Float64            # Fraction of domain area occupied by A cells 
     t1timeGap          ::Float64            # Time between t1 transitions
+    boundaryType       ::String             # Distinguish between "periodic" and "free" boundary conditions
 end
 
 @kwdef mutable struct MatricesContainer                               

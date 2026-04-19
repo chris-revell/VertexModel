@@ -34,6 +34,7 @@ using MAT # For reading mat files
 # println("mean area:",meanArea)
 
 function initialise(; initialSystem,
+        boundaryType,
         cellLayout,
         nCycles,
         realCycleTime,
@@ -44,7 +45,6 @@ function initialise(; initialSystem,
         pressureExternal,
         viscousTimeScale,
         outputTotal,
-        t1Threshold,
         peripheralTension,
         β,
         randomSeed,
@@ -80,7 +80,7 @@ function initialise(; initialSystem,
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R = initialSystemLayout(γ,Λ_AA,nRows,spiky)
+        A, B, R, t1Threshold = initialSystemLayout(γ,Λ_AA,nRows,spiky)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         nCells = size(B, 1)
         nEdges = size(A, 1)
@@ -96,7 +96,7 @@ function initialise(; initialSystem,
 
         
     elseif initialSystem == "periodic"
-        A,B,R,nACells = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
+        A,B,R,nACells,t1Threshold = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
         nCells = size(B, 1)
@@ -123,7 +123,7 @@ function initialise(; initialSystem,
         @unpack A,B = importedData["matrices"]
         cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
-        @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB = importedData["params"]
+        @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB,t1Threshold,Λ_AA,Λ_AB,Λ_BB,Λ_AE,Λ_BE,γ = importedData["params"]
         
 
     end
@@ -191,6 +191,7 @@ function initialise(; initialSystem,
     # Pack parameters into a struct for convenience
     params = ParametersContainer(
         initialSystem     = initialSystem,
+        boundaryType      = boundaryType,
         cellLayout        = cellLayout,
         nCells            = nCells,
         nEdges            = nEdges,

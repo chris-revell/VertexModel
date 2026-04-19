@@ -44,6 +44,7 @@ using Random
 
 function vertexModel(;
     initialSystem = "new",
+    boundaryType = "free",
     cellLayout = "random",
     nRows = 3,
     nCycles = 0.01,
@@ -55,11 +56,9 @@ function vertexModel(;
     viscousTimeScale = 1.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
-    t1Threshold = 0.1,
     β = 0.0,
     divisionToggle = 1,
-    # solver = SRIW1(),
-    solver = Tsit5(),
+    solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
     outputTotal = 100,
@@ -96,8 +95,10 @@ function vertexModel(;
 
     BLAS.set_num_threads(nBlasThreads)
 
+
     # Set up initial system, packaging parameters and matrices for system into params and matrices containers from VertexModelContainers.jl
     u0, params, matrices = initialise(initialSystem = initialSystem,
+        boundaryType = boundaryType,
         cellLayout = cellLayout,
         nCycles = nCycles,
         realCycleTime = realCycleTime,
@@ -108,7 +109,6 @@ function vertexModel(;
         pressureExternal = pressureExternal,
         viscousTimeScale = viscousTimeScale,
         outputTotal = outputTotal,
-        t1Threshold = t1Threshold,
         peripheralTension = peripheralTension,
         β = β,
         randomSeed = randomSeed,
@@ -128,6 +128,8 @@ function vertexModel(;
         t1timeGap = t1timeGap,
         spiky = spiky,
     )
+
+    println("t1Threshold = ", params.t1Threshold)
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
@@ -160,21 +162,43 @@ function vertexModel(;
         # alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
         # integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
         
-        prob = ODEProblem(model!,
+        if initialSystem == "new" && boundaryType == "free"
+            abstol = 1e-7
+            reltol = 1e-4
+            params.viscousTimeScale = 1000.0
+            divisionToggle = 1
+            solver = Tsit5()
+            # Set ODE parameters: 
+            prob = ODEProblem(model!,
                     u0,
                     (0.0, Inf),
                     (params, matrices)
                 )
-        alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
-        integrator = init(prob,
-            solver,
-            tstops=alltStops,
-            abstol=abstol,
-            reltol=reltol,
-            save_on=false,
-            save_start=false,
-            save_end=true,
-        )  
+            alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
+            integrator = init(prob,
+                solver,
+                tstops=alltStops,
+                abstol=abstol,
+                reltol=reltol,
+                save_on=false,
+                save_start=false,
+                save_end=true,
+            )  
+        else
+            abstol = 1e-6
+            reltol = 1e-3
+            params.viscousTimeScale = 1.0
+            divisionToggle = 0
+            solver = SRIW1()
+
+            # Set up SDE integrator 
+            prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
+            alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
+            integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        
+            
+        end
+        
         outputCounter = [1]
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
@@ -190,7 +214,7 @@ function vertexModel(;
             # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
             # Output data to file 
-            if integrator.t >= alltStops[outputCounter[1]]
+            if integrator.t >= alltStops[outputCounter[1]] || cellsTypesAssigned == 1 # To output the final state ones cell types are assigned
                 # Update progress on command line 
                 printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
                 if frameDataToggle == 1
@@ -221,8 +245,7 @@ function vertexModel(;
             # Step integrator forwards in time to update vertex positions 
             step!(integrator)
 
-            if initialSystem == "new"
-            else
+            if boundaryType == "periodic"
                 # Wrap vertices into the periodic domain
                 R = reinterpret(SVector{2,Float64}, integrator.u)
                 for k in 1:length(R)
@@ -255,7 +278,6 @@ function vertexModel(;
             if divisionToggle==1
                 if division!(integrator, params, matrices) > 0
                     u_modified!(integrator, true)
-                    # senseCheck(matrices.A, matrices.B; marker="division") # Check for nonzero values in B*A indicating error in incidence matrices          
                     topologyChange!(R,params,matrices) # Update system matrices after division 
                     spatialData!(R, params, matrices) # Update spatial data after division 
                 end
@@ -277,8 +299,13 @@ function vertexModel(;
 
             totalEnergyPrevious = totalEnergy
 
+            # Check if we have assigned cell types in the previous run
+            if cellsTypesAssigned ==1 
+                break
+            end 
+
             # For the case where we grow the monolayer: 
-            if initialSystem == "new" && params.nCells >= desiredNumCells && cellsTypesAssigned == 0
+            if initialSystem == "new" && boundaryType == "free" && params.nCells >= desiredNumCells && cellsTypesAssigned == 0
                 println("Desired cell number reached. Assigning cell types")
 
                 @unpack nCells,Area_A_ratio = params
@@ -294,6 +321,7 @@ function vertexModel(;
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
+
             end
 
             
