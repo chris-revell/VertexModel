@@ -71,6 +71,7 @@ function vertexModel(;
     scatterEdges = 0,
     scatterVertices = 0,
     scatterCells = 0,
+    plotXis = 1,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
@@ -227,7 +228,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing

@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotForces, plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -44,7 +44,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         μ,
         boundaryCells,
         P_effs,
-        ξs = matrices
+        ξs,
+        ξsVec = matrices
     @unpack initialSystem,
         boundaryType,
         nEdges, 
@@ -300,6 +301,11 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     if plotForces == 1
         arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
+
+    if plotXis == 1 
+        arrows!(ax3,Point{2,Float64}.(cellPositions), Vec2f.(ξsVec), color=:black,linewidth = 3)
+    end
+
 
     if plotEdgeMidpointLinks == 1
         for i = 1:nCells

@@ -100,6 +100,7 @@ end
     P_effs           ::Vector{Float64}                              # Effective pressure for each cell
     T_effs           ::Vector{Float64}                              # Effective tension for each cell  
     ξs               ::Vector{Float64}                              # Magnitude of deviatoric stress for each cell
+    ξsVec            ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing the deviatoric stress vector for each cell, with direction along the long axis of the cell and magnitude equal to ξs
 end
 
 export ParametersContainer,MatricesContainer

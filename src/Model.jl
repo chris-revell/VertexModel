@@ -59,6 +59,7 @@ function model!(du, u, p, t)
     fill!(F, @SVector zeros(2)) # internal forces on vertices 
     dropzeros!(F)
     fill!(externalF, @SVector zeros(2))
+    
 
     peripheryLength = sum(boundaryEdges .* edgeLengths)
 

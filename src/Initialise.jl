@@ -188,6 +188,7 @@ function initialise(; initialSystem,
         P_effs            = zeros(nCells),
         T_effs            = zeros(nCells),
         ξs                = zeros(nCells),
+        ξsVec             = fill(SVector{2,Float64}(zeros(2)), nCells),
     )
 
     # Pack parameters into a struct for convenience
