@@ -17,7 +17,6 @@ using SparseArrays
 function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
 
     # Assume A and B have already been adjusted 
-
     # Resize other multidimentional matrices in container 
     matrices.Aᵀ                = spzeros(Int64, nVertsNew, nEdgesNew)
     matrices.Ā                 = spzeros(Int64, nEdgesNew, nVertsNew)
@@ -38,8 +37,6 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.cellOrientedAreas, nCellsNew)
     resize!(matrices.cellShapeTensor, nCellsNew)
     resize!(matrices.cellAreas, nCellsNew)
-    append!(matrices.cellA₀s, fill(params.A₀, nCellsNew - params.nCells))
-    append!(matrices.cellL₀s, fill(params.L₀, nCellsNew - params.nCells))
     resize!(matrices.cellTensions, nCellsNew)
     resize!(matrices.cellPressures, nCellsNew)
     resize!(matrices.edgeLengths, nEdgesNew)
@@ -52,15 +49,36 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.totalF,nVertsNew)
     resize!(matrices.externalF,nVertsNew)
 
-    # Update stored number of cells, edges, and vertices
-    params.nVerts = nVertsNew
-    params.nEdges = nEdgesNew
-    params.nCells = nCellsNew
-
     return nothing
 
 end
 
+# Functions to resize those matrices in which the stored values cannot be independently inferred, so we 
+# must be more careful about which components we delete or add
+function shrinkIndependentMatrices!(matrices, removedCells, removedEdges, removedVerts)
+    deleteat!(matrices.cellTimeToDivide, removedCells)
+    deleteat!(matrices.μ, removedCells)
+    deleteat!(matrices.Γ, removedCells)
+    deleteat!(matrices.cellA₀s, removedCells)
+    deleteat!(matrices.cellL₀s, removedCells)
+    deleteat!(matrices.timeSinceT1, removedEdges)
+    return nothing 
+end
+
+function growIndependentMatrices!(params, matrices, nAddedCells, nAddedEdges)
+    # cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
+    # push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
+    append!(matrices.cellTimeToDivide, zeros(nAddedCells))
+    append!(matrices.μ, ones(nAddedCells))
+    append!(matrices.Γ, fill(params.γ, nAddedCells))
+    append!(matrices.cellA₀s, fill(params.A₀, nAddedCells))
+    append!(matrices.cellL₀s, fill(params.L₀, nAddedCells))
+    append!(matrices.timeSinceT1, fill(params.nonDimCycleTime/100.0, nAddedEdges)) # Ensure new edges can do T1 transitions immediately
+    return nothing 
+end
+
 export resizeMatrices!
+export shrinkIndependentMatrices!
+export growIndependentMatrices!
 
 end
