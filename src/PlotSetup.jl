@@ -14,7 +14,7 @@ using CairoMakie
 function plotSetup(;hideDecorationsSpines=true)
 
     # Create plot canvas
-    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    set_theme!(figure_padding=1, backgroundcolor=(:black,1.0), font="Helvetica")
     fig = Figure(size=(1000,1000))
     grid = fig[1,1] = GridLayout()
     ax = Axis(grid[1,1],aspect=DataAspect())

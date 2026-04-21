@@ -29,6 +29,7 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
+@from "EdgeAblation.jl" using EdgeAblation
 
 function vertexModel(;
     initialSystem = "new",
@@ -110,6 +111,8 @@ function vertexModel(;
     integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
     outputCounter = [1]
 
+    ablated = [false]
+
     # Iterate until integrator time reaches max system time 
     while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
         
@@ -158,6 +161,19 @@ function vertexModel(;
         # Update cell ages with (variable) timestep used in integration step
         matrices.cellTimeToDivide .-= integrator.dt
         matrices.timeSinceT1 .+= integrator.dt
+
+        if !(ablated[1]) && integrator.t>params.tMax/2.0
+            systemCOM = sum(R)./params.nVerts 
+            jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
+            # jAblated = rand(findall(x->x!=0, matrices.boundaryEdges)) # non-boundary edge
+            edgeAblation(jAblated, params, matrices, integrator)
+            topologyChange!(matrices) # Update system matrices after T1 transition
+            # Reinterpret state vector as a vector of SVectors 
+            R = reinterpret(SVector{2,Float64}, integrator.u)    
+            spatialData!(R, params, matrices) # Update spatial data after T1 transition  
+            ablated[1] = true
+        end
+
     end
 
     # If outputToggle==1, save animation object and save final system matrices
