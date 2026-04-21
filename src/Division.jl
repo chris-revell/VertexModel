@@ -167,9 +167,9 @@ function division!(integrator,params,matrices)
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             cellTimeToDivide[end] = rand(distLogNormal)*nonDimCycleTime
             # Update stored number of cells, edges, and vertices
-            params.nVerts = nVerts+1
-            params.nEdges = nEdges+3
-            params.nCells = nCells+1
+            params.nVerts = size(Atmp,2)
+            params.nEdges = size(Atmp,1)
+            params.nCells = size(Btmp,1)
 
             divisionCount = 1
             
