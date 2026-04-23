@@ -29,22 +29,39 @@ function edgeAblation!(j, params, matrices, integrator)
         nEdges,
         nCells = params 
 
-    # Find cells adjacent to edge j
-    j_is = sort(findall(x -> x!=0, B[:,j]))
-    # Find trailing vertices adjacent to edge j left behind after edge ablation 
-    j_ks = findall(x -> x!=0, A[j,:])
+    # Label adjacent cells as i₁, i₂. We will delete i₂ and add the remaining edges to cell i₁:
+    i₁,i₂ = sort(findall(x -> x!=0, B[:,j]))
 
     cellsToRemove = fill(true,nCells)
     edgesToRemove = fill(true,nEdges)
-    vertsToRemove = fill(true,nVerts)
+    vertsToRemove = fill(true,nVerts) # We won't remove vertices in this version of ablation
     
-    cellsToRemove[j_is] .= false
+    cellsToRemove[i₂] .= false
     edgesToRemove[j] = false
 
-    # Find other edges adjacent to trailing vertices
-    for k in j_ks 
-       
-    end
+    # Find all edges on i₂, excluding the ablated edge:
+    i₂_js = [jj for jj in findall(x -> x!=0, B[i₂,:]) if jj!=j]
+
+    # Add edges to i₁ with same orientation:
+    for edge in i₂_js
+        B[i₁,edge] = B[i₂,edge] 
+    end 
+
+    # Remove edge and cell from adjacency matrices: 
+    Btmp = B[cellsToRemove, edgesToRemove]
+    Atmp = A[edgesToRemove, vertsToRemove]
+
+    matrices.A = Atmp
+    matrices.B = Btmp
+
+    # Resize most matrices in matrices container 
+    resizeMatrices!(params, matrices, size(Atmp,2), size(Btmp,2), size(Btmp,1))
+    # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to carefully delete specific values
+    shrinkIndependentMatrices!(matrices, i₂, findall(x->false, edgesToRemove), [])
+    # Update stored number of cells and edges
+    params.nEdges = size(Atmp,1)
+    params.nCells = size(Btmp,1)
+
 
     return nothing
 

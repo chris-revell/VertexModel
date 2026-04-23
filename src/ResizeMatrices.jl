@@ -70,6 +70,16 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
 
 end
 
-export resizeMatrices!
+function shrinkIndependentMatrices!(matrices, removedCells, removedEdges, removedVerts)
+    deleteat!(matrices.cellTimeToDivide, removedCells)
+    deleteat!(matrices.μ, removedCells)
+    deleteat!(matrices.Γ, removedCells)
+    deleteat!(matrices.cellA₀s, removedCells)
+    deleteat!(matrices.cellL₀s, removedCells)
+    deleteat!(matrices.timeSinceT1, removedEdges)
+    return nothing 
+end
+
+export resizeMatrices!, shrinkIndependentMatrices!
 
 end

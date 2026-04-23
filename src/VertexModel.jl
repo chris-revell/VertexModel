@@ -58,6 +58,7 @@ function vertexModel(;
     peripheralTension = 0.0,
     β = 0.0,
     divisionToggle = 1,
+    ablationToggle = 1,
     solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
@@ -205,6 +206,8 @@ function vertexModel(;
         end
         
         outputCounter = [1]
+        ablated = [false]
+        
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
 
@@ -290,6 +293,19 @@ function vertexModel(;
             # Update cell ages with (variable) timestep used in integration step
             matrices.cellTimeToDivide .-= integrator.dt
             matrices.timeSinceT1 .+= integrator.dt
+
+            if ablationToggle == 1
+                if !(ablated[1]) && integrator.t>params.tMax/2.0
+                    systemCOM = sum(R)./params.nVerts 
+                    jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
+                    edgeAblation(jAblated, params, matrices, integrator)
+                    topologyChange!(matrices)
+                    # Reinterpret state vector as a vector of SVectors 
+                    R = reinterpret(SVector{2,Float64}, integrator.u)    
+                    spatialData!(R, params, matrices) # Update spatial data after T1 transition  
+                    ablated[1] = true
+                end
+            end
 
             
             energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
