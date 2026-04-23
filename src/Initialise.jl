@@ -180,7 +180,7 @@ function initialise(; initialSystem,
         ϵ                 = SMatrix{2, 2, Float64}([
                                 0.0 1.0
                                 -1.0 0.0
-                            ]),
+                            ]), # clockwise orientation
         cellShapeTensor   = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells),
         cellLabels        = cellLabels,
         Λs                = zeros(nEdges),
