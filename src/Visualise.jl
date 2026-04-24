@@ -282,6 +282,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
     end
 
+    for j=1:nEdges 
+        if matrices.edgeLengths[j] < params.t1Threshold
+            scatter!(ax1, Point{2,Float64}(edgeMidpoints[j]), color=:red)
+            annotations!(ax1, [string(j)], [Point{2,Float64}(edgeMidpoints[j])], color=:red)
+        end
+    end
+
     # Scatter cell positions
     if scatterCells == 1
         for i=1:nCells

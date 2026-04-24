@@ -89,6 +89,7 @@ function t1Transitions!(integrator, params, matrices)
                         # Remove vertex b from edge m 
                         A[m, b] = 0
                     else
+                        
                         # Boundary edge 
                         # Find cells P, Q, R surrounding vertices a and b. There is no cell S.
                         Q = findall(x -> x != 0, @view B[:, j])[1]
@@ -158,6 +159,62 @@ function t1Transitions!(integrator, params, matrices)
                 
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
+            elseif boundaryType == "free" && (length(aCells) == 1 || length(bCells) == 1)
+                # The case where a vertex on j belongs only to one cell - i.e., a 'spike' at the periphery
+
+                
+                if length(bCells) == 1 # b is the spike, no cell R
+                    println("first case t1 at spiky boundary edge j = ", j)
+                    Q = findall(x -> x!=0, @view B[:,j])[1]
+                    # Assume cell P shares vertex a
+                    P = setdiff(aCells, [Q])[1]
+
+                    aEdges = findall(x -> x!=0, @view A[:,a])
+                    k = setdiff(aEdges, findall(x -> x!=0, @view B[Q,:]))[1] # Find edge k around vertex a that is not shared by cell Q
+                    bEdges = findall(x -> x!=0, @view A[:,b])   
+                    m = setdiff(bEdges,j)[1]# Find edge m around vertex b that IS shared by cell Q
+                
+                    # Add edge j to cell P, with the opposite orientation relative to cell Q
+                    B[P, j] = -B[Q, j]
+                    # Remove j from cell Q
+                    B[Q,j] = 0
+                    # Add vertex b to edge k, setting orientation from previous orientation of edge a
+                    A[k, b] = A[k, a]
+                    # Remove vertex a from edge k
+                    A[k, a] = 0
+                    # Add vertex a to edge m, setting orientation from previous orientation of edge b
+                    A[m, a] = A[m, b]
+                    # Remove vertex b from edge m 
+                    A[m, b] = 0
+                elseif length(aCells) == 1 # a is the spike 
+                    println("second case t1 at spiky boundary edge j = ", j)
+                    Q = findall(x -> x!=0, @view B[:,j])[1]
+                    # Assume cell R shares vertex b
+                    R = setdiff(bCells, [Q])[1]
+
+                    bEdges = findall(x -> x!=0, @view A[:,b])   
+                    m = (findall(x -> x != 0, @view B[Q, :])∩findall(x -> x != 0, @view B[R, :]))[1] # Find edge m around vertex b that IS shared by cell Q
+                
+                    # Add edge j to cell R, with the same orientation relative to cell Q
+                    B[R, j] = B[Q, j]
+                    # Remove j from cell Q
+                    B[Q,j] = 0
+                    # Add vertex a to edge m, setting orientation from previous orientation of edge b
+                    A[m, a] = A[m, b]
+                    # Remove vertex b from edge m 
+                    A[m, b] = 0
+                else
+                    println("Spiky T1 failed - neither vertex is a spike.")
+                    
+                end 
+
+                R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
+                R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
+                
+                transitionCount += 1
+                matrices.firstT1onEdge[j] = 1
+                
+                break 
             end 
         end
     end

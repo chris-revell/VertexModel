@@ -59,7 +59,7 @@ function vertexModel(;
     peripheralTension = 0.0,
     β = 0.0,
     divisionToggle = 1,
-    ablationToggle = 1,
+    ablationToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
     subFolder = "",
@@ -246,6 +246,9 @@ function vertexModel(;
                 stressFig = ξ_iDiagram(integrator.t,axξ,stressFig,matrices,params)
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
+
+                # println(findall(x -> x!=0,matrices.boundaryEdges))
+                println("spiky edge lengths = ",matrices.edgeLengths[488],matrices.edgeLengths[36])
                 
             end
 
@@ -294,7 +297,7 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             if ablationToggle == 1
-                if !(ablated[1]) && integrator.t>params.tMax/10.0
+                if !(ablated[1]) && integrator.t>params.tMax/4.0
                     systemCOM = sum(R)./params.nVerts 
                     jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
                     println("jAblated=",jAblated)
@@ -304,7 +307,7 @@ function vertexModel(;
                     R = reinterpret(SVector{2,Float64}, integrator.u)    
                     spatialData!(R, params, matrices) # Update spatial data after T1 transition  
                     ablated[1] = true
-                    divisionToggle=0 # Stop divisions after ablation so we can see the effect clearly without the system getting too big
+                    # divisionToggle=0 # Stop divisions after ablation so we can see the effect clearly without the system getting too big
                 end
             end
         
