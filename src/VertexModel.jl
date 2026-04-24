@@ -38,6 +38,7 @@ using Random
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 @from "CubicSolutions.jl" using CubicSolutions
 @from "ParameterDiagram.jl" using ParameterDiagram
+@from "EdgeAblation.jl" using EdgeAblation
 
 
 
@@ -50,7 +51,7 @@ function vertexModel(;
     nCycles = 0.01,
     realCycleTime = 86400.0,
     realTimetMax = nCycles*realCycleTime,
-    γ = 0.03,
+    γ = 0.05,
     L₀ = 0.5,
     A₀ = 1.0,
     viscousTimeScale = 1.0,
@@ -76,8 +77,6 @@ function vertexModel(;
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
-    abstol = 1e-7, 
-    reltol = 1e-4,
     energyModel = "quadratic2pops",
     vertexWeighting = 1,
     noiseWeighting = 1,
@@ -295,30 +294,20 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             if ablationToggle == 1
-                if !(ablated[1]) && integrator.t>params.tMax/2.0
+                if !(ablated[1]) && integrator.t>params.tMax/10.0
                     systemCOM = sum(R)./params.nVerts 
                     jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
-                    edgeAblation(jAblated, params, matrices, integrator)
-                    topologyChange!(matrices)
+                    println("jAblated=",jAblated)
+                    edgeAblation!(jAblated, params, matrices, integrator)
+                    topologyChange!(R,params,matrices)
                     # Reinterpret state vector as a vector of SVectors 
                     R = reinterpret(SVector{2,Float64}, integrator.u)    
                     spatialData!(R, params, matrices) # Update spatial data after T1 transition  
                     ablated[1] = true
+                    divisionToggle=0 # Stop divisions after ablation so we can see the effect clearly without the system getting too big
                 end
             end
-
-            
-            energyComponent1 = sum((1/2).*(matrices.cellAreas .- 1).^2)
-            energyComponent2 = sum((params.γ/2).*(matrices.cellPerimeters).^2)
-            energyComponent3 = sum(matrices.Λs .* matrices.edgeLengths)
-
-            totalEnergy = energyComponent1 + energyComponent2 + energyComponent3
-            
-
-            # Check the change in energy to see if we are close to a minimum. 
-            ΔE = totalEnergyPrevious - totalEnergy 
-
-            totalEnergyPrevious = totalEnergy
+        
 
             # Check if we have assigned cell types in the previous run
             if cellsTypesAssigned ==1 

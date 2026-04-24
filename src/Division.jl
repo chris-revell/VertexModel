@@ -186,11 +186,17 @@ function division!(integrator,params,matrices)
             matrices.A = Atmp
             matrices.B = Btmp
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
+            growIndependentMatrices!(params, matrices, 1, 3)
             # Matrices not handled in resizeMatrices
             cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
             push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
+
+            # Update stored number of cells, edges, and vertices
+            params.nVerts = size(Atmp,2)
+            params.nEdges = size(Atmp,1)
+            params.nCells = size(Btmp,1)
 
             divisionCount = 1
             

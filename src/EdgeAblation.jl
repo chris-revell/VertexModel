@@ -36,7 +36,7 @@ function edgeAblation!(j, params, matrices, integrator)
     edgesToRemove = fill(true,nEdges)
     vertsToRemove = fill(true,nVerts) # We won't remove vertices in this version of ablation
     
-    cellsToRemove[i₂] .= false
+    cellsToRemove[i₂] = false
     edgesToRemove[j] = false
 
     # Find all edges on i₂, excluding the ablated edge:
@@ -58,6 +58,7 @@ function edgeAblation!(j, params, matrices, integrator)
     resizeMatrices!(params, matrices, size(Atmp,2), size(Btmp,2), size(Btmp,1))
     # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to carefully delete specific values
     shrinkIndependentMatrices!(matrices, i₂, findall(x->false, edgesToRemove), [])
+
     # Update stored number of cells and edges
     params.nEdges = size(Atmp,1)
     params.nCells = size(Btmp,1)
@@ -67,7 +68,7 @@ function edgeAblation!(j, params, matrices, integrator)
 
 end # end function edgeAblation
 
-export edgeAblation
+export edgeAblation!
 
 end # end module 
 

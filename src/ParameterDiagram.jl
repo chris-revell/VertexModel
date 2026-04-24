@@ -68,11 +68,15 @@ function U_iDiagram(t,ax,fig,matrices,params)
         cellPerimeters,
         edgeLengths,
         Λs = matrices
-    @unpack γ = params
+    @unpack γ,
+        nEdges = params
 
     energy1 = sum((1/2).*(cellAreas .- 1).^2)
     energy2 = sum((γ/2).*(cellPerimeters).^2)
-    energy3 = sum(Λs .* edgeLengths)
+    energy3 = 0
+    for j=1:nEdges
+        energy3 += Λs[j] * edgeLengths[j]
+    end
     totalEnergy = energy1+energy2+energy3
 
     scatter!(ax,t,totalEnergy,color=:purple,markersize=5)
