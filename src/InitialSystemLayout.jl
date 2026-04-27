@@ -37,7 +37,7 @@ function initialEdgeLength(γ, L₀; A₀=1.0)
     return sol.u[1]/6
 end
 
-function initialSystemLayout(γ,Λ_AA, nRows,spiky)
+function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
 
     # We start by assuming all cells are A-cells, grow the monolayer, and later assign B-cells
     L₀ = -Λ_AA/(2*γ)
@@ -47,6 +47,12 @@ function initialSystemLayout(γ,Λ_AA, nRows,spiky)
     verticalCellSpacing = 1.5*equilibriumEdgeLength
 
     t1Threshold = equilibriumEdgeLength*0.15
+
+    l_AA = equilibriumEdgeLength
+    l_BB = initialEdgeLength(γ, -Λ_BB/(2*γ))
+    l_AB = initialEdgeLength(γ, -Λ_AB/(2*γ))
+    l_AE = initialEdgeLength(γ, -Λ_AE/(γ))
+    l_BE = initialEdgeLength(γ, -Λ_BE/(γ))
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]
@@ -150,7 +156,7 @@ function initialSystemLayout(γ,Λ_AA, nRows,spiky)
         push!(R, SVector(horizontalCellSpacing*(r[1] - (nRows-1)/2 - 1.0 ), horizontalCellSpacing*r[2]))
     end
 
-    return A, B, R, t1Threshold
+    return A, B, R, t1Threshold, l_AA, l_BB, l_AB, l_AE, l_BE
 
 end
 

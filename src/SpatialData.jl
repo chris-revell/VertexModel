@@ -353,7 +353,8 @@ function spatialData!(R,params,matrices)
             end
 
 
-            ξs[i] = (1/cellAreas[i]) * sqrt(max(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂),0.0))
+            # ξs[i] = (1/cellAreas[i]) * sqrt(max(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂),0.0))
+            ξs[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
             
         end
     end

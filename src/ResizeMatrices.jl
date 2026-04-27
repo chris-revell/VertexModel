@@ -57,6 +57,8 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.ξs,nCellsNew)
     resize!(matrices.ξsVec, nCellsNew)
     resize!(matrices.cellLabels, nCellsNew)
+    resize!(matrices.edgeLabels,nEdgesNew)
+    resize!(matrices.Λs, nEdgesNew)
 
     # Update stored number of cells, edges, and vertices
     params.nVerts = nVertsNew
@@ -78,7 +80,7 @@ function shrinkIndependentMatrices!(matrices, removedCells, removedEdges, remove
     deleteat!(matrices.timeSinceT1, removedEdges)
     deleteat!(matrices.firstT1onEdge, removedEdges)
     deleteat!(matrices.Γ, removedCells)
-    deleteat!(matrices.Λs, removedEdges)
+
     
     return nothing 
 end

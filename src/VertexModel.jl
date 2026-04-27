@@ -247,8 +247,6 @@ function vertexModel(;
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
 
-                # println(findall(x -> x!=0,matrices.boundaryEdges))
-                println("spiky edge lengths = ",matrices.edgeLengths[488],matrices.edgeLengths[36])
                 
             end
 

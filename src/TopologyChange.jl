@@ -51,7 +51,8 @@ function topologyChange!(R,params,matrices)
         boundaryCells,
         cellPositions,
         cellLabels,
-        Λs = matrices
+        Λs,
+        edgeLabels = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread = false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
@@ -100,8 +101,10 @@ function topologyChange!(R,params,matrices)
         if boundaryType=="free" && boundaryEdges[j] == 1
             if sj == 0
                 Λs[j] = Λ_AE       # edge between A cell and external environment
+                edgeLabels[j] = 3
             elseif sj == 1
                 Λs[j] = Λ_BE       # edge between B cell and external environment
+                edgeLabels[j] = 4
             else
                 error("Error: edge with more than one cell on either side")
             end
@@ -109,10 +112,13 @@ function topologyChange!(R,params,matrices)
 
             if sj == 0
                 Λs[j] = Λ_AA       # edge between two A cells
+                edgeLabels[j] = 0
             elseif sj == 1
                 Λs[j] = Λ_AB       # edge between A and B cell
+                edgeLabels[j] = 2
             else
                 Λs[j] = Λ_BB       # edge between two B cells
+                edgeLabels[j] = 1
             end
         end
 

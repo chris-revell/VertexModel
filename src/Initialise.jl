@@ -82,11 +82,13 @@ function initialise(; initialSystem,
     # Initialise system matrices from function or file
     if initialSystem == "new"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R, t1Threshold = initialSystemLayout(γ,Λ_AA,nRows,spiky)
+        A, B, R, t1Threshold, l_AA, l_BB, l_AB, l_AE, l_BE = initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         nCells = size(B, 1)
         nEdges = size(A, 1)
         nVerts = size(A, 2)
+
+        println([l_AA, l_BB, l_AB, l_AE, l_BE])
 
         # Start by assigning all cells as type A:
         cellsTypeB = []
@@ -125,7 +127,7 @@ function initialise(; initialSystem,
         @unpack A,B = importedData["matrices"]
         cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]
-        @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB,t1Threshold,Λ_AA,Λ_AB,Λ_BB,Λ_AE,Λ_BE,γ = importedData["params"]
+        @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB,t1Threshold,Λ_AA,Λ_AB,Λ_BB,Λ_AE,Λ_BE,γ,l_AA,l_AB,l_BB,l_AE,l_BE = importedData["params"]
         
 
     end
@@ -189,6 +191,7 @@ function initialise(; initialSystem,
         T_effs            = zeros(nCells),
         ξs                = zeros(nCells),
         ξsVec             = fill(SVector{2,Float64}(zeros(2)), nCells),
+        edgeLabels        = zeros(Int64, nEdges),
     )
 
     # Pack parameters into a struct for convenience
@@ -233,6 +236,11 @@ function initialise(; initialSystem,
         Λ_BE              = Λ_BE,
         Area_A_ratio      = Area_A_ratio,
         t1timeGap         = t1timeGap,
+        l_AA              = l_AA,
+        l_BB              = l_BB,
+        l_AB              = l_AB,
+        l_AE              = l_AE,
+        l_BE              = l_BE,
     )
 
     # Initial evaluation of matrices based on system topology

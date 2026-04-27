@@ -54,6 +54,11 @@ using CircularArrays
     Area_A_ratio       ::Float64            # Fraction of domain area occupied by A cells 
     t1timeGap          ::Float64            # Time between t1 transitions
     boundaryType       ::String             # Distinguish between "periodic" and "free" boundary conditions
+    l_AA               ::Float64            # Preferred edge length for type A to type A cell-cell interfaces
+    l_BB               ::Float64            # Preferred edge length for type B to type B cell-cell interfaces
+    l_AB               ::Float64            # Preferred edge length for type A to type B cell-cell interfaces
+    l_AE               ::Float64            # Preferred edge length for type A to external interfaces
+    l_BE               ::Float64            # Preferred edge length for type B to external interfaces
 end
 
 @kwdef mutable struct MatricesContainer                               
@@ -101,6 +106,7 @@ end
     T_effs           ::Vector{Float64}                              # Effective tension for each cell  
     ξs               ::Vector{Float64}                              # Magnitude of deviatoric stress for each cell
     ξsVec            ::Vector{SVector{2, Float64}}                  # Vector of 2D static vectors containing the deviatoric stress vector for each cell, with direction along the long axis of the cell and magnitude equal to ξs
+    edgeLabels       ::Vector{Int64}                                # Vector of {0,1,2,3,4} denoting edge type {AA,BB,AB,AE,BE}
 end
 
 export ParametersContainer,MatricesContainer

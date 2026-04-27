@@ -25,25 +25,33 @@ function t1Transitions!(integrator, params, matrices)
         boundaryEdges,
         boundaryCells,
         ϵ,
-        firstT1onEdge = matrices
+        firstT1onEdge,
+        edgeLabels = matrices
     @unpack initialSystem,
         boundaryType,
         nEdges,
         t1Threshold,
         nonDimCycleTime,
         tMax,
-        t1timeGap = params
+        t1timeGap,
+        l_AA,
+        l_BB,
+        l_AB,
+        l_AE,
+        l_BE = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
 
     transitionCount = 0
+    l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
+    t1ThresholdVec = zeros(nEdges)
+    t1ThresholdVec .= l_vec[edgeLabels .+ 1]
 
     for j=1:nEdges
-        if edgeLengths[j] < t1Threshold && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
+        t1ThresholdTemp = t1ThresholdVec[j]*0.1
+        if edgeLengths[j] < t1ThresholdTemp && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
             
-            
-
             timeSinceT1[j] = 0
 
             # Find vertices a and b at either end of the short edge j
