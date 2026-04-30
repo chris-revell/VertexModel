@@ -170,7 +170,7 @@ function vertexModel(;
         if initialSystem == "new" && boundaryType == "free"
             abstol = 1e-7
             reltol = 1e-4
-            params.viscousTimeScale = 1000.0
+            # params.viscousTimeScale = 1000.0
             divisionToggle = 1
             solver = Tsit5()
             # Set ODE parameters: 
@@ -189,10 +189,22 @@ function vertexModel(;
                 save_start=false,
                 save_end=true,
             )  
+        elseif initialSystem == "32-cell" && boundaryType == "free"
+            abstol = 1e-6
+            reltol = 1e-3
+            # params.viscousTimeScale = 1000.0
+            divisionToggle = 1
+            solver = SRIW1()
+
+            # Set up SDE integrator 
+            prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
+            alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
+            integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+        
         else
             abstol = 1e-6
             reltol = 1e-3
-            params.viscousTimeScale = 1.0
+            # params.viscousTimeScale = 1.0
             divisionToggle = 0
             solver = SRIW1()
 
@@ -221,7 +233,7 @@ function vertexModel(;
             # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
             # Output data to file 
-            if integrator.t >= alltStops[outputCounter[1]] || cellsTypesAssigned == 1 # To output the final state ones cell types are assigned
+            if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
                 # Update progress on command line 
                 printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
                 if frameDataToggle == 1
@@ -311,7 +323,7 @@ function vertexModel(;
         
 
             # Check if we have assigned cell types in the previous run
-            if cellsTypesAssigned ==1 
+            if cellsTypesAssigned ==1 && initialSystem == "new"
                 break
             end 
 
@@ -329,6 +341,17 @@ function vertexModel(;
                         push!(params.cellsTypeB, i)
                     end
                 end
+                matrices.cellLabels = zeros(Int64, nCells)
+                matrices.cellLabels[params.cellsTypeB] .= 1
+                cellsTypesAssigned = 1
+            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 32 && cellsTypesAssigned ==0
+                println("32 cells reached. Assign one type-B cell")
+                @unpack nCells = params
+                nACells = nCells - 1
+                systemCOM = sum(matrices.cellPositions)./params.nCells 
+                iSelected = findmin([norm(matrices.cellPositions[i].-systemCOM) for i=1:params.nCells])[2] # central edge
+                params.cellsTypeB = [iSelected]
+                params.cellsTypeA = setdiff(1:nCells, params.cellsTypeB)
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1

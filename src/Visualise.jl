@@ -327,6 +327,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     # Set limits
     reset_limits!(ax1)
+    reset_limits!(ax2)
+    reset_limits!(ax3)
 
     # Add frame to movie 
     recordframe!(mov)
