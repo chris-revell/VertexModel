@@ -45,7 +45,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         boundaryCells,
         P_effs,
         ξs,
-        ξsVec = matrices
+        ξsDir = matrices
     @unpack initialSystem,
         boundaryType,
         nEdges, 
@@ -66,16 +66,16 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     if boundaryType == "free"
         ax1.title = "t = $(@sprintf("%.3f", t))"
-        ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
-        ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
+        ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
+        ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
     elseif boundaryType == "periodic"
         ax1.title = "t = $(@sprintf("%.3f", t))"
         ax1.limits = ((0,L_x),(0,L_y))
     
-        ax2.title = "Plot of P_effᵢ at t = $(@sprintf("%.3f", t))"
+        ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
         ax2.limits = ((0,L_x),(0,L_y))
     
-        ax3.title = "Plot of ξᵢ at t = $(@sprintf("%.3f", t))"
+        ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
         ax3.limits = ((0,L_x),(0,L_y))
     end
    
@@ -309,8 +309,18 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
 
+    # Compute scaling for principal stress direction: 
+    for i=1:nCells
+
+    end
+
     if plotXis == 1 
-        arrows!(ax3,Point{2,Float64}.(cellPositions), Vec2f.(ξsVec), color=:black,linewidth = 3)
+        # for i=1:nCells
+        #     barLength = ξs[i]
+        #     scatter!(ax3,Point{2,Float64}.(cellPositions))
+        # end
+        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 3,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 3,arrowsize=0)
     end
 
 

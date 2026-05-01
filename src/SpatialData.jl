@@ -112,7 +112,7 @@ function spatialData!(R,params,matrices)
         P_effs,
         T_effs,
         ξs,
-        ξsVec = matrices
+        ξsDir = matrices
     @unpack initialSystem,
         boundaryType,
         nCells,
@@ -323,7 +323,7 @@ function spatialData!(R,params,matrices)
 
         # Update the deviatoric stress: 
         Jᵢ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
-        fill!(ξsVec, @SVector zeros(2))
+        fill!(ξsDir, @SVector zeros(2))
 
         for i=1:nCells
             Jᵢterms = fill(SMatrix{2,2,Float64}(zeros(2,2)), nEdges)
@@ -334,7 +334,6 @@ function spatialData!(R,params,matrices)
             Jᵢ[i] = sum(Jᵢterms)
             I₂=Matrix{Float64}(I, 2, 2)
             
-            # ξsVec[i] = (1/cellAreas[i])*(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂)
             devStessTensor = (1/cellAreas[i])*(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂) # Of the form [a , b ; b , -a]
             a = devStessTensor[1,1]
             b = devStessTensor[1,2]
@@ -346,15 +345,18 @@ function spatialData!(R,params,matrices)
             devStessTensorPrincipal = transMatrix' * devStessTensor * transMatrix # Principal stress. Of the form [c,0;0,-c]. c is in the direction thetaPrincipal from the x axis and -c in the direction thetaPrincipal+\pi/2
             if devStessTensorPrincipal[1,1] > 0
                 # This is the tension component, which we plot. [1,1] Corresponds to thetaPrincipal direction
-                ξsVec[i] = SVector(cos(thetaPrincipal), sin(thetaPrincipal))*0.4 #  length of the vector - arbitraty.
+                ξsDir[i] = SVector(cos(thetaPrincipal), sin(thetaPrincipal)) #  length of the vector - arbitraty.
             else
                 # This is the compression component, which we ignore. Tension component is in which [2,2] corresponds to thetaPrincipal+\pi/2 direction
-                ξsVec[i] = SVector(cos(thetaPrincipal + π/2), sin(thetaPrincipal + π/2))*0.4
+                ξsDir[i] = SVector(cos(thetaPrincipal + π/2), sin(thetaPrincipal + π/2))
             end
 
-
-            # ξs[i] = (1/cellAreas[i]) * sqrt(max(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂),0.0))
             ξs[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
+
+            # Scale ξsDir by the approx cell radius the magnitude of ξs to get a more reasonable length for plotting.
+            avgξ = sum(ξs)/nCells
+            approxCellRadius = sqrt(cellAreas[i])/π
+            ξsDir[i] = ξsDir[i] / (avgξ) * ξs[i]*approxCellRadius
             
         end
     end
