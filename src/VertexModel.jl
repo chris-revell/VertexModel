@@ -49,12 +49,12 @@ function vertexModel(;
     cellLayout = "random",
     nRows = 3,
     nCycles = 0.01,
-    realCycleTime = 86400.0,
+    realCycleTime = 400.0, # From Megan's data, using the division rate 0.15/min 
     realTimetMax = nCycles*realCycleTime,
     γ = 0.05,
     L₀ = 0.5,
     A₀ = 1.0,
-    viscousTimeScale = 1.0,
+    viscousTimeScale = 1000.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     β = 0.0,
@@ -74,6 +74,7 @@ function vertexModel(;
     scatterVertices = 0,
     scatterCells = 0,
     plotXis = 1,
+    plotStresses = 1,
     plotForces = 0,
     plotEdgeMidpointLinks = 0,
     randomSeed = 0,
@@ -134,8 +135,6 @@ function vertexModel(;
         spiky = spiky,
     )
 
-    println("t1Threshold = ", params.t1Threshold)
-
     # Create directory in which to store date. Save parameters and store directory name for later use.
     if outputToggle == 1
         folderName = createRunDirectory(params,subFolder)
@@ -170,7 +169,6 @@ function vertexModel(;
         if initialSystem == "new" && boundaryType == "free"
             abstol = 1e-7
             reltol = 1e-4
-            # params.viscousTimeScale = 1000.0
             divisionToggle = 1
             solver = Tsit5()
             # Set ODE parameters: 
@@ -189,10 +187,9 @@ function vertexModel(;
                 save_start=false,
                 save_end=true,
             )  
-        elseif initialSystem == "32-cell" && boundaryType == "free"
+        elseif initialSystem == "32-cell" || boundaryType == "free"
             abstol = 1e-6
             reltol = 1e-3
-            # params.viscousTimeScale = 1000.0
             divisionToggle = 1
             solver = SRIW1()
 
@@ -204,7 +201,6 @@ function vertexModel(;
         else
             abstol = 1e-6
             reltol = 1e-3
-            # params.viscousTimeScale = 1.0
             divisionToggle = 0
             solver = SRIW1()
 
@@ -242,7 +238,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks)
+                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks, plotStresses)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
@@ -344,7 +340,7 @@ function vertexModel(;
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
-            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 32 && cellsTypesAssigned ==0
+            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 15 && cellsTypesAssigned ==0
                 println("32 cells reached. Assign one type-B cell")
                 @unpack nCells = params
                 nACells = nCells - 1
@@ -355,6 +351,7 @@ function vertexModel(;
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
+                # matrices.cellTimeToDivide[iSelected] = rand(params.distLogNormal)*params.nonDimCycleTime
 
             end
 

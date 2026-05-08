@@ -124,6 +124,8 @@ function initialise(; initialSystem,
         importedData = load("$initialSystem"; 
             typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer"=>ParametersContainer, 
             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer"=>MatricesContainer))
+        @unpack nCycles, realCycleTime, viscousTimeScale = importedData["params"]
+        println(nCycles,",", realCycleTime,",", viscousTimeScale)
         @unpack A,B = importedData["matrices"]
         cellTimeToDivide = rand(rng,Uniform(0.0,nonDimCycleTime),size(B,1))
         R = importedData["R"]

@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks)
+function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks,plotStresses)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -66,17 +66,21 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     if boundaryType == "free"
         ax1.title = "t = $(@sprintf("%.3f", t))"
-        ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
-        ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
+        if plotStresses == 1
+            ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
+            ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
+        end
     elseif boundaryType == "periodic"
         ax1.title = "t = $(@sprintf("%.3f", t))"
         ax1.limits = ((0,L_x),(0,L_y))
     
-        ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
-        ax2.limits = ((0,L_x),(0,L_y))
-    
-        ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
-        ax3.limits = ((0,L_x),(0,L_y))
+        if plotStresses == 1
+            ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
+            ax2.limits = ((0,L_x),(0,L_y))
+        
+            ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
+            ax3.limits = ((0,L_x),(0,L_y))
+        end
     end
    
     
@@ -119,11 +123,14 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                 end
 
-                # Plot effective pressures in ax2
-                poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                if plotStresses == 1
+                    # Plot effective pressures in ax2
+                    poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
 
-                # Plot deviatoric stress in ax3
-                poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                    # Plot deviatoric stress in ax3
+                    poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+
+                end
 
             elseif boundaryType == "periodic"
                 # Check whether it is on the periodic boundary: 
@@ -218,29 +225,31 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                    
                     end
 
-                    # Plot effective pressures in ax2
-                    poly!(ax2, oppositePolygon1, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon2, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon3, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon4, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                    
+                    if plotStresses == 1
+                        # Plot effective pressures in ax2
+                        poly!(ax2, oppositePolygon1, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon2, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon3, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon4, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        
 
-                    # Plot deviatoric stress in ax3
-                    poly!(ax3, oppositePolygon1, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon2, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon3, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon4, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                    poly!(ax3, newCellPolygon, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        # Plot deviatoric stress in ax3
+                        poly!(ax3, oppositePolygon1, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon2, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon3, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon4, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, newCellPolygon, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
                     
+                    end    
                 else # the cell isn't on the periodic boundary
                     if i in cellsTypeA
                         poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
@@ -248,13 +257,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                         poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
                     end
 
+                    if plotStresses == 1
+                        # Plot effective pressures in ax2
+                        poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
 
-                    # Plot effective pressures in ax2
-                    poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-
-                    # Plot deviatoric stress in ax3
-                    poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-
+                        # Plot deviatoric stress in ax3
+                        poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                    end
                     
                 end
 
@@ -267,9 +276,10 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     
 
     # Add the colorbar
-    cbar1 = Colorbar(fig[2,2],colormap = cmap1,colorrange=clims1, label="P_effᵢ", width=20,height=Relative(0.6))
-    cbar2 = Colorbar(fig[2,3],colormap = cmap2,colorrange=clims2, label="ξᵢ", width=20,height=Relative(0.6))
-
+    if plotStresses == 1
+        cbar1 = Colorbar(fig[2,2],colormap = cmap1,colorrange=clims1, label="P_effᵢ", width=20,height=Relative(0.6))
+        cbar2 = Colorbar(fig[2,3],colormap = cmap2,colorrange=clims2, label="ξᵢ", width=20,height=Relative(0.6))
+    end
     # Scatter vertices
     if scatterVertices == 1
         scatter!(ax1, Point{2,Float64}.(R), color=:green)
@@ -309,10 +319,6 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         arrows!(ax1, Point{2,Float64}.(R), Vec2f.(sum(F, dims=2)), color=:green)
     end
 
-    # Compute scaling for principal stress direction: 
-    for i=1:nCells
-
-    end
 
     if plotXis == 1 
         # for i=1:nCells
@@ -337,8 +343,10 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     # Set limits
     reset_limits!(ax1)
-    reset_limits!(ax2)
-    reset_limits!(ax3)
+    if plotStresses == 1
+        reset_limits!(ax2)
+        reset_limits!(ax3)
+    end
 
     # Add frame to movie 
     recordframe!(mov)

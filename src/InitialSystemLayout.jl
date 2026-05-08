@@ -22,25 +22,33 @@ using FromFile
 using Random
 using InvertedIndices
 using NonlinearSolve
+using Polynomials 
 
 @from "SenseCheck.jl" using SenseCheck
+@from "CubicSolutions.jl" using CubicSolutions
 
-# Solve cubic equation balancing pressure and tension in a regular hexagon to find initial edge lengths 
-f(u, p) = (sqrt(3)*cos(π/6).*u.^3.0)./288 .+ p.γ*cos(π/3).*u .- p.A₀*cos(π/6).*u/12 .- p.γ*p.L₀*cos(π/3) 
-hexagonPerimeter(A) = 6*sqrt(2*A/(3*sqrt(3)))
-hexagonArea(L) = 3*sqrt(3)*((L/6)^2)/2
-function initialEdgeLength(γ, L₀; A₀=1.0)
-    p = (γ=γ, L₀=L₀, A₀=A₀)
-    u0 = [(min(p.L₀, hexagonPerimeter(p.A₀))-0.001)]
-    prob = NonlinearProblem(f, u0, p)
-    sol = solve(prob)
-    return sol.u[1]/6
+function initialEdgeLength(γ,L₀)
+    a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L₀
+    p = Polynomial([d, c, b, a])
+    roots_p = roots(p)
+    # Only consider real roots
+    tol = 1e-10
+    real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
+    if isempty(real_roots)
+        error("No real roots from l cubic")
+    else
+        l = maximum(real_roots)
+    end
+    return l
 end
 
 function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
 
     # We start by assuming all cells are A-cells, grow the monolayer, and later assign B-cells
     L₀ = -Λ_AA/(2*γ)
+    println("L₀ = ", L₀)
+
+    # plt = plot_parameter_space(100,Λ_AA,Λ_BB,γ)
 
     equilibriumEdgeLength = initialEdgeLength(γ, L₀)
     horizontalCellSpacing = 2.0*equilibriumEdgeLength*sin(π/3)
@@ -48,7 +56,7 @@ function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
 
     t1Threshold = equilibriumEdgeLength*0.15
 
-    l_AA = equilibriumEdgeLength
+    l_AA = initialEdgeLength(γ, -Λ_AA/(2*γ))
     l_BB = initialEdgeLength(γ, -Λ_BB/(2*γ))
     l_AB = initialEdgeLength(γ, -Λ_AB/(2*γ))
     l_AE = initialEdgeLength(γ, -Λ_AE/(γ))

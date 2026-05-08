@@ -47,10 +47,11 @@ function t1Transitions!(integrator, params, matrices)
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     t1ThresholdVec = zeros(nEdges)
     t1ThresholdVec .= l_vec[edgeLabels .+ 1]
+    t1ThresholdVec .= t1ThresholdVec.*0.1
 
     for j=1:nEdges
-        t1ThresholdTemp = t1ThresholdVec[j]*0.1
-        if edgeLengths[j] < t1ThresholdTemp && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
+        
+        if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
             
             timeSinceT1[j] = 0
 
