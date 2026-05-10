@@ -69,10 +69,12 @@ function edgeAblation!(j, params, matrices, integrator)
 
 end # end function edgeAblation
 
-function trackVertices!(R,timePoint, k_tracked,matrices)
+function trackVertices!(R,timePoint,params,matrices)
 
     @unpack trackedVertDistance,
         trackedTimePoints = matrices
+
+    @unpack k_tracked = params
 
     v1 = R[k_tracked[1]]
     v2 = R[k_tracked[2]]
@@ -80,7 +82,6 @@ function trackVertices!(R,timePoint, k_tracked,matrices)
     append!(trackedVertDistance,dist)
     append!(trackedTimePoints, timePoint)
 
-    println("dist = ",dist)
     return dist 
     
 end # end function trackVertices

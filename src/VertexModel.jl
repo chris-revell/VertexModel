@@ -160,6 +160,9 @@ function vertexModel(;
     # Flag for tracking recoil after edge ablation
     trackInitialRecoil = 0
 
+    # Initialise recoil plot: 
+    recoilFig, axVelocity = recoilVelocityPlotSetup()
+
     # Global try so that the movie still saves if there is an error:
     try 
 
@@ -256,6 +259,16 @@ function vertexModel(;
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
 
+                if trackInitialRecoil ==1
+                    # Find the vertices to track 
+                    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
+
+                    trackedDistance = trackVertices!(R,integrator.t,params,matrices)
+
+                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
+
+                    save(datadir(folderName, "recoilVelocity.png"), recoilFig)
+                end
                 
             end
 
@@ -306,31 +319,19 @@ function vertexModel(;
             if ablationToggle == 1
                 if !(ablated[1]) && integrator.t>params.tMax/10.0
                     systemCOM = sum(R)./params.nVerts 
-                    jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
-                    println("jAblated=",jAblated)
-                    edgeAblation!(jAblated, params, matrices, integrator)
+                    params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
+                    println("jAblated=",params.jAblated)
+                    edgeAblation!(params.jAblated, params, matrices, integrator)
                     topologyChange!(R,params,matrices)
                     spatialData!(R, params, matrices) # Update spatial data after T1 transition  
                     ablated[1] = true
 
-
                     divisionToggle=0 # Stop divisions after ablation so we can see the effect clearly without the system getting too big
                     trackInitialRecoil = 1 # Track vertex positions for recoil velocity
-
-                    # Initialise recoil plot: 
-                    recoilFig, axVelocity = recoilVelocityPlotSetup()
                     
-                    # Find the vertices to track 
-                    k_tracked = findall(x -> x!=0, matrices.A[jAblated,:])
                 end
 
-                if trackInitialRecoil == 1
-
-                    trackedDistance = trackVertices!(R,integrator.t,k_tracked,matrices)
-
-                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
-
-                end
+                
             end
 
 

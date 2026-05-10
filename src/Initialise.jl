@@ -245,6 +245,8 @@ function initialise(; initialSystem,
         l_AB              = l_AB,
         l_AE              = l_AE,
         l_BE              = l_BE,
+        k_tracked         = zeros(2),
+        jAblated         = 0,
     )
 
     # Initial evaluation of matrices based on system topology

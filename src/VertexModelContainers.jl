@@ -59,6 +59,8 @@ using CircularArrays
     l_AB               ::Float64            # Preferred edge length for type A to type B cell-cell interfaces
     l_AE               ::Float64            # Preferred edge length for type A to external interfaces
     l_BE               ::Float64            # Preferred edge length for type B to external interfaces
+    k_tracked          ::Vector{Int}        # Tracked vertices after ablation
+    jAblated          ::Int                # Ablated edge 
 end
 
 @kwdef mutable struct MatricesContainer                               
