@@ -98,7 +98,14 @@ function ξ_iDiagram(t,ax,fig,matrices,params)
 
 end # end function
 
+function recoilVelocityDiagram(t,dist,ax,fig)
 
-export parameterDiagram, P_effsDiagram, U_iDiagram, ξ_iDiagram
+    scatter!(ax,t,dist,color=:black,markersize=5)
+    return fig
+    
+end # end function
+
+
+export parameterDiagram, P_effsDiagram, U_iDiagram, ξ_iDiagram, recoilVelocityDiagram
 
 end # end module 

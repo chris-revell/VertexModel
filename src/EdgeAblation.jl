@@ -17,6 +17,7 @@ using FromFile
 using Random
 using OrdinaryDiffEq
 using InvertedIndices
+using Distances
 
 @from "SenseCheck.jl" using SenseCheck
 @from "ResizeMatrices.jl" using ResizeMatrices
@@ -68,7 +69,23 @@ function edgeAblation!(j, params, matrices, integrator)
 
 end # end function edgeAblation
 
-export edgeAblation!
+function trackVertices!(R,timePoint, k_tracked,matrices)
+
+    @unpack trackedVertDistance,
+        trackedTimePoints = matrices
+
+    v1 = R[k_tracked[1]]
+    v2 = R[k_tracked[2]]
+    dist = sqrt((v1[1]-v2[1])^2 + (v1[2]-v2[2])^2)
+    append!(trackedVertDistance,dist)
+    append!(trackedTimePoints, timePoint)
+
+    println("dist = ",dist)
+    return dist 
+    
+end # end function trackVertices
+
+export edgeAblation!, trackVertices!
 
 end # end module 
 

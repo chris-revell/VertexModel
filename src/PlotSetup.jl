@@ -73,6 +73,20 @@ function stressPlotSetup()
 
 end # end function
 
-export plotSetup, stressPlotSetup
+function recoilVelocityPlotSetup()
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    recoilFig = Figure(size=(600,600))
+
+    # Initialise a figure for tracking sum of P_effsA_i: 
+    gridRecoil = recoilFig[1,1] = GridLayout()
+    axVelocity = Axis(gridRecoil[1,1],aspect=1)
+    axVelocity.title = "Initial recoil velocity"
+    axVelocity.xlabel = "t"
+    axVelocity.ylabel = "Δ|rₖ|"
+
+    return recoilFig, axVelocity
+end
+
+export plotSetup, stressPlotSetup, recoilVelocityPlotSetup
 
 end # end module 

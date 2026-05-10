@@ -194,6 +194,8 @@ function initialise(; initialSystem,
         ξs                = zeros(nCells),
         ξsDir             = fill(SVector{2,Float64}(zeros(2)), nCells),
         edgeLabels        = zeros(Int64, nEdges),
+        trackedVertDistance = [],
+        trackedTimePoints = [],
     )
 
     # Pack parameters into a struct for convenience

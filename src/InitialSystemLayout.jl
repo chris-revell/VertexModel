@@ -46,7 +46,6 @@ function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
 
     # We start by assuming all cells are A-cells, grow the monolayer, and later assign B-cells
     L₀ = -Λ_AA/(2*γ)
-    println("L₀ = ", L₀)
 
     # plt = plot_parameter_space(100,Λ_AA,Λ_BB,γ)
 
