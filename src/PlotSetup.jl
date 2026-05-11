@@ -82,7 +82,7 @@ function recoilVelocityPlotSetup()
     axVelocity = Axis(gridRecoil[1,1],aspect=1)
     axVelocity.title = "Initial recoil velocity"
     axVelocity.xlabel = "t"
-    axVelocity.ylabel = "Δ|rₖ|"
+    axVelocity.ylabel = "|r₁-r₂|"
 
     return recoilFig, axVelocity
 end

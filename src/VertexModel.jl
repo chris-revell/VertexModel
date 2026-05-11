@@ -54,7 +54,7 @@ function vertexModel(;
     γ = 0.05,
     L₀ = 0.5,
     A₀ = 1.0,
-    viscousTimeScale = 1000.0,
+    viscousTimeScale = 10.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     β = 0.0,
@@ -163,6 +163,7 @@ function vertexModel(;
     # Initialise recoil plot: 
     recoilFig, axVelocity = recoilVelocityPlotSetup()
 
+
     # Global try so that the movie still saves if there is an error:
     try 
 
@@ -232,6 +233,17 @@ function vertexModel(;
 
             # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
 
+            if trackInitialRecoil ==1 
+                # Find the vertices to track 
+                params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
+
+                trackedDistance = trackVertices!(R,integrator.t,params,matrices)
+
+                recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
+
+                save(datadir(folderName, "recoilVelocity.png"), recoilFig)
+            end
+            
             # Output data to file 
             if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
                 # Update progress on command line 
@@ -259,16 +271,10 @@ function vertexModel(;
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
 
-                if trackInitialRecoil ==1
-                    # Find the vertices to track 
-                    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
-
-                    trackedDistance = trackVertices!(R,integrator.t,params,matrices)
-
-                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
-
-                    save(datadir(folderName, "recoilVelocity.png"), recoilFig)
-                end
+                # Ony want to track the beginning of the recoil
+                # if trackInitialRecoil == 1
+                #     trackInitialRecoil = 0
+                # end
                 
             end
 
@@ -317,7 +323,7 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             if ablationToggle == 1
-                if !(ablated[1]) && integrator.t>params.tMax/10.0
+                if !(ablated[1]) && integrator.t>params.tMax/3.0
                     systemCOM = sum(R)./params.nVerts 
                     params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
                     println("jAblated=",params.jAblated)
@@ -334,6 +340,9 @@ function vertexModel(;
                 
             end
 
+            
+            
+            
 
         
 

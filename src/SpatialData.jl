@@ -307,7 +307,7 @@ function spatialData!(R,params,matrices)
         cellPressures .= μ .*(cellAreas - cellA₀s)
     elseif energyModel == "quadratic2pops"
         # Quadratic energy model with two cell populations 
-        cellPressures .= cellAreas .- 1.0
+        cellPressures .= cellAreas .- cellA₀s
         for i in 1:nCells
             cellTensions[i] = Γ[i] * cellPerimeters[i]
         end

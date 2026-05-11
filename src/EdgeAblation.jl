@@ -25,7 +25,8 @@ using Distances
 function edgeAblation!(j, params, matrices, integrator)
 
     @unpack A,
-        B = matrices
+        B,
+        cellA₀s = matrices
     @unpack nVerts,
         nEdges,
         nCells = params 
@@ -48,6 +49,8 @@ function edgeAblation!(j, params, matrices, integrator)
         B[i₁,edge] = B[i₂,edge] 
     end 
 
+    cellA₀s[i₁] = cellA₀s[i₁] + cellA₀s[i₂] # Update target area of merged cell
+
     # Remove edge and cell from adjacency matrices: 
     Btmp = B[cellsToRemove, edgesToRemove]
     Atmp = A[edgesToRemove, vertsToRemove]
@@ -59,6 +62,7 @@ function edgeAblation!(j, params, matrices, integrator)
     resizeMatrices!(params, matrices, size(Atmp,2), size(Btmp,2), size(Btmp,1))
     # Some matrices need special treatment because their values cannot be inferred from A, B, and R, so we need to carefully delete specific values
     shrinkIndependentMatrices!(matrices, i₂, findall(x->false, edgesToRemove), [])
+
 
     # Update stored number of cells and edges
     params.nEdges = size(Atmp,1)
