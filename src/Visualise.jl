@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks,plotStresses)
+function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks,plotStresses,trackInitialRecoil)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -54,7 +54,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         cellsTypeA, 
         cellsTypeB,
         L_x,
-        L_y = params
+        L_y,
+        k_tracked = params
 
     empty!(ax1)
     empty!(ax2)
@@ -292,6 +293,9 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
     end
 
+    scatter!(ax1,Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
+    annotations!(ax1, string.(collect(1:3)), Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
+
     for j=1:nEdges 
         if matrices.edgeLengths[j] < params.t1Threshold
             scatter!(ax1, Point{2,Float64}(edgeMidpoints[j]), color=:red)
@@ -338,6 +342,12 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     linestyle=:dot,
                     color=:black)
             end
+        end
+    end
+
+    if trackInitialRecoil == 1
+        for k in k_tracked 
+            scatter!(ax1, Point{2,Float64}(R[k]), color=:red)
         end
     end
 

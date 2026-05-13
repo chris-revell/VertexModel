@@ -38,7 +38,8 @@ function t1Transitions!(integrator, params, matrices)
         l_BB,
         l_AB,
         l_AE,
-        l_BE = params
+        l_BE,
+        β = params
 
     # Reinterpret state vector as a vector of SVectors 
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
@@ -52,6 +53,13 @@ function t1Transitions!(integrator, params, matrices)
     for j=1:nEdges
         
         if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
+
+            # Stopping the back and forth of t1s when the system equilibrates
+            if firstT1onEdge[j] >= 5
+                println("T1 attempted and failed")
+                break
+            end
+            
             
             timeSinceT1[j] = 0
 
@@ -65,8 +73,7 @@ function t1Transitions!(integrator, params, matrices)
             bCells = findall(x -> x != 0, @view C[:, b])
             # println("aCells: ", aCells)
             # println("bCells: ", bCells)
-
-            # println("t1 transition triggerred at vertices ",a,b)
+            println("t1 transition triggerred at vertices ",a,b)
             
 
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
@@ -164,7 +171,12 @@ function t1Transitions!(integrator, params, matrices)
                 end
                 
                 transitionCount += 1
-                matrices.firstT1onEdge[j] = 1
+                if firstT1onEdge[j] == 0
+                    firstT1onEdge[j] = 1
+                elseif β==0.0
+                    firstT1onEdge[j] += 1
+                    println(firstT1onEdge[j])
+                end
                 
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.
                 break
@@ -221,7 +233,13 @@ function t1Transitions!(integrator, params, matrices)
                 R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
                 
                 transitionCount += 1
-                matrices.firstT1onEdge[j] = 1
+                if firstT1onEdge[j] == 0
+                    firstT1onEdge[j] = 1
+                elseif β==0.0
+                    firstT1onEdge[j] += 1
+                    println(firstT1onEdge[j])
+                end
+                
                 
                 break 
             end 

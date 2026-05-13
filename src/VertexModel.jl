@@ -206,7 +206,6 @@ function vertexModel(;
         else
             abstol = 1e-6
             reltol = 1e-3
-            divisionToggle = 0
             solver = SRIW1()
 
             # Set up SDE integrator 
@@ -232,17 +231,6 @@ function vertexModel(;
             end
 
             # Note that reinterpreting accesses the same underlying data, so changes to R will update integrator.u and vice versa 
-
-            if trackInitialRecoil ==1 
-                # Find the vertices to track 
-                params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
-
-                trackedDistance = trackVertices!(R,integrator.t,params,matrices)
-
-                recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
-
-                save(datadir(folderName, "recoilVelocity.png"), recoilFig)
-            end
             
             # Output data to file 
             if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
@@ -254,7 +242,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks, plotStresses)
+                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks, plotStresses, trackInitialRecoil)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
@@ -271,10 +259,20 @@ function vertexModel(;
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
 
-                # Ony want to track the beginning of the recoil
-                # if trackInitialRecoil == 1
-                #     trackInitialRecoil = 0
-                # end
+                if trackInitialRecoil ==1 
+                    # Find the vertices to track 
+                    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
+
+                    trackedDistance = trackVertices!(R,integrator.t,params,matrices)
+
+                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
+
+                    save(datadir(folderName, "recoilVelocity.png"), recoilFig)
+                end
+
+                maxT1count = maximum(matrices.firstT1onEdge)
+
+                println("edge index with high number of transitions: ", findall(x -> x==maxT1count && x!=0,matrices.firstT1onEdge))
                 
             end
 
