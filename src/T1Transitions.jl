@@ -48,7 +48,7 @@ function t1Transitions!(integrator, params, matrices)
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     t1ThresholdVec = zeros(nEdges)
     t1ThresholdVec .= l_vec[edgeLabels .+ 1]
-    t1ThresholdVec .= t1ThresholdVec.*0.1
+    t1ThresholdVec .= t1ThresholdVec.*0.2
 
     for j=1:nEdges
         

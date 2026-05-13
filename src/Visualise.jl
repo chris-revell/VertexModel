@@ -55,7 +55,12 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         cellsTypeB,
         L_x,
         L_y,
-        k_tracked = params
+        k_tracked,
+        l_AA,
+        l_BB,
+        l_AB,
+        l_AE,
+        l_BE = params
 
     empty!(ax1)
     empty!(ax2)
@@ -293,11 +298,14 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
     end
 
-    scatter!(ax1,Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
-    annotations!(ax1, string.(collect(1:3)), Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
+    # scatter!(ax1,Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
+    # annotations!(ax1, string.(collect(1:3)), Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
 
+    l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
+    
     for j=1:nEdges 
-        if matrices.edgeLengths[j] < params.t1Threshold
+        edget1Threshold = l_vec[matrices.edgeLabels[j]+1]*0.15
+        if matrices.edgeLengths[j] < edget1Threshold
             scatter!(ax1, Point{2,Float64}(edgeMidpoints[j]), color=:red)
             annotations!(ax1, [string(j)], [Point{2,Float64}(edgeMidpoints[j])], color=:red)
         end

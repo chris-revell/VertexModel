@@ -132,6 +132,7 @@ function initialise(; initialSystem,
         @unpack nCells,nEdges,nVerts,cellsTypeA,cellsTypeB,t1Threshold,Λ_AA,Λ_AB,Λ_BB,Λ_AE,Λ_BE,γ,l_AA,l_AB,l_BB,l_AE,l_BE = importedData["params"]
         
 
+        println([l_AA, l_BB, l_AB, l_AE, l_BE])
     end
 
     

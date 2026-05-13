@@ -86,13 +86,13 @@ function vertexModel(;
     B_in = spzeros(2), 
     L_x = 10,
     L_y = 10,
-    Λ_AA = -0.1, 
-    Λ_AB = -0.11,
+    Λ_AA = -0.2, 
+    Λ_AB = -0.2,
     Λ_BB = -0.2,
     Λ_AE = -0.1, 
     Λ_BE = -0.1,
     Area_A_ratio = 0.5,
-    t1timeGap = 1e-1,
+    t1timeGap = 1e-2,
     spiky = true,
     desiredNumCells = 100,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
@@ -271,6 +271,7 @@ function vertexModel(;
                 end
 
                 maxT1count = maximum(matrices.firstT1onEdge)
+                println(maxT1count)
 
                 println("edge index with high number of transitions: ", findall(x -> x==maxT1count && x!=0,matrices.firstT1onEdge))
                 
