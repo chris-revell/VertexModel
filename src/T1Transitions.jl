@@ -51,6 +51,10 @@ function t1Transitions!(integrator, params, matrices)
     t1ThresholdVec .= t1ThresholdVec.*0.2
 
     for j=1:nEdges
+
+        if edgeLengths[j] < t1ThresholdVec[j] && timeSinceT1[j] > t1timeGap 
+            println("t1 attempted but threshold time has not elapsed")
+        end
         
         if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
 

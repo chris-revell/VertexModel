@@ -234,6 +234,16 @@ function vertexModel(;
             
             # Output data to file 
             if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
+                
+                if trackInitialRecoil ==1 
+
+                    trackedDistance = trackVertices!(R,integrator.t,params,matrices)
+
+                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
+
+                    save(datadir(folderName, "recoilVelocity.png"), recoilFig)
+                end
+                
                 # Update progress on command line 
                 printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
                 if frameDataToggle == 1
@@ -259,22 +269,6 @@ function vertexModel(;
 
                 save(datadir(folderName, "stressPlots.png"), stressFig)
 
-                if trackInitialRecoil ==1 
-                    # Find the vertices to track 
-                    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
-
-                    trackedDistance = trackVertices!(R,integrator.t,params,matrices)
-
-                    recoilFig = recoilVelocityDiagram(integrator.t,trackedDistance,axVelocity,recoilFig)
-
-                    save(datadir(folderName, "recoilVelocity.png"), recoilFig)
-                end
-
-                maxT1count = maximum(matrices.firstT1onEdge)
-                println(maxT1count)
-
-                println("edge index with high number of transitions: ", findall(x -> x==maxT1count && x!=0,matrices.firstT1onEdge))
-                
             end
 
             # Step integrator forwards in time to update vertex positions 
@@ -322,10 +316,13 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             if ablationToggle == 1
-                if !(ablated[1]) && integrator.t>params.tMax/3.0
+                if !(ablated[1]) && integrator.t>params.tMax/10.0
                     systemCOM = sum(R)./params.nVerts 
                     params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
                     println("jAblated=",params.jAblated)
+                    # Find the vertices to track 
+                    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
+                    println(params.k_tracked)
                     edgeAblation!(params.jAblated, params, matrices, integrator)
                     topologyChange!(R,params,matrices)
                     spatialData!(R, params, matrices) # Update spatial data after T1 transition  

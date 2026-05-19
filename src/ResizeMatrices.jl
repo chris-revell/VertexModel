@@ -56,9 +56,9 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.P_effs,nCellsNew)
     resize!(matrices.ξs,nCellsNew)
     resize!(matrices.ξsDir, nCellsNew)
-    resize!(matrices.cellLabels, nCellsNew)
     resize!(matrices.edgeLabels,nEdgesNew)
-    resize!(matrices.Λs, nEdgesNew)
+    resize!(matrices.Λs,nEdgesNew)
+    
 
     # Update stored number of cells, edges, and vertices
     params.nVerts = nVertsNew
@@ -79,15 +79,13 @@ function shrinkIndependentMatrices!(matrices, removedCells, removedEdges, remove
     deleteat!(matrices.cellL₀s, removedCells)
     deleteat!(matrices.timeSinceT1, removedEdges)
     deleteat!(matrices.firstT1onEdge, removedEdges)
-    deleteat!(matrices.Γ, removedCells)
+    deleteat!(matrices.cellLabels, removedCells)
 
     
     return nothing 
 end
 
 function growIndependentMatrices!(params, matrices, nAddedCells, nAddedEdges)
-    # cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
-    # push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
     append!(matrices.cellTimeToDivide, zeros(nAddedCells))
     append!(matrices.μ, ones(nAddedCells))
     append!(matrices.Γ, fill(params.γ, nAddedCells))
@@ -95,7 +93,8 @@ function growIndependentMatrices!(params, matrices, nAddedCells, nAddedEdges)
     append!(matrices.cellL₀s, fill(params.L₀, nAddedCells))
     append!(matrices.timeSinceT1, fill(params.nonDimCycleTime/100.0, nAddedEdges)) # Ensure new edges can do T1 transitions immediately
     append!(matrices.firstT1onEdge, zeros(nAddedEdges))
-    append!(matrices.Γ, fill(params.γ, nAddedCells))
+    # # In the division case (where a new cell or edge is introduced), these matrices are handled in Division.jl
+    # append!(matrices.cellLabels, nCellsNew) 
 
     return nothing 
 end
