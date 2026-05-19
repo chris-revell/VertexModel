@@ -44,7 +44,7 @@ using Random
 
 
 function vertexModel(;
-    initialSystem = "new",
+    initialSystem = "32-cell",
     boundaryType = "free",
     cellLayout = "random",
     nRows = 3,
@@ -89,8 +89,8 @@ function vertexModel(;
     Λ_AA = -0.2, 
     Λ_AB = -0.2,
     Λ_BB = -0.2,
-    Λ_AE = -0.1, 
-    Λ_BE = -0.1,
+    Λ_AE = -0.2, 
+    Λ_BE = -0.2,
     Area_A_ratio = 0.5,
     t1timeGap = 1e-2,
     spiky = true,
