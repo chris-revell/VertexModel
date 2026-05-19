@@ -45,14 +45,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         boundaryCells,
         P_effs,
         ξs,
-        ξsDir = matrices
+        ξsDir,
+        cellLabels = matrices
     @unpack initialSystem,
         boundaryType,
         nEdges, 
         nVerts, 
         nCells, 
-        cellsTypeA, 
-        cellsTypeB,
         L_x,
         L_y,
         k_tracked,
@@ -123,7 +122,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
             
 
             if boundaryType == "free"
-                if i in cellsTypeA
+                if cellLabels[i] == 0
                     poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                 else
                     poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
@@ -208,7 +207,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     oppositePolygon8[:,2] = newCellPolygon[:,2] .- L_y
 
                     # Draw a polygon for cell i with colour determined by cell type
-                    if i in cellsTypeA
+                    if cellLabels[i] == 0
                         poly!(ax1, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                         poly!(ax1, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                         poly!(ax1, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
@@ -257,7 +256,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     
                     end    
                 else # the cell isn't on the periodic boundary
-                    if i in cellsTypeA
+                    if cellLabels[i] == 0
                         poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
                     else
                         poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)

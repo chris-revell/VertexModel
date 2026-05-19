@@ -80,6 +80,8 @@ function shrinkIndependentMatrices!(matrices, removedCells, removedEdges, remove
     deleteat!(matrices.timeSinceT1, removedEdges)
     deleteat!(matrices.firstT1onEdge, removedEdges)
     deleteat!(matrices.cellLabels, removedCells)
+    # delete!(matrices.cellsTypeA, removedCells) # Remove the index from the list 
+    # delete!(matrices.cellsTypeB, removedCells) # Remove the index from the list 
 
     
     return nothing 
