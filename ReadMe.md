@@ -43,3 +43,17 @@ Possible input parameters:
 |`plotForces`           | `0`                       | Plot arrows showing resultant internal forces on vertices in visualisation |
 |`plotEdgeMidpointLinks`| `0`                       | If non-zero, use this value to set random seed for simulation              |
 |`setRandomSeed`        | `0`                       | If non-zero, use this value to set random seed for simulation              |
+
+
+Simulations will only save frame images. Run the following in a new terminal to create the movie: 
+
+# Bash 
+cd path/to/frameImages
+ffmpeg -framerate 1 -i frameImage%03d.png -c:v libx264 -pix_fmt yuv420p movie.mp4
+
+To extract data from one of the dataframes: 
+# Julia
+using JLD2; using DataFrames;
+df = load("dataFramePath.jld2",""): Pick matrices, params or R 
+vec = df.vec etc 
+

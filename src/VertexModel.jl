@@ -92,7 +92,7 @@ function vertexModel(;
     Λ_AE = -0.2, 
     Λ_BE = -0.2,
     Area_A_ratio = 0.5,
-    t1timeGap = 1e-2,
+    t1timeGap = 5e-1,
     spiky = true,
     desiredNumCells = 100,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
@@ -162,6 +162,8 @@ function vertexModel(;
 
     # Initialise recoil plot: 
     recoilFig, axVelocity = recoilVelocityPlotSetup()
+
+    
 
 
     # Global try so that the movie still saves if there is an error:
@@ -234,6 +236,8 @@ function vertexModel(;
             
             # Output data to file 
             if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
+                
+                println(matrices.edgeLengths[30])
                 
                 if trackInitialRecoil ==1 
 

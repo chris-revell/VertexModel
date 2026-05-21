@@ -22,10 +22,10 @@ function plotSetup()
     ax1 = Axis(grid[1,1],aspect=DataAspect())
     ax2 = Axis(grid[1,2],aspect=DataAspect())
     ax3 = Axis(grid[1,3],aspect=DataAspect())
-    hidedecorations!(ax1)
+    # hidedecorations!(ax1)
     hidedecorations!(ax2)
     hidedecorations!(ax3)
-    hidespines!(ax1)
+    # hidespines!(ax1)
     hidespines!(ax2)
     hidespines!(ax3)
 
@@ -80,7 +80,7 @@ function recoilVelocityPlotSetup()
     # Initialise a figure for tracking sum of P_effsA_i: 
     gridRecoil = recoilFig[1,1] = GridLayout()
     axVelocity = Axis(gridRecoil[1,1],aspect=1)
-    axVelocity.title = "Initial recoil velocity"
+    axVelocity.title = "Initial recoil"
     axVelocity.xlabel = "t"
     axVelocity.ylabel = "|r₁-r₂|"
 

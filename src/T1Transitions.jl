@@ -52,14 +52,16 @@ function t1Transitions!(integrator, params, matrices)
 
     for j=1:nEdges
 
-        if edgeLengths[j] < t1ThresholdVec[j] && timeSinceT1[j] > t1timeGap 
-            println("t1 attempted but threshold time has not elapsed")
-        end
+        # if edgeLengths[j] < t1ThresholdVec[j] && timeSinceT1[j] > t1timeGap 
+        #     println("t1 attempted but threshold time has not elapsed")
+        # end
+       
         
         if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
+        
 
             # Stopping the back and forth of t1s when the system equilibrates
-            if firstT1onEdge[j] >= 5
+            if firstT1onEdge[j] >= 9
                 println("T1 attempted and failed")
                 break
             end
@@ -70,14 +72,10 @@ function t1Transitions!(integrator, params, matrices)
             # Find vertices a and b at either end of the short edge j
             a = findall(x -> x > 0, @view A[j, :])[1]
             b = findall(x -> x < 0, @view A[j, :])[1]
-            # println("a: ", a)
-            # println("b: ", b)
             # Find cells around vertices a and b
             aCells = findall(x -> x != 0, @view C[:, a])
             bCells = findall(x -> x != 0, @view C[:, b])
-            # println("aCells: ", aCells)
-            # println("bCells: ", bCells)
-            println("t1 transition triggerred at vertices ",a,b)
+            # println("t1 transition triggerred at vertices ",a,",",b)
             
 
             if length(aCells) > 1 && length(bCells) > 1 # Exclude edges for which one vertex belongs to only one cell
@@ -170,8 +168,6 @@ function t1Transitions!(integrator, params, matrices)
                     R_u[b] = R_u[b] .+ 0.5.*edgeTangents[j] .+ 0.5.*ϵ*edgeTangents[j]
                     R_u[a] = R_u[a] .- 0.5.*edgeTangents[j] .- 0.5.*ϵ*edgeTangents[j]
 
-                    # println("edgetangents[j]=",edgeTangents[j])
-                    # println("ϵ*edgeTangents[j]= ",ϵ*edgeTangents[j])
                 end
                 
                 transitionCount += 1

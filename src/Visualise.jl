@@ -293,12 +293,12 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     # Scatter edge midpoints
     if scatterEdges == 1
-        scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue)
+        scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue, markersize=5)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=5)
     end
 
-    # scatter!(ax1,Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
-    # annotations!(ax1, string.(collect(1:3)), Point{2,Float64}.(edgeMidpoints[[1129,1447,454]]), color=:blue)
+    scatter!(ax1,Point{2,Float64}(edgeMidpoints[30]), color=:blue)
+    annotations!(ax1, string(30), Point{2,Float64}(edgeMidpoints[30]), color=:blue)
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     
