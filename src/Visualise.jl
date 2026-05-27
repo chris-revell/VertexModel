@@ -297,9 +297,6 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=5)
     end
 
-    scatter!(ax1,Point{2,Float64}(edgeMidpoints[30]), color=:blue)
-    annotations!(ax1, string(30), Point{2,Float64}(edgeMidpoints[30]), color=:blue)
-
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     
     for j=1:nEdges 
@@ -336,8 +333,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         #     barLength = ξs[i]
         #     scatter!(ax3,Point{2,Float64}.(cellPositions))
         # end
-        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 3,arrowsize=0)
-        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 3,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
     end
 
 

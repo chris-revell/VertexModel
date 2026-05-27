@@ -58,8 +58,8 @@ function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
     l_AA = initialEdgeLength(γ, -Λ_AA/(2*γ))
     l_BB = initialEdgeLength(γ, -Λ_BB/(2*γ))
     l_AB = initialEdgeLength(γ, -Λ_AB/(2*γ))
-    l_AE = initialEdgeLength(γ, -Λ_AE/(γ))
-    l_BE = initialEdgeLength(γ, -Λ_BE/(γ))
+    l_AE = initialEdgeLength(γ, -Λ_AE/(2*γ))
+    l_BE = initialEdgeLength(γ, -Λ_BE/(2*γ))
 
     # nRows = 9 # Must be an odd number
     cellPoints = [SVector(x, 0.0) for x = 1:nRows]

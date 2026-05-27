@@ -54,7 +54,7 @@ function vertexModel(;
     γ = 0.05,
     L₀ = 0.5,
     A₀ = 1.0,
-    viscousTimeScale = 10.0,
+    viscousTimeScale = 18.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     β = 0.0,
@@ -175,9 +175,9 @@ function vertexModel(;
         # alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
         # integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
         
-        if initialSystem == "new" && boundaryType == "free"
-            abstol = 1e-7
-            reltol = 1e-4
+        if params.β ==0 
+            abstol = 1e-8
+            reltol = 1e-5
             solver = Tsit5()
             # Set ODE parameters: 
             prob = ODEProblem(model!,
@@ -195,16 +195,8 @@ function vertexModel(;
                 save_start=false,
                 save_end=true,
             )  
-        elseif initialSystem == "32-cell" || boundaryType == "free"
-            abstol = 1e-6
-            reltol = 1e-3
-            solver = SRIW1()
 
-            # Set up SDE integrator 
-            prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
-            alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
-            integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
-        
+            println("solver: Tsit5()")
         else
             abstol = 1e-6
             reltol = 1e-3
@@ -215,7 +207,7 @@ function vertexModel(;
             alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
             integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
         
-            
+            println("solver: SRIW1()")
         end
         
         outputCounter = [1]
@@ -236,8 +228,6 @@ function vertexModel(;
             
             # Output data to file 
             if integrator.t >= alltStops[outputCounter[1]] || (cellsTypesAssigned == 1 && initialSystem=="new") # To output the final state ones cell types are assigned
-                
-                println(matrices.edgeLengths[30])
                 
                 if trackInitialRecoil ==1 
 
@@ -320,9 +310,11 @@ function vertexModel(;
             matrices.timeSinceT1 .+= integrator.dt
 
             if ablationToggle == 1
-                if !(ablated[1]) && integrator.t>params.tMax/10.0
+                # if !(ablated[1]) && integrator.t>params.tMax/10.0
+                if !(ablated[1])
                     systemCOM = sum(R)./params.nVerts 
-                    params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
+                    # params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
+                    params.jAblated = 1338
                     println("jAblated=",params.jAblated)
                     # Find the vertices to track 
                     params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
@@ -421,7 +413,58 @@ end
 #     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
 # end
 
+function extractRecoilVecs(jld2PathString)
+
+    df = load(jld2PathString,"matrices")
+    timeVec = df.trackedTimePoints
+    distVec = df.trackedVertDistance
+
+    timeVec = timeVec[1:19]
+    distVec = distVec[1:19]
+
+    timeVec = timeVec .- timeVec[1] # Starting from 0
+    distVec = distVec .- distVec[1] # Starting from 0
+
+    return timeVec, distVec
+end
+
+
+function recoilComparisonPlot(timeVec,distVecs,vecLabels)
+
+    # Vec labels = 0,1,2 for edge type AA,BB,AB respectively. 
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    recoilFig = Figure(size=(600,600))
+
+    # Initialise a figure for tracking sum of P_effsA_i: 
+    gridRecoil = recoilFig[1,1] = GridLayout()
+    axVelocity = Axis(gridRecoil[1,1],aspect=1)
+    axVelocity.title = "Initial recoil comparison"
+    axVelocity.xlabel = "t"
+    axVelocity.ylabel = "Δ|r₁-r₂|"
+    ylims!(axVelocity, 0, 1.0)
+    xlims!(axVelocity, 0, 0.25)
+
+    println(timeVec)
+
+    for i in eachindex(distVecs)
+        vec = distVecs[i]
+        println(vec)
+        if vecLabels[i] == 0
+            lines!(axVelocity,timeVec,vec,color=:blue, label="AA")
+        elseif vecLabels[i] == 1
+            lines!(axVelocity,timeVec,vec,color=:orange, label="BB")
+        elseif vecLabels[i] == 2
+            lines!(axVelocity,timeVec,vec,color=:grey, label="AB")
+        end
+    end
+    display(recoilFig)
+    # save(datadir(folderName, "recoilComparison.png"), recoilFig)
+
+end # end function 
+
 export vertexModel
 export loadData 
+export extractRecoilVecs, recoilComparisonPlot
 
 end
