@@ -182,18 +182,13 @@ function vertexModel(;
     return integrator
 end
 
-# Function to load previously saved simulation data 
-function loadData(relativePath; outputNumber=100)
-    data = load(projectdir(relativePath, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
-    return data["R"], data["matrices"], data["params"]
-end
-
 # Ensure code is precompiled
 @compile_workload begin
     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
 end
 
 export vertexModel
-export loadData 
+export ParametersContainer
+export MatricesContainer
 
 end
