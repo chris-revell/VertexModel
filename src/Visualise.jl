@@ -106,10 +106,18 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     A_iξs = zeros(nCells)
     A_iξs .= cellAreas.*ξs
     # Generate a colour map for ξ:
+    # cmap2 = cgrad([
+    #     RGB(1.0, 1.0, 1.0),   # white
+    #     RGB(1.0, 0.0, 1.0)    # magenta
+    # ], 256)
+
     cmap2 = cgrad([
-        RGB(1.0, 1.0, 1.0),   # white
-        RGB(1.0, 0.0, 1.0)    # magenta
-    ], 256)
+        RGB(1.0, 1.0, 1.0),   # 0%   White
+        RGB(1.0, 0.8, 0.9),   # 25%  Light Pink
+        RGB(1.0, 0.0, 0.5),   # 50%  Hot Pink
+        RGB(0.6, 0.0, 0.8),   # 75%  Purple
+        RGB(0.3, 0.0, 0.5)    # 100% Dark Purple
+    ])
     max2 = maximum(A_iξs)
     min2 = 0
     clims2 = (min2, max2)
@@ -282,8 +290,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     # Add the colorbar
     if plotStresses == 1
-        cbar1 = Colorbar(fig[2,2],colormap = cmap1,colorrange=clims1, label="P_effᵢ", width=20,height=Relative(0.6))
-        cbar2 = Colorbar(fig[2,3],colormap = cmap2,colorrange=clims2, label="ξᵢ", width=20,height=Relative(0.6))
+        cbar1 = Colorbar(fig[2,2],colormap = cmap1,colorrange=clims1, label="AᵢP_effᵢ", width=20,height=Relative(0.6))
+        cbar2 = Colorbar(fig[2,3],colormap = cmap2,colorrange=clims2, label="Aᵢξᵢ", width=20,height=Relative(0.6))
     end
     # Scatter vertices
     if scatterVertices == 1
@@ -294,7 +302,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     # Scatter edge midpoints
     if scatterEdges == 1
         scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue, markersize=5)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=5)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=1)
     end
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]

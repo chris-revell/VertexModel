@@ -58,7 +58,7 @@ function vertexModel(;
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     β = 0.0,
-    divisionToggle = 1,
+    divisionToggle = 0,
     ablationToggle = 0,
     solver = SRIW1(),
     nBlasThreads = 1,
@@ -314,7 +314,7 @@ function vertexModel(;
                 if !(ablated[1])
                     systemCOM = sum(R)./params.nVerts 
                     # params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
-                    params.jAblated = 1338
+                    params.jAblated = 1048
                     println("jAblated=",params.jAblated)
                     # Find the vertices to track 
                     params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
@@ -442,8 +442,8 @@ function recoilComparisonPlot(timeVec,distVecs,vecLabels)
     axVelocity.title = "Initial recoil comparison"
     axVelocity.xlabel = "t"
     axVelocity.ylabel = "Δ|r₁-r₂|"
-    ylims!(axVelocity, 0, 1.0)
-    xlims!(axVelocity, 0, 0.25)
+    # ylims!(axVelocity, 0, 1.0)
+    # xlims!(axVelocity, 0, 0.25)
 
     println(timeVec)
 
