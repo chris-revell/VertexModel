@@ -95,6 +95,8 @@ function vertexModel(;
     t1timeGap = 5e-1,
     spiky = true,
     desiredNumCells = 100,
+    plotOrientations = 1,
+    edgeToAblate = [],
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -246,7 +248,7 @@ function vertexModel(;
                 end
                 if frameImageToggle == 1 || videoToggle == 1
                     # Render visualisation of system and add frame to movie
-                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks, plotStresses, trackInitialRecoil)
+                    cbar1, cbar2 = visualise(R, integrator.t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis, plotForces, plotEdgeMidpointLinks, plotStresses, trackInitialRecoil,plotOrientations)
                 end
                 # Save still image of this time step 
                 frameImageToggle == 1 ? save(datadir(folderName, "frameImages", "frameImage$(@sprintf("%03d", outputCounter[1])).png"), fig) : nothing
@@ -314,7 +316,7 @@ function vertexModel(;
                 if !(ablated[1])
                     systemCOM = sum(R)./params.nVerts 
                     # params.jAblated = findmin([norm(matrices.edgeMidpoints[j].-systemCOM) for j=1:params.nEdges])[2] # central edge
-                    params.jAblated = 1048
+                    params.jAblated = edgeToAblate
                     println("jAblated=",params.jAblated)
                     # Find the vertices to track 
                     params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
@@ -419,8 +421,8 @@ function extractRecoilVecs(jld2PathString)
     timeVec = df.trackedTimePoints
     distVec = df.trackedVertDistance
 
-    timeVec = timeVec[1:19]
-    distVec = distVec[1:19]
+    timeVec = timeVec[1:60]
+    distVec = distVec[1:60]
 
     timeVec = timeVec .- timeVec[1] # Starting from 0
     distVec = distVec .- distVec[1] # Starting from 0

@@ -112,7 +112,8 @@ function spatialData!(R,params,matrices)
         P_effs,
         T_effs,
         ξs,
-        ξsDir = matrices
+        ξsDir,
+        ξsDirScaled = matrices
     @unpack initialSystem,
         boundaryType,
         nCells,
@@ -356,7 +357,8 @@ function spatialData!(R,params,matrices)
             # Scale ξsDir by the approx cell radius the magnitude of ξs to get a more reasonable length for plotting.
             avgξ = sum(ξs)/nCells
             approxCellRadius = sqrt(cellAreas[i])/π
-            ξsDir[i] = ξsDir[i] / (avgξ) * ξs[i]*approxCellRadius
+            ξsDir[i] = ξsDir[i]  *2*approxCellRadius
+            ξsDirScaled[i] = ξsDir[i] * ξs[i]/ (2*avgξ)
             
         end
     end

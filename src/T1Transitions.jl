@@ -61,10 +61,10 @@ function t1Transitions!(integrator, params, matrices)
         
 
             # Stopping the back and forth of t1s when the system equilibrates
-            if firstT1onEdge[j] >= 9
-                println("T1 attempted and failed")
-                break
-            end
+            # if firstT1onEdge[j] >= 9
+            #     println("T1 attempted and failed")
+            #     break
+            # end
             
             
             timeSinceT1[j] = 0
@@ -173,9 +173,6 @@ function t1Transitions!(integrator, params, matrices)
                 transitionCount += 1
                 if firstT1onEdge[j] == 0
                     firstT1onEdge[j] = 1
-                elseif β==0.0
-                    firstT1onEdge[j] += 1
-                    println(firstT1onEdge[j])
                 end
                 
                 # Break loop when a T1 transition occurs, preventing more than 1 transition per time step. Eventually we can figure out a better way of handling multiple transitions per time step.

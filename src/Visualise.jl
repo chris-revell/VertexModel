@@ -31,7 +31,7 @@ using GeometryBasics: area
 @from "AnalysisFunctions.jl" using AnalysisFunctions
 
 
-function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks,plotStresses,trackInitialRecoil)
+function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices, plotCells, scatterEdges, scatterVertices, scatterCells, plotXis,plotForces, plotEdgeMidpointLinks,plotStresses,trackInitialRecoil,plotOrientations)
 
     @unpack cellEdgeCount,
         cellVertexOrders,
@@ -46,6 +46,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         P_effs,
         ξs,
         ξsDir,
+        ξsDirScaled,
         cellLabels = matrices
     @unpack initialSystem,
         boundaryType,
@@ -302,7 +303,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     # Scatter edge midpoints
     if scatterEdges == 1
         scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue, markersize=5)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=1)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=4)
     end
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
@@ -341,8 +342,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         #     barLength = ξs[i]
         #     scatter!(ax3,Point{2,Float64}.(cellPositions))
         # end
-        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
-        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDirScaled), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDirScaled), color=:black,linewidth = 1,arrowsize=0)
+    end
+
+    if plotOrientations ==1
+        arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
     end
 
 
