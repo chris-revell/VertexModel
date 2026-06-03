@@ -31,6 +31,7 @@ using DiffEqCallbacks
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
 @from "Callbacks.jl" using Callbacks
+@from "VertexModelContainers.jl" using VertexModelContainers
 
 function vertexModel(;
     initialSystem = "new",
