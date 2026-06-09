@@ -56,6 +56,7 @@ function resizeMatrices!(params, matrices, nVertsNew, nEdgesNew, nCellsNew)
     resize!(matrices.P_effs,nCellsNew)
     resize!(matrices.ξs,nCellsNew)
     resize!(matrices.ξsDir, nCellsNew)
+    resize!(matrices.ξsDirScaled, nCellsNew)
     resize!(matrices.edgeLabels,nEdgesNew)
     resize!(matrices.Λs,nEdgesNew)
     

@@ -30,6 +30,21 @@ using CairoMakie
 
 export initialSystemLayoutPeriodic
 
+function initialEdgeLength(γ,L₀)
+    a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L₀
+    p = Polynomial([d, c, b, a])
+    roots_p = roots(p)
+    # Only consider real roots
+    tol = 1e-10
+    real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
+    if isempty(real_roots)
+        error("No real roots from l cubic")
+    else
+        l = maximum(real_roots)
+    end
+    return l
+end
+
 function periodic_distance(p, q, Lx, Ly)
     # Function to calculate distance between points p and q, wrapped around the periodic boundaries: 
     dx = abs(p[1] - q[1])
@@ -93,28 +108,6 @@ function copy_domain_x9(ptsArray,L_x,L_y)
 end
 
 
-function keptEdgeList(ptsArray,triangulation)
-
-    # Function to edit the Delaunay connectivity list such that only edges which dip into the original domain are kept. 
-    n = size(ptsArray,2)
-    edges = Set{Tuple{Int,Int}}() # Using a set to avoid duplicate edges
-
-    for tri in triangulation.triangles
-        # Remap indices to original range 
-        tri_mod = [(i-1)%n+1 for i in tri] # mod n and adjusting for 1-based indexing
-        # Add edges of the triangle
-        push!(edges, Tuple(sort([tri_mod[1], tri_mod[2]])))
-        push!(edges, Tuple(sort([tri_mod[2], tri_mod[3]])))
-        push!(edges, Tuple(sort([tri_mod[3], tri_mod[1]])))
-
-    end
-
-    # Convert the set of edges to an array 
-    edges_array = collect(edges)
-    
-    return edges_array
-end
-
 function keptVerticesList(tessellation,L_x,L_y)
     # Function to only keep vertices which lie within the original periodic domain
     vor_points = SVector{2,Float64}[] # Vector of kept vertices
@@ -133,67 +126,8 @@ end
 
 
 
-function edges_from_polygons(polygons)
-    # Function to build edges from the vertex network
-    edges = Set{Tuple{Int,Int}}()
 
-    for poly in polygons
-        n = length(poly)
-        for i in 1:n-1
-            a = poly[i]
-            b = poly[i+1]
-            push!(edges, (a,b)) # Keep the edge orientation given by polygon order 
-        end
-    end
-
-    return collect(edges)
-end
-
-function buildA(edges, nVerts)
-    nEdges = length(edges) # This is okay because edges is a set. 
-    A = spzeros(Int, nEdges, nVerts)
-
-    for (ei, (v1,v2)) in enumerate(edges)
-        A[ei, v1] = 1
-        A[ei, v2] = -1
-    end
-
-    return A
-end
-
-function buildB(polygons, edges)
-
-    nCells = length(polygons)
-    nEdges = length(edges)
-    B = spzeros(Int, nCells, nEdges)
-    
-    # Loop over cells
-    for (i,poly) in enumerate(polygons)
-        # println(poly)
-        # Loop over edges
-        n = length(poly)
-        for (j,edge) in enumerate(edges)
-            v1, v2 = edge 
-            # Loop over cell vertices
-            if (v1 in poly) && (v2 in poly)
-                for k in 1:n-1
-                    a = poly[k]
-                    b = poly[k+1]
-                    # println("a=",a,"b=",b,"v1=",v1,"v2=",v2)
-                    if a == v1 && b == v2
-                        # edge orientation agrees with cell orientation
-                        B[i,j] = 1
-                    elseif a == v2 && b == v1
-                        B[i,j] = -1
-                    end
-                end
-            end
-        end
-    end 
-    return B
-end
-
-function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
+function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
     # Main function to create periodic initial system layout
 
         # Compute effective preferred perimeters for isolated A- or B-cells
@@ -201,6 +135,11 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         L0_B = -Λ_BB/(2*γ)
         println("L0_A=", L0_A)
         println("L0_B=", L0_B)
+
+        # Compute initial edge lengths for t1 thresholds: 
+        l_AA = initialEdgeLength(γ, -Λ_AA/(2*γ))
+        l_BB = initialEdgeLength(γ, -Λ_BB/(2*γ))
+        l_AB = initialEdgeLength(γ, -Λ_AB/(2*γ))
 
         # Desired ratio of Area_A : Area_B
         # Area_A_ratio = 0.3
@@ -212,47 +151,12 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         # Compute the roots of the cubic equation in l from the unstressed hexagon area: 
         # Cubic is of the form (9/4)l^3-(sqrt(3)/2 + 6Γ)l + Γ*L0_A. Solve this using the coefficients:
 
-        a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_A
-        p = Polynomial([d, c, b, a])
-        roots_p = roots(p)
-        # Only consider real roots
-        tol = 1e-10
-        real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
-        if isempty(real_roots)
-            error("No real roots from l cubic")
-        else
-            l = maximum(real_roots)
-        end
-        # println("l=",l)
-        if l<=0 
-            println("Error: negative hexagon sidelength")
-        end
-        Area_hex = 3*sqrt(3)*l^2/2
-        N_cA = Int(ceil(Area_A/ Area_hex))
-        # N_cA = Int(ceil(L_x*L_y*ABratio / Area_hex))
-
-        t1Threshold = l*0.15
-
-        a,b,c,d = 9/2, 0, (-√(3) + 12*γ), -2*γ*L0_B
-        p = Polynomial([d, c, b, a])
-        roots_p = roots(p)
-        # Only consider real roots
-        tol = 1e-10
-        real_roots = real.(roots_p[abs.(imag.(roots_p)) .< tol])
-        if isempty(real_roots)
-            error("No real roots from l cubic")
-        else
-            l = maximum(real_roots)
-        end
-        # println("l=",l)
-        if l<=0 
-            println("Error: negative hexagon sidelength")
-        end
-        Area_hex = 3*sqrt(3)*l^2/2
-        N_cB = Int(ceil(Area_B/ Area_hex))
-        # N_cB = Int(ceil(L_x*L_y*(1-ABratio) / Area_hex))
         
+        Area_hex_A = 3*sqrt(3)*l_AA^2/2
+        N_cA = Int(ceil(Area_A/ Area_hex_A))
 
+        Area_hex_B = 3*sqrt(3)*l_BB^2/2
+        N_cB = Int(ceil(Area_B/ Area_hex_B))
         
         # Determine parameters for the Matérn type II process
         λₜA = N_cA / (L_x*L_y*Area_A_ratio) # Target intensity 
@@ -296,8 +200,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         # Truncate to N_c of random permutation
         kept = kept[randperm(length(kept))[1:N_cA+N_cB]]
 
-       
-
+    
         # Rewriting to be in line with InitialSystemLayout.jl
         cellPoints = [SVector(p[1], p[2]) for p in kept]
 
@@ -370,7 +273,6 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
         end
 
         # Now determine the cell edges from these kept polygons: 
-        # edges = edges_from_polygons(kept_polygons)
         orderedPairs = Set{Tuple{Int,Int}}()
         for poly in kept_polygons
             for i in 1:length(poly)-1
@@ -407,7 +309,7 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
 
 
         
-        return A, B, R, N_cA, t1Threshold
+        return A, B, R, N_cA, l_AA, l_BB, l_AB
 
     
 

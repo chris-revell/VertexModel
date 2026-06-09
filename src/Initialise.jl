@@ -100,7 +100,7 @@ function initialise(; initialSystem,
 
         
     elseif initialSystem == "periodic"
-        A,B,R,nACells,t1Threshold = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Area_A_ratio)
+        A, B, R, nACells, l_AA, l_BB, l_AB = initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
 
         nCells = size(B, 1)
@@ -109,6 +109,10 @@ function initialise(; initialSystem,
         println("nBCells = ", nCells - nACells)
         nEdges = size(A, 1)
         nVerts = size(A, 2)
+
+
+        l_AE = 0
+        l_BE = 0
 
 
         cellsTypeA = 1:nACells 
@@ -220,7 +224,7 @@ function initialise(; initialSystem,
         realCycleTime     = realCycleTime,
         nCycles           = nCycles,
         nonDimCycleTime   = nonDimCycleTime,
-        t1Threshold       = t1Threshold,
+        t1Threshold       = 0,
         peripheralTension = peripheralTension,
         β                 = β,
         seed              = seed,

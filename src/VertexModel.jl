@@ -178,8 +178,8 @@ function vertexModel(;
         # integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
         
         if params.β ==0 
-            abstol = 1e-8
-            reltol = 1e-5
+            abstol = 1e-9
+            reltol = 1e-6
             solver = Tsit5()
             # Set ODE parameters: 
             prob = ODEProblem(model!,
@@ -415,23 +415,46 @@ end
 #     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
 # end
 
-function extractRecoilVecs(jld2PathString)
+function extractRecoilVecs(jld2PathStrings)
 
-    df = load(jld2PathString,"matrices")
-    timeVec = df.trackedTimePoints
-    distVec = df.trackedVertDistance
+    meanDistVec = zeros(20)
+    timeVec = []
+    # For error bars: 
+    maxDistVec = zeros(20)
+    minDistVec = zeros(20)
+    firstVec = true 
 
-    timeVec = timeVec[1:60]
-    distVec = distVec[1:60]
+    for jld2PathString in jld2PathStrings
+        df = load(jld2PathString,"matrices")
+        timeVecTemp = df.trackedTimePoints
+        distVec = df.trackedVertDistance
 
-    timeVec = timeVec .- timeVec[1] # Starting from 0
-    distVec = distVec .- distVec[1] # Starting from 0
+        timeVecTemp = timeVecTemp[1:20]
+        distVec = distVec[1:20]
 
-    return timeVec, distVec
+        timeVecTemp = timeVecTemp .- timeVecTemp[1] # Starting from 0
+        distVec = distVec .- distVec[1] # Starting from 0
+        if firstVec
+            timeVec = timeVecTemp
+            maxDistVec .= distVec
+            minDistVec .= distVec
+            firstVec = false
+        else
+            maxDistVec = max.(maxDistVec, distVec)
+            minDistVec = min.(minDistVec, distVec)
+        end
+
+        meanDistVec .+= distVec
+    end
+    
+    meanDistVec ./= length(jld2PathStrings)
+    lowerErrs = meanDistVec .- minDistVec
+    upperErrs = maxDistVec .- meanDistVec
+    return timeVec,meanDistVec, upperErrs, lowerErrs
 end
 
 
-function recoilComparisonPlot(timeVec,distVecs,vecLabels)
+function recoilComparisonPlot(timeVec,distVecs,lowerErrVecs,upperErrVecs,vecLabels)
 
     # Vec labels = 0,1,2 for edge type AA,BB,AB respectively. 
 
@@ -441,25 +464,24 @@ function recoilComparisonPlot(timeVec,distVecs,vecLabels)
     # Initialise a figure for tracking sum of P_effsA_i: 
     gridRecoil = recoilFig[1,1] = GridLayout()
     axVelocity = Axis(gridRecoil[1,1],aspect=1)
-    axVelocity.title = "Initial recoil comparison"
+    axVelocity.title = "Initial recoil comparison averaged over 4 simulations"
     axVelocity.xlabel = "t"
     axVelocity.ylabel = "Δ|r₁-r₂|"
-    # ylims!(axVelocity, 0, 1.0)
-    # xlims!(axVelocity, 0, 0.25)
-
-    println(timeVec)
 
     for i in eachindex(distVecs)
         vec = distVecs[i]
-        println(vec)
         if vecLabels[i] == 0
             lines!(axVelocity,timeVec,vec,color=:blue, label="AA")
+            errorbars!(axVelocity, timeVec, vec, lowerErrVecs[i], upperErrVecs[i], color=:blue)
         elseif vecLabels[i] == 1
             lines!(axVelocity,timeVec,vec,color=:orange, label="BB")
+            errorbars!(axVelocity, timeVec, vec, lowerErrVecs[i], upperErrVecs[i], color=:orange)
         elseif vecLabels[i] == 2
             lines!(axVelocity,timeVec,vec,color=:grey, label="AB")
+            # errorbars!(axVelocity, timeVec, vec, lowerErrVecs[i], upperErrVecs[i], color=:grey)
         end
     end
+    axislegend(axVelocity)
     display(recoilFig)
     # save(datadir(folderName, "recoilComparison.png"), recoilFig)
 

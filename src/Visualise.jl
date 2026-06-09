@@ -71,10 +71,10 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 
     if boundaryType == "free"
-        ax1.title = "t = $(@sprintf("%.3f", t))"
+        # ax1.title = "t = $(@sprintf("%.3f", t))"
         if plotStresses == 1
-            ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
-            ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
+            # ax2.title = "Plot of AᵢP_effᵢ at t = $(@sprintf("%.3f", t))"
+            # ax3.title = "Plot of Aᵢξᵢ at t = $(@sprintf("%.3f", t))"
         end
     elseif boundaryType == "periodic"
         ax1.title = "t = $(@sprintf("%.3f", t))"
@@ -303,7 +303,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     # Scatter edge midpoints
     if scatterEdges == 1
         scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue, markersize=5)
-        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:blue, fontsize=4)
+        annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:white, fontsize=4)
     end
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]

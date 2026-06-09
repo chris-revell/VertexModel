@@ -45,10 +45,17 @@ function t1Transitions!(integrator, params, matrices)
     R_u = reinterpret(SVector{2,Float64}, integrator.u)
 
     transitionCount = 0
-    l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     t1ThresholdVec = zeros(nEdges)
-    t1ThresholdVec .= l_vec[edgeLabels .+ 1]
-    t1ThresholdVec .= t1ThresholdVec.*0.2
+    if boundaryType == "free"
+        l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
+        t1ThresholdVec .= l_vec[edgeLabels .+ 1]
+        t1ThresholdVec .= t1ThresholdVec.*0.2
+    elseif boundaryType == "periodic"
+        l_vec = [l_AA, l_AB, l_BB]
+        t1ThresholdVec .= l_vec[edgeLabels .+ 1]
+        t1ThresholdVec .= t1ThresholdVec.*0.2
+    end
+    
 
     for j=1:nEdges
 
