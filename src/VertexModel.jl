@@ -48,7 +48,7 @@ function vertexModel(;
     boundaryType = "free",
     cellLayout = "random",
     nRows = 3,
-    nCycles = 0.01,
+    nCycles = 1,
     realCycleTime = 400.0, # From Megan's data, using the division rate 0.15/min 
     realTimetMax = nCycles*realCycleTime,
     γ = 0.05,
@@ -166,7 +166,8 @@ function vertexModel(;
     recoilFig, axVelocity = recoilVelocityPlotSetup()
 
     
-
+    # Flag to check if the first plot has been completed
+    firstPlot = 0
 
     # Global try so that the movie still saves if there is an error:
     try 
@@ -311,7 +312,7 @@ function vertexModel(;
             matrices.cellTimeToDivide .-= integrator.dt
             matrices.timeSinceT1 .+= integrator.dt
 
-            if ablationToggle == 1
+            if ablationToggle == 1 && firstPlot == 1
                 # if !(ablated[1]) && integrator.t>params.tMax/10.0
                 if !(ablated[1])
                     systemCOM = sum(R)./params.nVerts 
@@ -376,6 +377,8 @@ function vertexModel(;
                 # matrices.cellTimeToDivide[iSelected] = rand(params.distLogNormal)*params.nonDimCycleTime
 
             end
+
+            firstPlot = 1
 
             
         end

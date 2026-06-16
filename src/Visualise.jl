@@ -47,7 +47,11 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         ξs,
         ξsDir,
         ξsDirScaled,
-        cellLabels = matrices
+        cellLabels,
+        edgeLabels,
+        boundaryEdges,
+        A,
+        B = matrices
     @unpack initialSystem,
         boundaryType,
         nEdges, 
@@ -101,7 +105,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     ], 256)
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
-    clims1 = (-maxabs1, maxabs1)
+    # clims1 = (-maxabs1, maxabs1)
+    clims1 = (-0.04, 0.04)
 
     # Set colour limits for ξ
     A_iξs = zeros(nCells)
@@ -121,7 +126,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     ])
     max2 = maximum(A_iξs)
     min2 = 0
-    clims2 = (min2, max2)
+    # clims2 = (min2, max2)
+    clims2 = (0,0.04)
 
 
     # Plot cells
@@ -132,19 +138,20 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
             if boundaryType == "free"
                 if cellLabels[i] == 0
-                    poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
                 else
-                    poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
                 end
 
                 if plotStresses == 1
                     # Plot effective pressures in ax2
-                    poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
 
                     # Plot deviatoric stress in ax3
-                    poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                    poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
 
                 end
+
 
             elseif boundaryType == "periodic"
                 # Check whether it is on the periodic boundary: 
@@ -217,66 +224,66 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
                     # Draw a polygon for cell i with colour determined by cell type
                     if cellLabels[i] == 0
-                        poly!(ax1, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
                     else
-                        poly!(ax1, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax1, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax1, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
                    
                     end
 
                     if plotStresses == 1
                         # Plot effective pressures in ax2
-                        poly!(ax2, oppositePolygon1, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon2, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon3, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon4, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, oppositePolygon1, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon2, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon3, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon4, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
                         
 
                         # Plot deviatoric stress in ax3
-                        poly!(ax3, oppositePolygon1, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon2, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon3, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon4, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
-                        poly!(ax3, newCellPolygon, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, oppositePolygon1, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon2, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon3, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon4, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        poly!(ax3, newCellPolygon, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
                     
                     end    
                 else # the cell isn't on the periodic boundary
                     if cellLabels[i] == 0
-                        poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
                     else
-                        poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
                     end
 
                     if plotStresses == 1
                         # Plot effective pressures in ax2
-                        poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
 
                         # Plot deviatoric stress in ax3
-                        poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=2)
+                        poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
                     end
                     
                 end
@@ -304,6 +311,17 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     if scatterEdges == 1
         scatter!(ax1, Point{2,Float64}.(edgeMidpoints), color=:blue, markersize=5)
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:white, fontsize=4)
+    end
+
+    # Plot around the boundary between A and B: 
+    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+    for j in interfaceBoundaryEdges
+        verts = []
+        ks = findall(x->x!=0, @view A[j,:])
+        verts = R[ks]
+        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
     end
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
