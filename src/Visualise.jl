@@ -129,6 +129,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     # clims2 = (min2, max2)
     clims2 = (0,0.04)
 
+    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+
 
     # Plot cells
     if plotCells == 1
@@ -156,6 +158,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
             elseif boundaryType == "periodic"
                 # Check whether it is on the periodic boundary: 
                 if boundaryCells[i]==1
+                    
 
                     num_vertices = length(cellPolygons[i])
                     newCellPolygon = zeros(num_vertices, 2)
@@ -170,67 +173,15 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     oppositePolygon7 = zeros(num_vertices, 2)
                     oppositePolygon8 = zeros(num_vertices, 2)
 
-                    # Compute the periodic edges between populations to plot these in bold: 
 
-                    # interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
-                    # for j in interfaceBoundaryEdges
-                    #     verts = []
-                    #     ks = findall(x->x!=0, @view A[j,:])
-                    #     verts = R[ks]
-                    #     verts = MVector.(verts)
-                    #     # newVerts = Vector{Point{2,Float64}}[]
-                    #     # println(verts[2])
-                    #     # newVerts[2] = verts[2]
-                    #     if norm(verts[1][1]-verts[2][1])>L_x/2
-                    #         if verts[1][1] > verts[2][1]
-                    #             verts[1][1] = verts[1][1]-L_x
-                    #         else
-                    #             verts[1][1] = verts[1][1]+L_x
-                    #         end
-                    #     end
-                    #     if norm(verts[1][2]-verts[2][2])>L_y/2
-                    #         if verts[1][2]>verts[2][2]
-                    #             verts[1][2] = verts[1][2]-L_x
-                    #         else
-                    #             verts[1][2] = verts[1][2]+L_x
-                    #         end
-                    #     end
-
-                    #     # Replicate verts across each periodic boundary:
-                    #     verts1 = []
-                    #     verts2 = []
-                    #     verts3 = []
-                    #     verts4 = []
-                    #     verts5 = []
-                    #     verts6 = []
-                    #     verts7 = []
-                    #     verts8 = []
-                    #     for vert in verts
-                    #         vert1 = vert .+ [L_x,0]
-                    #         vert2 = vert .+ [0,L_y]
-                    #         vert3 = vert .+ [L_x,L_y]
-                    #         vert4 = vert .+ [0,-L_y]
-                    #         vert5 = vert .+ [-L_x,0]
-                    #         vert6 = vert .+ [-L_x,-L_y]
-                    #         vert7 = vert .+ [L_x,-L_y]
-                    #         vert8 = vert .+ [-L_x,L_y]
-                    #     end
-
-                    #     lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
-                    #     lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
-                    #     lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
-
-
-                        
-                    # end
-
-
+                    # Flags to check which periodic boundary is crossed by the cell: 
+                    flag1=flag2=0
 
 
                     for k = 1:num_vertices
 
                         if norm(cellPolygons[i][k][1]-cellPositions[i][1]) > L_x/2
-                            
+                            flag1=1
                             if cellPolygons[i][k][1] > cellPositions[i][1]
                                 newCellPolygon[k,1] = cellPolygons[i][k][1] - L_x
                                 
@@ -243,7 +194,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                         end
 
                         if norm(cellPolygons[i][k][2]-cellPositions[i][2]) > L_y/2
-                            
+                            flag2=1
                             if cellPolygons[i][k][2] > cellPositions[i][2]
                                 
                                 newCellPolygon[k,2] = cellPolygons[i][k][2] - L_y
@@ -259,14 +210,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
                     
 
-                    oppositePolygon1[:,1] = newCellPolygon[:,1] .+ L_x
-                    oppositePolygon1[:,2] = newCellPolygon[:,2] .+ L_y
-                    oppositePolygon2[:,1] = newCellPolygon[:,1] .+ L_x
-                    oppositePolygon2[:,2] = newCellPolygon[:,2] .- L_y
-                    oppositePolygon3[:,1] = newCellPolygon[:,1] .- L_x
-                    oppositePolygon3[:,2] = newCellPolygon[:,2] .+ L_y
-                    oppositePolygon4[:,1] = newCellPolygon[:,1] .- L_x
-                    oppositePolygon4[:,2] = newCellPolygon[:,2] .- L_y
+                    
                     oppositePolygon5[:,1] = newCellPolygon[:,1] .+ L_x
                     oppositePolygon5[:,2] = newCellPolygon[:,2] 
                     oppositePolygon6[:,1] = newCellPolygon[:,1] .- L_x
@@ -278,66 +222,51 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
                     # Draw a polygon for cell i with colour determined by cell type
                     if cellLabels[i] == 0
-                        poly!(ax1, oppositePolygon1, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon2, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon3, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon4, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        if flag1==1
+                            poly!(ax1, oppositePolygon5, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax1, oppositePolygon6, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        end
+                        if flag2==1
+                            poly!(ax1, oppositePolygon7, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax1, oppositePolygon8, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        end
                         poly!(ax1, newCellPolygon, color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
                     else
-                        poly!(ax1, oppositePolygon1, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon2, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon3, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon4, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax1, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        if flag1==1 
+                            poly!(ax1, oppositePolygon5, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax1, oppositePolygon6, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        end
+                        if flag2==1
+                            poly!(ax1, oppositePolygon7, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax1, oppositePolygon8, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+                        end
                         poly!(ax1, newCellPolygon, color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-                   
                     end
 
                     if plotStresses == 1
                         # Plot effective pressures in ax2
-                        poly!(ax2, oppositePolygon1, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon2, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1, strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon3, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon4, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
-                        
-
                         # Plot deviatoric stress in ax3
-                        poly!(ax3, oppositePolygon1, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon2, color=A_iξs[i], colorrange = clims2, colormap = cmap2, strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon3, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon4, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                        poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        if flag1==1
+                            poly!(ax2, oppositePolygon5, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax2, oppositePolygon6, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax3, oppositePolygon5, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax3, oppositePolygon6, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        end
+                        if flag2==1
+                            poly!(ax2, oppositePolygon7, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax2, oppositePolygon8, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax3, oppositePolygon7, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                            poly!(ax3, oppositePolygon8, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
+                        end
+                        poly!(ax2, newCellPolygon, color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
                         poly!(ax3, newCellPolygon, color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
-                    
                     end    
                 else # the cell isn't on the periodic boundary
                     
                     # Plot population boundary in bold: 
                     
-                    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
-                    for j in interfaceBoundaryEdges
-                        verts = []
-                        ks = findall(x->x!=0, @view A[j,:])
-                        verts = R[ks]
-                        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
-                        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
-                        lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
-                    end
+                    
+                    
 
                     if cellLabels[i] == 0
                         poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
@@ -382,11 +311,71 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
     # Plot around the boundary between A and B: 
     if boundaryType == "free"
-        interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
         for j in interfaceBoundaryEdges
             verts = []
             ks = findall(x->x!=0, @view A[j,:])
             verts = R[ks]
+            lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+            lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+            lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        end
+    elseif boundaryType == "periodic"
+        for j in interfaceBoundaryEdges
+            flag1=flag2=0
+            verts = []
+            ks = findall(x->x!=0, @view A[j,:])
+            verts = R[ks]
+            verts = MVector.(verts)
+
+            if norm(verts[1][1]-verts[2][1])>L_x/2
+                flag1 = 1
+                if verts[1][1] > verts[2][1]
+                    verts[1][1] = verts[1][1]-L_x
+                else
+                    verts[1][1] = verts[1][1]+L_x
+                end
+            end
+            if norm(verts[1][2]-verts[2][2])>L_y/2
+                flag2 = 1
+                if verts[1][2]>verts[2][2]
+                    verts[1][2] = verts[1][2]-L_x
+                else
+                    verts[1][2] = verts[1][2]+L_x
+                end
+            end
+
+            if flag1==1
+                verts1 = []
+                verts2 = []
+                for vert in verts
+                    vert1 = vert .+ [L_x,0]
+                    vert2 = vert .+ [-L_x,0]
+                    push!(verts1, vert1)
+                    push!(verts2, vert2)
+                end
+                lines!(ax1, Point{2,Float64}.(verts1),color=:black,linewidth=3)
+                lines!(ax1, Point{2,Float64}.(verts2),color=:black,linewidth=3)
+                lines!(ax2, Point{2,Float64}.(verts1),color=:black,linewidth=3)
+                lines!(ax2, Point{2,Float64}.(verts2),color=:black,linewidth=3)
+                lines!(ax3, Point{2,Float64}.(verts1),color=:black,linewidth=3)
+                lines!(ax3, Point{2,Float64}.(verts2),color=:black,linewidth=3)
+            end
+            if flag2==1
+                verts3 = []
+                verts4 = []
+                for vert in verts
+                    vert3 = vert .+ [0,L_y]
+                    vert4 = vert .+ [0,-L_y]
+                    push!(verts3, vert3)
+                    push!(verts4, vert4)
+                end
+                lines!(ax1, Point{2,Float64}.(verts3),color=:black,linewidth=3)
+                lines!(ax1, Point{2,Float64}.(verts4),color=:black,linewidth=3)
+                lines!(ax2, Point{2,Float64}.(verts3),color=:black,linewidth=3)
+                lines!(ax2, Point{2,Float64}.(verts4),color=:black,linewidth=3)
+                lines!(ax3, Point{2,Float64}.(verts3),color=:black,linewidth=3)
+                lines!(ax3, Point{2,Float64}.(verts4),color=:black,linewidth=3)
+            end
             lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
             lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
             lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
