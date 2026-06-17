@@ -170,8 +170,62 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     oppositePolygon7 = zeros(num_vertices, 2)
                     oppositePolygon8 = zeros(num_vertices, 2)
 
-                    # Flags to see which boundaries are being crossed 
-                    flag1=flag2=flag3=flag4=0
+                    # Compute the periodic edges between populations to plot these in bold: 
+
+                    # interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+                    # for j in interfaceBoundaryEdges
+                    #     verts = []
+                    #     ks = findall(x->x!=0, @view A[j,:])
+                    #     verts = R[ks]
+                    #     verts = MVector.(verts)
+                    #     # newVerts = Vector{Point{2,Float64}}[]
+                    #     # println(verts[2])
+                    #     # newVerts[2] = verts[2]
+                    #     if norm(verts[1][1]-verts[2][1])>L_x/2
+                    #         if verts[1][1] > verts[2][1]
+                    #             verts[1][1] = verts[1][1]-L_x
+                    #         else
+                    #             verts[1][1] = verts[1][1]+L_x
+                    #         end
+                    #     end
+                    #     if norm(verts[1][2]-verts[2][2])>L_y/2
+                    #         if verts[1][2]>verts[2][2]
+                    #             verts[1][2] = verts[1][2]-L_x
+                    #         else
+                    #             verts[1][2] = verts[1][2]+L_x
+                    #         end
+                    #     end
+
+                    #     # Replicate verts across each periodic boundary:
+                    #     verts1 = []
+                    #     verts2 = []
+                    #     verts3 = []
+                    #     verts4 = []
+                    #     verts5 = []
+                    #     verts6 = []
+                    #     verts7 = []
+                    #     verts8 = []
+                    #     for vert in verts
+                    #         vert1 = vert .+ [L_x,0]
+                    #         vert2 = vert .+ [0,L_y]
+                    #         vert3 = vert .+ [L_x,L_y]
+                    #         vert4 = vert .+ [0,-L_y]
+                    #         vert5 = vert .+ [-L_x,0]
+                    #         vert6 = vert .+ [-L_x,-L_y]
+                    #         vert7 = vert .+ [L_x,-L_y]
+                    #         vert8 = vert .+ [-L_x,L_y]
+                    #     end
+
+                    #     lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+                    #     lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+                    #     lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+
+
+                        
+                    # end
+
+
+
 
                     for k = 1:num_vertices
 
@@ -179,10 +233,10 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                             
                             if cellPolygons[i][k][1] > cellPositions[i][1]
                                 newCellPolygon[k,1] = cellPolygons[i][k][1] - L_x
-                                flag1 = 1
+                                
                             else
                                 newCellPolygon[k,1] = cellPolygons[i][k][1] + L_x
-                                flag1 = 2
+                                
                             end
                         else
                             newCellPolygon[k,1] = cellPolygons[i][k][1]
@@ -191,10 +245,10 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                         if norm(cellPolygons[i][k][2]-cellPositions[i][2]) > L_y/2
                             
                             if cellPolygons[i][k][2] > cellPositions[i][2]
-                                flag2 = 1
+                                
                                 newCellPolygon[k,2] = cellPolygons[i][k][2] - L_y
                             else
-                                flag2=2
+                                
                                 newCellPolygon[k,2] = cellPolygons[i][k][2] + L_y
                             end
                         else
@@ -272,6 +326,19 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
                     
                     end    
                 else # the cell isn't on the periodic boundary
+                    
+                    # Plot population boundary in bold: 
+                    
+                    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+                    for j in interfaceBoundaryEdges
+                        verts = []
+                        ks = findall(x->x!=0, @view A[j,:])
+                        verts = R[ks]
+                        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+                        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+                        lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+                    end
+
                     if cellLabels[i] == 0
                         poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
                     else
@@ -314,15 +381,18 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     end
 
     # Plot around the boundary between A and B: 
-    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
-    for j in interfaceBoundaryEdges
-        verts = []
-        ks = findall(x->x!=0, @view A[j,:])
-        verts = R[ks]
-        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
-        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
-        lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+    if boundaryType == "free"
+        interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+        for j in interfaceBoundaryEdges
+            verts = []
+            ks = findall(x->x!=0, @view A[j,:])
+            verts = R[ks]
+            lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+            lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+            lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        end
     end
+    
 
     l_vec = [l_AA, l_AB, l_BB, l_AE, l_BE]
     

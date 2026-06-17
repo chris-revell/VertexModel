@@ -44,7 +44,7 @@ using Random
 
 
 function vertexModel(;
-    initialSystem = "32-cell",
+    initialSystem = "new",
     boundaryType = "free",
     cellLayout = "random",
     nRows = 3,
