@@ -45,7 +45,7 @@ using Random
 
 function vertexModel(;
     initialSystem = "new",
-    boundaryType = "free",
+    boundaryType = "periodic",
     cellLayout = "random",
     nRows = 3,
     nCycles = 1,
@@ -218,6 +218,11 @@ function vertexModel(;
         
         # Iterate until integrator time reaches max system time 
         while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+            if ablationToggle==1
+                if outputCounter[1] > 33
+                    break
+                end
+            end
 
             # Reinterpret state vector as a vector of SVectors 
             R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -418,13 +423,22 @@ end
 #     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
 # end
 
+function ablationLoop(jld2PathString,edgeVector)
+
+    for edge in edgeVector
+        println("Ablating edge $edge")
+        vertexModel(initialSystem = jld2PathString,boundaryType="free",ablationToggle=1,β=0.0,nCycles=0.001,edgeToAblate=edge)
+    end
+    
+end
+
 function extractRecoilVecs(jld2PathStrings)
 
-    meanDistVec = zeros(20)
+    DistVecs = Vector{Vector{Float64}}()
     timeVec = []
     # For error bars: 
-    maxDistVec = zeros(20)
-    minDistVec = zeros(20)
+    # maxDistVec = zeros(30)
+    # minDistVec = zeros(30)
     firstVec = true 
 
     for jld2PathString in jld2PathStrings
@@ -432,28 +446,21 @@ function extractRecoilVecs(jld2PathStrings)
         timeVecTemp = df.trackedTimePoints
         distVec = df.trackedVertDistance
 
-        timeVecTemp = timeVecTemp[1:20]
-        distVec = distVec[1:20]
+        timeVecTemp = timeVecTemp[1:30]
+        distVec = distVec[1:30]
 
         timeVecTemp = timeVecTemp .- timeVecTemp[1] # Starting from 0
         distVec = distVec .- distVec[1] # Starting from 0
         if firstVec
             timeVec = timeVecTemp
-            maxDistVec .= distVec
-            minDistVec .= distVec
             firstVec = false
-        else
-            maxDistVec = max.(maxDistVec, distVec)
-            minDistVec = min.(minDistVec, distVec)
         end
 
-        meanDistVec .+= distVec
+        push!(DistVecs, distVec)
+        println("distVec = ",distVec)
     end
-    
-    meanDistVec ./= length(jld2PathStrings)
-    lowerErrs = meanDistVec .- minDistVec
-    upperErrs = maxDistVec .- meanDistVec
-    return timeVec,meanDistVec, upperErrs, lowerErrs
+    println("timeVec = ",timeVec)
+    return nothing
 end
 
 
@@ -492,6 +499,6 @@ end # end function
 
 export vertexModel
 export loadData 
-export extractRecoilVecs, recoilComparisonPlot
+export extractRecoilVecs, recoilComparisonPlot, ablationLoop
 
 end

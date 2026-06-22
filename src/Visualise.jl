@@ -309,6 +309,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         annotations!(ax1, string.(collect(1:length(edgeMidpoints))), Point{2,Float64}.(edgeMidpoints), color=:white, fontsize=4)
     end
 
+    # println(interfaceBoundaryEdges)
     # Plot around the boundary between A and B: 
     if boundaryType == "free"
         for j in interfaceBoundaryEdges
