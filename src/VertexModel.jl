@@ -427,7 +427,8 @@ function ablationLoop(jld2PathString,edgeVector)
 
     for edge in edgeVector
         println("Ablating edge $edge")
-        vertexModel(initialSystem = jld2PathString,boundaryType="free",ablationToggle=1,β=0.0,nCycles=0.001,edgeToAblate=edge)
+        # vertexModel(initialSystem = jld2PathString,boundaryType="free",ablationToggle=1,β=0.0,nCycles=0.001,edgeToAblate=edge)
+        vertexModel(initialSystem = jld2PathString,boundaryType="free",ablationToggle=1,β=0.0,nCycles=0.1,edgeToAblate=edge)
     end
     
 end

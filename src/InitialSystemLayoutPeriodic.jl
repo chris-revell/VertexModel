@@ -81,9 +81,11 @@ function solve_exclusion_radius(λₚ, λₜ)
     f(r) = matern_type2_equation(r, λₚ, λₜ)
 
     r_low  = 1e-8              # essentially zero
-    r_high = sqrt(1/(π*λₜ))
-
+    r_high = sqrt(1/(π*λₜ)) 
+    println(r_high)
+    
     r = find_zero(f, (r_low, r_high), Roots.Brent())
+    println(r)
     return r
 end
 
@@ -153,10 +155,10 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
 
         
         Area_hex_A = 3*sqrt(3)*l_AA^2/2
-        N_cA = Int(ceil(Area_A/ Area_hex_A))
+        N_cA = Int(floor(Area_A/ Area_hex_A))
 
         Area_hex_B = 3*sqrt(3)*l_BB^2/2
-        N_cB = Int(ceil(Area_B/ Area_hex_B))
+        N_cB = Int(floor(Area_B/ Area_hex_B))
         
         # Determine parameters for the Matérn type II process
         λₜA = N_cA / (L_x*L_y*Area_A_ratio) # Target intensity 
@@ -171,23 +173,62 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
         r_exB = solve_exclusion_radius(λₚB, λₜB)
 
         # Matern type II process to generate periodic cell centres:
-        rad = r_exA +r_exB   
+        rad = r_exA  
         area = L_x * L_y          # parent intensity guess
         kept = NTuple{2,Float64}[]
 
+        println("Reaches here.")
+        println(N_cA)
+
         while length(kept) < N_cA
             n_parent = rand(Poisson(λₚA * area))
+            # println(n_parent)
             parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
             marks   = rand(n_parent)
         
             kept = matern_typeII(parents, marks, rad, L_x, L_y)  
+            # println(length(kept))
         end
+
+        # # Split coordinates
+        # parent_x = first.(parents)
+        # parent_y = last.(parents)
+
+        # kept_x = first.(kept)
+        # kept_y = last.(kept)
+
+        # # Plot
+        # fig = Figure()
+        # ax = Axis(fig[1, 1],
+        #     xlabel = "x",
+        #     ylabel = "y",
+        #     aspect = DataAspect()
+        # )
+
+        # scatter!(ax, parent_x, parent_y,
+        #     markersize = 4,
+        #     color = (:blue, 0.4),
+        #     label = "Parent points"
+        # )
+
+        # scatter!(ax, kept_x, kept_y,
+        #     markersize = 10,
+        #     color = :red,
+        #     label = "Kept points"
+        # )
+
+        # axislegend(ax)
+
+        
+        # display(fig)
+        # println(length(kept))
+
 
         # Truncate to N_c of random permutation
         kept = kept[randperm(length(kept))[1:N_cA]]
 
         # Now add B cells:
-        # rad = r_exB
+        rad = r_exA + r_exB
         while length(kept) < N_cA + N_cB
             n_parent = rand(Poisson(λₚB * area))
             parents = [(rand()*L_x, rand()*L_y) for _ in 1:n_parent]
@@ -306,6 +347,8 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
                 end
             end
         end
+
+        
 
 
         
