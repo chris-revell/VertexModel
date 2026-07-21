@@ -44,8 +44,8 @@ using Random
 
 
 function vertexModel(;
-    initialSystem = "new",
-    boundaryType = "periodic",
+    initialSystem = "new", # "new", "32-cell", "2-row" or jld2 path string 
+    boundaryType = "free",
     cellLayout = "random",
     nRows = 3,
     nCycles = 1,

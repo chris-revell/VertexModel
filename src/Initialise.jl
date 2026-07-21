@@ -80,9 +80,9 @@ function initialise(; initialSystem,
     rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem == "new" || initialSystem == "32-cell"
+    if initialSystem == "new" || initialSystem == "32-cell" || initialSystem == "2-row"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
-        A, B, R, t1Threshold, l_AA, l_BB, l_AB, l_AE, l_BE = initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky)
+        A, B, R, t1Threshold, l_AA, l_BB, l_AB, l_AE, l_BE = initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky,initialSystem)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
         nCells = size(B, 1)
         nEdges = size(A, 1)
@@ -93,9 +93,20 @@ function initialise(; initialSystem,
         # Start by assigning all cells as type A:
         cellsTypeB = []
         cellsTypeA = []
-        for i=1:nCells
-            push!(cellsTypeA, i)
+        if initialSystem == "2-row"
+            for i=1:nCells
+                if i <= nCells/2
+                    push!(cellsTypeA, i)
+                else
+                    push!(cellsTypeB, i)
+                end
+            end
+        else
+            for i=1:nCells
+                push!(cellsTypeA, i)
+            end 
         end
+        
 
 
         
