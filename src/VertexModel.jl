@@ -166,10 +166,15 @@ function vertexModel(;
     return integrator
 end
 
-# Function to load previously saved simulation data 
-function loadData(relativePath; outputNumber=100)
-    data = load(projectdir(relativePath, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
-    return data["R"], data["matrices"], data["params"]
+# Function that uses JLD2 load function with type map for 
+# VertexModel.jl structs specified. Doing this avoids type reconstruction.
+function loadData(path)
+    dataDict = load(path; 
+                    typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+                                "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
+                    )
+                )
+    return dataDict
 end
 
 # Ensure code is precompiled
@@ -179,5 +184,7 @@ end
 
 export vertexModel
 export loadData 
+export ParametersContainer
+export MatricesContainer
 
 end
