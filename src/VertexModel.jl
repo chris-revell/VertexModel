@@ -22,6 +22,7 @@ using CairoMakie
 using Printf
 using DifferentialEquations
 using Random
+using DiscreteCalculus
 
 # Local modules
 @from "CreateRunDirectory.jl" using CreateRunDirectory
@@ -39,6 +40,7 @@ using Random
 @from "CubicSolutions.jl" using CubicSolutions
 @from "ParameterDiagram.jl" using ParameterDiagram
 @from "EdgeAblation.jl" using EdgeAblation
+
 
 
 
@@ -498,8 +500,21 @@ function recoilComparisonPlot(timeVec,distVecs,lowerErrVecs,upperErrVecs,vecLabe
 
 end # end function 
 
+function computeCoupleStressesFromSimulation(jld2pathString)
+    # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium
+    R = load(jld2pathString,"R")
+    matrices = load(jld2pathString,"matrices")
+    @unpack A,B,F = matrices
+
+    h = hNetwork(R,A,B,F)
+    coupleStresses = -curlᵛ(R,A,B,h)
+    
+    vertexTriangles = findCellLinkVertexTriangles(R,A,B)
+
+end
+
 export vertexModel
 export loadData 
-export extractRecoilVecs, recoilComparisonPlot, ablationLoop
+export extractRecoilVecs, recoilComparisonPlot, ablationLoop, computeCoupleStressesFromSimulation
 
 end

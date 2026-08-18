@@ -2,7 +2,7 @@
 
 julia_version = "1.11.7"
 manifest_format = "2.0"
-project_hash = "fcd6e78018d5de4acf516ca9d26c91c9c85cae61"
+project_hash = "affadecf6edfe90a57e0a694839edbe7dd53beb6"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "8be2ae325471fc20b11c27bb34b518541d07dd3a"
@@ -658,6 +658,14 @@ version = "0.7.12"
     Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
     Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
     Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[[deps.DiscreteCalculus]]
+deps = ["CairoMakie", "CircularArrays", "Colors", "DelaunayTriangulation", "DifferentialEquations", "DrWatson", "FromFile", "GR", "GeometryBasics", "InvertedIndices", "LinearAlgebra", "OrdinaryDiffEq", "Random", "RecursiveArrayTools", "SparseArrays", "StaticArrays", "StaticVectors", "UnPack"]
+git-tree-sha1 = "a7be075d961647bed9d373d3dec83f0db00dec5b"
+repo-rev = "main"
+repo-url = "https://github.com/chris-revell/DiscreteCalculus"
+uuid = "c9ed59f3-1732-43eb-b4d1-f65c10d2ba12"
+version = "0.1.0"
 
 [[deps.Distances]]
 deps = ["LinearAlgebra", "Statistics", "StatsAPI"]
@@ -2906,6 +2914,12 @@ weakdeps = ["ChainRulesCore", "Statistics"]
 git-tree-sha1 = "6ab403037779dae8c514bad259f32a447262455a"
 uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
 version = "1.4.4"
+
+[[deps.StaticVectors]]
+deps = ["LinearAlgebra", "Random"]
+git-tree-sha1 = "9f92c88f8d95c242b95f244a1132f38475ba5be5"
+uuid = "20fadf95-9e3d-483c-97cd-cab2760e7998"
+version = "1.0.9"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra"]
