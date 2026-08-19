@@ -87,6 +87,27 @@ function recoilVelocityPlotSetup()
     return recoilFig, axVelocity
 end
 
-export plotSetup, stressPlotSetup, recoilVelocityPlotSetup
+function coupleStressPlotSetup()
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    coupleStressFig = Figure(size=(1800,600))
+    grid = coupleStressFig[1,1] = GridLayout()
+    cellTypeAx = Axis(grid[1,1],aspect=DataAspect())
+    coupleStressAx = Axis(grid[1,2],aspect=DataAspect())
+
+    hidedecorations!(cellTypeAx)
+    hidedecorations!(coupleStressAx)
+    hidespines!(cellTypeAx)
+    hidespines!(coupleStressAx)
+
+    # Create an empty colorbar in fig[1,3]
+    dummy_cmap = cgrad([:white, :white], 2)
+    dummy_range = (0.0, 1.0)
+    coupleStressCbar = Colorbar(coupleStressFig[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+
+    return coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar
+end
+
+export plotSetup, stressPlotSetup, recoilVelocityPlotSetup, coupleStressPlotSetup
 
 end # end module 

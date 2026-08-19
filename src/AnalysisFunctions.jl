@@ -19,6 +19,7 @@ using Random
 using FromFile
 using Colors
 using CircularArrays
+using DiscreteCalculus
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell

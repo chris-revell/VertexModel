@@ -461,6 +461,70 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 end
 
-export visualise
+function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, coupleStresses, vertexTriangles)
+
+    @unpack nCells,
+        nVerts = params 
+
+    @unpack cellLabels,
+        edgeLabels,
+        A = matrices
+
+    empty!(ax1)
+    empty!(ax2)
+    delete!(cbar)
+
+    # Generate a colour map for effective pressures: 
+    cmap = cgrad([
+        RGB(0.0, 0.0, 1.0),    # blue
+        RGB(1.0, 1.0, 1.0),   # white, zero
+        RGB(1.0, 0.0, 0.0)   # red
+    ], 256)
+    # Alternative colour bar - centered at 0: 
+    maxabs = maximum(abs.(coupleStresses))
+    # clims = (-maxabs,maxabs)
+    clims = (-0.05,0.05)
+
+    cellPolygons = makeCellPolygons(R, params, matrices)
+    
+    vertexTrianglePoints = Vector{Point{2,Float64}}[]
+    for k=1:nVerts
+        push!(vertexTrianglePoints,Point{2,Float64}.(vertexTriangles[k]))
+    end
+
+    interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+
+    # Plot couple stresses about each vertex: 
+    for k=1:nVerts
+        poly!(ax2, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims, colormap = cmap,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+    end
+
+    for i=1:nCells
+        # Plot cell types: 
+        if cellLabels[i] == 0
+            poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
+            poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
+        else
+            poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
+            poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth=0.5)
+        end
+    end
+
+    # Add colour bar
+    cbar = Colorbar(fig[1,3],colormap = cmap, colorrange=clims, label="Couple Stress", width=20,height=Relative(0.6))
+
+    # Plot boundary
+    for j in interfaceBoundaryEdges
+        verts = []
+        ks = findall(x->x!=0, @view A[j,:])
+        verts = R[ks]
+        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=1.5)
+        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=1.5)
+    end
+
+    return cbar
+end
+
+export visualise, visualiseCoupleStresses
 
 end

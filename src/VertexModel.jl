@@ -501,16 +501,27 @@ function recoilComparisonPlot(timeVec,distVecs,lowerErrVecs,upperErrVecs,vecLabe
 end # end function 
 
 function computeCoupleStressesFromSimulation(jld2pathString)
-    # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium
+    # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium. 
+    # Insure jld2string input is NOT relative 
     R = load(jld2pathString,"R")
+    params = load(jld2pathString,"params")
     matrices = load(jld2pathString,"matrices")
     @unpack A,B,F = matrices
 
     h = hNetwork(R,A,B,F)
     coupleStresses = -curlᵛ(R,A,B,h)
-    
+    coupleStressesSpokes = -curlᵛspokes(R,A,B,h)
     vertexTriangles = findCellLinkVertexTriangles(R,A,B)
 
+    # Plot couple stresses on vertices: 
+    coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar = coupleStressPlotSetup()
+
+    coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStressesSpokes, vertexTriangles)
+
+    # Find the folder the data has been taken from: 
+    folderName = dirname(dirname(jld2pathString))
+    mkpath(datadir(folderName))
+    save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig)
 end
 
 export vertexModel
