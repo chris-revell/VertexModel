@@ -25,6 +25,7 @@ using CircularArrays
 using FromFile
 using DrWatson
 using GeometryBasics: area
+using DiscreteCalculus
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -473,6 +474,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
     empty!(ax1)
     empty!(ax2)
     delete!(cbar)
+    grid = fig[1,1] = GridLayout()
 
     # Generate a colour map for effective pressures: 
     cmap = cgrad([
@@ -511,7 +513,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
     end
 
     # Add colour bar
-    cbar = Colorbar(fig[1,3],colormap = cmap, colorrange=clims, label="Couple Stress", width=20,height=Relative(0.6))
+    cbar = Colorbar(grid[1,3],colormap = cmap, colorrange=clims, label="Couple Stress", width=20,height=Relative(0.6))
 
     # Plot boundary
     for j in interfaceBoundaryEdges
@@ -525,6 +527,153 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
     return cbar
 end
 
-export visualise, visualiseCoupleStresses
+function visualiseForceComparison(R, h, clusterCells, fig, ax1, ax2, cbar, params,matrices, coupleStresses, vertexTriangles)
+
+    # Visualise a cluster of cells with rotated forces about a vertex to check alignment with vector force potential: 
+
+    @unpack nCells,
+        nVerts = params 
+
+    @unpack cellLabels,
+        edgeLabels,
+        A,
+        B,
+        C,
+        F,
+        ϵ,
+        cellVertexOrders,
+        cellEdgeOrders,
+        edgeMidpoints,
+        cellPositions = matrices
+
+    scatterCells=1
+    scatterEdges=1
+
+    empty!(ax1)
+    empty!(ax2)
+    delete!(cbar)
+    grid = fig[1,1] = GridLayout()
+
+    # Generate a colour map for effective pressures: 
+    cmap = cgrad([
+        RGB(0.0, 0.0, 1.0),    # blue
+        RGB(1.0, 1.0, 1.0),   # white, zero
+        RGB(1.0, 0.0, 0.0)   # red
+    ], 256)
+    # Alternative colour bar - centered at 0: 
+    maxabs = maximum(abs.(coupleStresses))
+    # clims = (-maxabs,maxabs)
+    clims = (-0.05,0.05)
+
+    cellPolygons = makeCellPolygons(R, params, matrices)
+
+    kVec = []
+    jVec = []
+    for i in clusterCells
+        append!(kVec,findall(x -> x!=0, @view(C[i,:])))
+        append!(jVec,findall(x -> x!=0, @view(B[i,:])))
+    end
+    unique!(kVec)
+    unique!(jVec)
+    println("kVec = ",kVec)
+    
+    for k in kVec
+        poly!(ax1, Point{2,Float64}.(vertexTriangles[k]),color = coupleStresses[k], colorrange = clims, colormap = cmap,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+    end
+    for j in jVec
+        scatter!(ax2, [Point2f(h[j])], color=:blue)
+    end
+    for i in clusterCells
+        poly!(ax1, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
+        # Plot f_ik, the force on vertex k due to cell i:
+        for k in findall(x -> x!=0, @view(C[i,:]))
+            scatter!(ax1, [Point2f(R[k])], color=:red)
+            # Plot rotated force vectors: 
+            Frotated_ki = ϵ*F[k,i]
+            arrows!(ax1, [Point2f(R[k])], [20*Vec2f(Frotated_ki)], color=:red, linewidth=1, arrowsize=0.05)
+        end
+    end
+
+    startCell = clusterCells[1]
+    traversedCells = Int64[]
+    traversedEdges = Int64[]
+    cellNeighbourMatrix = B*transpose(B)
+    rotatedVerticesList = fill(SVector{2, Float64}(zeros(2)), size(B,2)) # This is what we will compare with h
+    
+    cellColours = Dict(zip(clusterCells, distinguishable_colors(length(clusterCells))))
+
+    startEdge = cellEdgeOrders[startCell][1]
+    # Find the index of this edge within the ordering of edges around cell ii 
+    startInd = findall(x->x==startEdge, cellEdgeOrders[startCell])[1]
+    println(cellEdgeOrders[startCell])
+    println(startInd)
+    # Remember in clockwise ordering, cellEdgeOrders[i][1] precedes cellVertexOrders[1]
+    println(startInd:(startInd+length(cellVertexOrders[startCell])-1))
+    for vertexInd = startInd:(startInd+length(cellVertexOrders[startCell])-1)
+        if length(traversedEdges)==0
+            rotatedVerticesList[cellEdgeOrders[startCell][startInd]] = h[cellEdgeOrders[startCell][startInd]]
+        end
+        rotatedVerticesList[cellEdgeOrders[startCell][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]] .+ ϵ*F[cellVertexOrders[startCell][vertexInd], startCell]
+
+        arrows!(ax2,[Point2f(rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[startCell][vertexInd], startCell])],color=cellColours[startCell], linewidth=1, arrowsize=0.03)
+        
+        push!(traversedEdges, cellEdgeOrders[startCell][vertexInd]) 
+    end
+    push!(traversedCells, startCell)
+
+    while length(traversedCells) < length(clusterCells)
+        currentNeighbourShell = setdiff(findnz(cellNeighbourMatrix[:, traversedCells])[1], traversedCells)
+        for ii in currentNeighbourShell 
+            if ii in clusterCells
+
+                startEdge = cellEdgeOrders[ii][1]
+                # Find the index of this edge within the ordering of edges around cell ii 
+                startInd = findall(x->x==startEdge, cellEdgeOrders[ii])[1]
+
+                rotatedVerticesList[cellEdgeOrders[ii][startInd]] = h[cellEdgeOrders[ii][startInd]]
+                # Remember in clockwise ordering, cellEdgeOrders[i][1] precedes cellVertexOrders[1]
+                for vertexInd = startInd:(startInd+length(cellVertexOrders[ii])-1)
+                    rotatedVerticesList[cellEdgeOrders[ii][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[ii][vertexInd]] .+ ϵ*F[cellVertexOrders[ii][vertexInd], ii]
+                    push!(traversedEdges, cellEdgeOrders[ii][vertexInd]) 
+                    arrows!(ax2,[Point2f(rotatedVerticesList[cellEdgeOrders[ii][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[ii][vertexInd], ii])],color=cellColours[ii], linewidth=1, arrowsize=0.03)
+                end
+                
+                push!(traversedCells, ii)
+            end
+        end
+    end
+
+    # if scatterEdges == 1
+    #     for j in jVec
+    #         scatter!(ax1,Point{2,Float64}(edgeMidpoints[j]), color=:blue, markersize=5)
+    #         text!(ax1, string(j), position=Point{2,Float64}(edgeMidpoints[j]), color=:blue, fontsize, align=(:left, :center))
+    #     end
+    # end
+
+    # Scatter cell positions
+    if scatterCells == 1
+        for i in clusterCells
+            p = Point{2,Float64}(cellPositions[i]...)
+
+            # choose color
+            col =  :red 
+            scatter!(ax1, [p], color=col)
+            text!(ax1, string(i), position=Point{2,Float64}(cellPositions[i]),align=(:left, :center))
+        end
+    end
+
+    legendElements = [LineElement(color=cellColours[i], linewidth=2) for i in clusterCells]
+    legendLabels = ["Cell $i" for i in clusterCells]
+
+    Legend(grid[1,4], legendElements, legendLabels, "Cluster cells", framevisible=false)
+
+
+    
+    cbar = Colorbar(grid[1,3],colormap = cmap, colorrange=clims, label="Couple Stress", width=20,height=Relative(0.6))
+    
+    return cbar
+end
+
+export visualise, visualiseCoupleStresses, visualiseForceComparison
 
 end

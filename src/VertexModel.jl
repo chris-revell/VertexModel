@@ -500,28 +500,51 @@ function recoilComparisonPlot(timeVec,distVecs,lowerErrVecs,upperErrVecs,vecLabe
 
 end # end function 
 
-function computeCoupleStressesFromSimulation(jld2pathString)
+function computeCoupleStressesFromSimulation(;jld2pathString, plotForces)
     # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium. 
     # Insure jld2string input is NOT relative 
     R = load(jld2pathString,"R")
     params = load(jld2pathString,"params")
     matrices = load(jld2pathString,"matrices")
-    @unpack A,B,F = matrices
+    @unpack A,B,C,F = matrices
 
     h = hNetwork(R,A,B,F)
     coupleStresses = -curlᵛ(R,A,B,h)
-    coupleStressesSpokes = -curlᵛspokes(R,A,B,h)
     vertexTriangles = findCellLinkVertexTriangles(R,A,B)
 
     # Plot couple stresses on vertices: 
     coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar = coupleStressPlotSetup()
 
-    coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStressesSpokes, vertexTriangles)
+    coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
 
     # Find the folder the data has been taken from: 
     folderName = dirname(dirname(jld2pathString))
     mkpath(datadir(folderName))
     save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig)
+
+    if plotForces == 1
+        # Case of plotting a cluster of cells to check the rotated forces align with the vector force potential; 
+        forceComparisonFig, forceAx, polyAx, forceComparisonCbar = forceComparisonPlotSetup()
+        # Select the cluster of cells we would like to consider: 
+        iC = rand(1:params.nCells, 1)[1] 
+        # iC = 2
+        # Determine associated vertices: 
+        kC = findall(x -> x!=0, @view C[iC,:])
+        clusterCells = []
+        # Determine this cell's neighbours: 
+        for k in kC
+            cells = findall(x -> x!=0, @view C[:,k])
+            append!(clusterCells,cells)
+        end
+        unique!(clusterCells)
+
+        forceComparisonCbar = visualiseForceComparison(R, h, clusterCells, forceComparisonFig, polyAx,forceAx, forceComparisonCbar, params, matrices, coupleStresses, vertexTriangles)
+        save(datadir(folderName, "forceComparisonPlot.png"), forceComparisonFig)
+    end
+
+    
+
+    return nothing
 end
 
 export vertexModel

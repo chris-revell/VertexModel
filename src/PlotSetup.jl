@@ -103,11 +103,30 @@ function coupleStressPlotSetup()
     # Create an empty colorbar in fig[1,3]
     dummy_cmap = cgrad([:white, :white], 2)
     dummy_range = (0.0, 1.0)
-    coupleStressCbar = Colorbar(coupleStressFig[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+    coupleStressCbar = Colorbar(grid[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
 
     return coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar
 end
 
-export plotSetup, stressPlotSetup, recoilVelocityPlotSetup, coupleStressPlotSetup
+function forceComparisonPlotSetup()
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    forceComparisonFig = Figure(size=(1800,600))
+    grid = forceComparisonFig[1,1] = GridLayout()
+    polyAx = Axis(grid[1,1],aspect=DataAspect())
+    forceAx = Axis(grid[1,2],aspect=DataAspect())
+    hidedecorations!(forceAx)
+    hidespines!(forceAx)
+    hidedecorations!(polyAx)
+    hidespines!(polyAx)
+
+    dummy_cmap = cgrad([:white, :white], 2)
+    dummy_range = (0.0, 1.0)
+    forceComparisonCbar = Colorbar(grid[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+
+    return forceComparisonFig, forceAx, polyAx, forceComparisonCbar
+end
+
+export plotSetup, stressPlotSetup, recoilVelocityPlotSetup, coupleStressPlotSetup, forceComparisonPlotSetup
 
 end # end module 
