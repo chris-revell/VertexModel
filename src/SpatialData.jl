@@ -112,8 +112,7 @@ function spatialData!(R,params,matrices)
         P_effs,
         T_effs,
         ξs,
-        ξsDir,
-        ξsDirScaled = matrices
+        e₁ = matrices
     @unpack initialSystem,
         boundaryType,
         nCells,
@@ -313,20 +312,18 @@ function spatialData!(R,params,matrices)
             cellTensions[i] = Γ[i] * cellPerimeters[i]
         end
         
-        # Update effective tensions and pressures for each cell
+     
+        # Update effective tensions and pressures for each cell, and the deviatoric stress: 
+        Jᵢ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
+        fill!(e₁, @SVector zeros(2))
+        σ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
         for i=1:nCells
             T_effs[i] = cellTensions[i]
             for j=1:nEdges
                 T_effs[i] += 0.5*(1/cellPerimeters[i])*B̄[i,j]*Λs[j]*edgeLengths[j]
             end
             P_effs[i] = cellPressures[i] + (cellPerimeters[i]/(2*cellAreas[i]))*T_effs[i]
-        end
 
-        # Update the deviatoric stress: 
-        Jᵢ = fill(SMatrix{2,2,Float64}(zeros(2,2)), nCells)
-        fill!(ξsDir, @SVector zeros(2))
-
-        for i=1:nCells
             Jᵢterms = fill(SMatrix{2,2,Float64}(zeros(2,2)), nEdges)
             for j=1:nEdges
                 Jᵢterms[j] = B̄[i,j] * (cellTensions[i] + 0.5*Λs[j]) * (edgeTangents[j]*(edgeTangents[j]'/edgeLengths[j]))
@@ -335,32 +332,20 @@ function spatialData!(R,params,matrices)
             Jᵢ[i] = sum(Jᵢterms)
             I₂=Matrix{Float64}(I, 2, 2)
             
-            devStessTensor = (1/cellAreas[i])*(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂) # Of the form [a , b ; b , -a]
-            a = devStessTensor[1,1]
-            b = devStessTensor[1,2]
-            thetaPrincipal = 0.5 * atan(b/a) # angle of principal stress axis relative to x-axis 
-            transMatrix = SMatrix{2,2,Float64}([
-                cos(thetaPrincipal) -sin(thetaPrincipal)
-                sin(thetaPrincipal) cos(thetaPrincipal)
-            ])
-            devStessTensorPrincipal = transMatrix' * devStessTensor * transMatrix # Principal stress. Of the form [c,0;0,-c]. c is in the direction thetaPrincipal from the x axis and -c in the direction thetaPrincipal+\pi/2
-            if devStessTensorPrincipal[1,1] > 0
-                # This is the tension component, which we plot. [1,1] Corresponds to thetaPrincipal direction
-                ξsDir[i] = SVector(cos(thetaPrincipal), sin(thetaPrincipal)) #  length of the vector - arbitraty.
-            else
-                # This is the compression component, which we ignore. Tension component is in which [2,2] corresponds to thetaPrincipal+\pi/2 direction
-                ξsDir[i] = SVector(cos(thetaPrincipal + π/2), sin(thetaPrincipal + π/2))
-            end
-
+            devStressTensor = (1/cellAreas[i])*(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂) # Of the form [a , b ; b , -a]
+            
+            σ[i] = P_effs[i]*I + devStressTensor
             ξs[i] = (1/cellAreas[i]) * sqrt(-1*det(Jᵢ[i] - 0.5*cellPerimeters[i]*T_effs[i]*I₂))
 
-            # Scale ξsDir by the approx cell radius the magnitude of ξs to get a more reasonable length for plotting.
-            avgξ = sum(ξs)/nCells
-            approxCellRadius = sqrt(cellAreas[i])/π
-            ξsDir[i] = ξsDir[i]  *2*approxCellRadius
-            ξsDirScaled[i] = ξsDir[i] * ξs[i]/ (2*avgξ)
+            eigenDecomp = eigen(σ[i]) # Returns eigenvalues in ascending order and eigenvectors as columns 
+            # σ₁[i] = eigenDecomp.values[2]
+            e₁[i] = eigenDecomp.vectors[:,2]
+
+
             
         end
+
+
     end
 
     return nothing

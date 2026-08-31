@@ -46,8 +46,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
         boundaryCells,
         P_effs,
         ξs,
-        ξsDir,
-        ξsDirScaled,
+        e₁,
         cellLabels,
         edgeLabels,
         boundaryEdges,
@@ -131,6 +130,13 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     clims2 = (0,0.04)
 
     interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
+
+    # Scale the principle stress direction: 
+    e₁scaled = fill(SVector{2,Float64}(zeros(2)), nCells)
+    for i=1:nCells
+         approxCellRadius = sqrt(cellAreas[i])/π
+         e₁scaled[i] = e₁[i]  *2*approxCellRadius
+    end
 
 
     # Plot cells
@@ -417,17 +423,17 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 
     if plotXis == 1 
-        # for i=1:nCells
-        #     barLength = ξs[i]
-        #     scatter!(ax3,Point{2,Float64}.(cellPositions))
-        # end
-        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDirScaled), color=:black,linewidth = 1,arrowsize=0)
-        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDirScaled), color=:black,linewidth = 1,arrowsize=0)
+        for i=1:nCells
+            barLength = ξs[i]
+            # scatter!(ax3,Point{2,Float64}.(cellPositions))
+        end
+        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
     end
 
     if plotOrientations ==1
-        arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
-        arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(ξsDir), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
     end
 
 
@@ -469,23 +475,17 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
 
     @unpack cellLabels,
         edgeLabels,
-        A = matrices
+        A,
+        B,
+        boundaryEdges,
+        boundaryVertices = matrices
 
     empty!(ax1)
     empty!(ax2)
     delete!(cbar)
     grid = fig[1,1] = GridLayout()
 
-    # Generate a colour map for effective pressures: 
-    cmap = cgrad([
-        RGB(0.0, 0.0, 1.0),    # blue
-        RGB(1.0, 1.0, 1.0),   # white, zero
-        RGB(1.0, 0.0, 0.0)   # red
-    ], 256)
-    # Alternative colour bar - centered at 0: 
-    maxabs = maximum(abs.(coupleStresses))
-    # clims = (-maxabs,maxabs)
-    clims = (-0.05,0.05)
+    
 
     cellPolygons = makeCellPolygons(R, params, matrices)
     
@@ -496,19 +496,42 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
 
     interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
 
+    exteriorCells = unique(getindex.(findall(x -> x != 0, @view(B[:, findall(x -> x!=0, boundaryEdges)])), 1))
+
+    boundaryVerticesIndex = findall(x -> x!=0, boundaryVertices)
+    interiorIndices = setdiff(1:length(coupleStresses), boundaryVerticesIndex)
+    
+
+    # Generate a colour map for effective pressures: 
+    cmap = cgrad([
+        RGB(0.0, 0.0, 1.0),    # blue
+        RGB(1.0, 1.0, 1.0),   # white, zero
+        RGB(1.0, 0.0, 0.0)   # red
+    ], 256)
+    # Colour bar exclusing exterior vertices 
+    maxabs = maximum(abs.(coupleStresses[interiorIndices]))
+    # clims = (-maxabs,maxabs)
+    clims = (-0.05,0.05)
+
     # Plot couple stresses about each vertex: 
     for k=1:nVerts
-        poly!(ax2, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims, colormap = cmap,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+        if !(k in boundaryVerticesIndex)
+            poly!(ax2, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims, colormap = cmap,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+        end
     end
 
     for i=1:nCells
         # Plot cell types: 
         if cellLabels[i] == 0
             poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-            poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
+            if !(i in exteriorCells)
+                poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
+            end
         else
             poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-            poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth=0.5)
+            if !(i in exteriorCells)
+                poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth=0.5)
+            end
         end
     end
 

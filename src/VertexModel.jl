@@ -513,9 +513,9 @@ function computeCoupleStressesFromSimulation(;jld2pathString, plotForces)
     vertexTriangles = findCellLinkVertexTriangles(R,A,B)
 
     # Plot couple stresses on vertices: 
-    coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar = coupleStressPlotSetup()
+    coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar, ξCbar, coupleStressCbar = coupleStressPlotSetup()
 
-    coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
+    PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
 
     # Find the folder the data has been taken from: 
     folderName = dirname(dirname(jld2pathString))

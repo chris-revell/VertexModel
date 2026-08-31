@@ -90,22 +90,30 @@ end
 function coupleStressPlotSetup()
 
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-    coupleStressFig = Figure(size=(1800,600))
+    coupleStressFig = Figure(size=(2400,1200))
     grid = coupleStressFig[1,1] = GridLayout()
     cellTypeAx = Axis(grid[1,1],aspect=DataAspect())
-    coupleStressAx = Axis(grid[1,2],aspect=DataAspect())
+    PeffAx = Axis(grid[1,2],aspect=DataAspect())
+    ξAx = Axis(grid[1,3],aspect=DataAspect())
+    coupleStressAx = Axis(grid[1,4],aspect=DataAspect())
 
     hidedecorations!(cellTypeAx)
+    hidedecorations!(PeffAx)
+    hidedecorations!(ξAx)
     hidedecorations!(coupleStressAx)
     hidespines!(cellTypeAx)
+    hidespines!(PeffAx)
+    hidespines!(ξAx)
     hidespines!(coupleStressAx)
 
     # Create an empty colorbar in fig[1,3]
     dummy_cmap = cgrad([:white, :white], 2)
     dummy_range = (0.0, 1.0)
-    coupleStressCbar = Colorbar(grid[1,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+    PeffCbar = Colorbar(grid[2,2], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+    ξCbar = Colorbar(grid[2,3], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
+    coupleStressCbar = Colorbar(grid[2,4], colormap=dummy_cmap, colorrange=dummy_range, width=20, height=Relative(0.6))
 
-    return coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar
+    return coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar, ξCbar, coupleStressCbar
 end
 
 function forceComparisonPlotSetup()
