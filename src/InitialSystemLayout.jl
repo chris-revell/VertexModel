@@ -64,7 +64,7 @@ function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky,initi
     # Hexagonal packing constant: vertical offset between adjacent rows of unit-spaced hexagon centres
     Δy = sqrt(1 - 0.5^2)
  
-    if initialSystem == "32-cell"
+    if initialSystem == "32-cell" || initialSystem == "symmetric"
         # Diamond-shaped grid: central row of length nRows, tapering by one cell per row moving outwards
         cellPoints = [SVector(x, 0.0) for x = 1:nRows]
         for j = 1:(floor(Int64,nRows/2))

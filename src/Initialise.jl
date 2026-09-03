@@ -65,6 +65,7 @@ function initialise(; initialSystem,
         Area_A_ratio,
         t1timeGap,
         spiky,
+        clusterWidth,
     )
 
     # Calculate derived parameters
@@ -80,7 +81,7 @@ function initialise(; initialSystem,
     rng = MersenneTwister(seed)
 
     # Initialise system matrices from function or file
-    if initialSystem == "new" || initialSystem == "32-cell" || initialSystem == "2-row"
+    if initialSystem == "new" || initialSystem == "32-cell" || initialSystem == "2-row" || initialSystem == "symmetric"
         isodd(nRows) && (nRows>1)  ? nothing : throw("nRows must be an odd number greater than 1.")
         A, B, R, t1Threshold, l_AA, l_BB, l_AB, l_AE, l_BE = initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky,initialSystem)
         cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
@@ -101,9 +102,43 @@ function initialise(; initialSystem,
                     push!(cellsTypeB, i)
                 end
             end
+        elseif initialSystem == "symmetric"
+            # Select the most central cell to centre the cluster of B cells. This is (nRows-1)/2 by construction: 
+            centralCell = Int((nRows+1)/2)
+            cellsTypeB = [centralCell]
+            # Find neighbours of this cell: 
+            Bᵀ = spzeros(Int64, nEdges, nCells)
+            Bᵀ .= sparse(transpose(B))
+            cellNeighbours = spzeros(Int64, nCells, nCells)
+            cellNeighbours .= B*Bᵀ
+            latestLayer = []
+            previousLayer = [centralCell]
+            for layer = 1:clusterWidth
+                for cell in previousLayer
+                    neighbours = findall(x -> x!=0, @view cellNeighbours[cell,:])
+                    for newCell in neighbours
+                        push!(latestLayer, newCell)
+                        push!(cellsTypeB, newCell)
+                    end
+                    unique!(latestLayer)
+                    unique!(cellsTypeB)
+                end
+                previousLayer = latestLayer
+                latestLayer = []
+            end
+            
+
+            unique!(cellsTypeB)
+            for i=1:nCells
+                if !(i in cellsTypeB)
+                    push!(cellsTypeA, i)
+                end
+            end
+            
         else
             for i=1:nCells
                 push!(cellsTypeA, i)
+                
             end 
         end
         

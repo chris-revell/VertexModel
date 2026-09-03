@@ -99,9 +99,9 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     A_iP_effs .= cellAreas.*P_effs
     # Generate a colour map for effective pressures: 
     cmap1 = cgrad([
-        RGB(0.0, 0.0, 1.0),    # blue
+        RGB(12.0/256, 181.0/256, 119.0/256),    # bright green teal
         RGB(1.0, 1.0, 1.0),   # white, zero
-        RGB(1.0, 0.0, 0.0)   # red
+        RGB(26/256,26/256,26/256)   # charcoal
     ], 256)
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
@@ -112,11 +112,6 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     A_iξs = zeros(nCells)
     A_iξs .= cellAreas.*ξs
     # Generate a colour map for ξ:
-    # cmap2 = cgrad([
-    #     RGB(1.0, 1.0, 1.0),   # white
-    #     RGB(1.0, 0.0, 1.0)    # magenta
-    # ], 256)
-
     cmap2 = cgrad([
         RGB(1.0, 1.0, 1.0),   # 0%   White
         RGB(1.0, 0.8, 0.9),   # 25%  Light Pink
@@ -422,15 +417,6 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     end
 
 
-    if plotXis == 1 
-        for i=1:nCells
-            barLength = ξs[i]
-            # scatter!(ax3,Point{2,Float64}.(cellPositions))
-        end
-        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
-        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
-    end
-
     if plotOrientations ==1
         arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
         arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
@@ -468,7 +454,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 end
 
-function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, coupleStresses, vertexTriangles)
+function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
 
     @unpack nCells,
         nVerts = params 
@@ -478,11 +464,20 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
         A,
         B,
         boundaryEdges,
-        boundaryVertices = matrices
+        boundaryVertices,
+        P_effs,
+        ξs,
+        e₁,
+        cellAreas,
+        cellPositions = matrices
 
     empty!(ax1)
     empty!(ax2)
-    delete!(cbar)
+    empty!(ax3)
+    empty!(ax4)
+    delete!(PeffCbar)
+    delete!(ξCbar)
+    delete!(coupleStressCbar)
     grid = fig[1,1] = GridLayout()
 
     
@@ -502,21 +497,57 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
     interiorIndices = setdiff(1:length(coupleStresses), boundaryVerticesIndex)
     
 
+    # Set colour limits for P_eff
+    A_iP_effs = zeros(nCells)
+    A_iP_effs .= cellAreas.*P_effs
     # Generate a colour map for effective pressures: 
-    cmap = cgrad([
+    cmap1 = cgrad([
+        RGB(12.0/256, 181.0/256, 119.0/256),    # bright green teal
+        RGB(1.0, 1.0, 1.0),   # white, zero
+        RGB(26/256,26/256,26/256)   # charcoal
+    ], 256)
+    # Alternative colour bar - centered at 0: 
+    maxabs1 = maximum(abs.(A_iP_effs))
+    # clims1 = (-maxabs1, maxabs1)
+    clims1 = (-0.03, 0.03)
+
+    # Set colour limits for ξ
+    A_iξs = zeros(nCells)
+    A_iξs .= cellAreas.*ξs
+    cmap2 = cgrad([
+        RGB(1.0, 1.0, 1.0),   # 0%   White
+        RGB(1.0, 0.8, 0.9),   # 25%  Light Pink
+        RGB(1.0, 0.0, 0.5),   # 50%  Hot Pink
+        RGB(0.6, 0.0, 0.8),   # 75%  Purple
+        RGB(0.3, 0.0, 0.5)    # 100% Dark Purple
+    ])
+    max2 = maximum(A_iξs)
+    min2 = 0
+    # clims2 = (min2, max2)
+    clims2 = (0,0.03)
+
+    # Generate a colour map for effective pressures: 
+    cmap3 = cgrad([
         RGB(0.0, 0.0, 1.0),    # blue
         RGB(1.0, 1.0, 1.0),   # white, zero
         RGB(1.0, 0.0, 0.0)   # red
     ], 256)
     # Colour bar exclusing exterior vertices 
-    maxabs = maximum(abs.(coupleStresses[interiorIndices]))
-    # clims = (-maxabs,maxabs)
-    clims = (-0.05,0.05)
+    maxabs3 = maximum(abs.(coupleStresses[interiorIndices]))
+    clims3 = (-maxabs3,maxabs3)
+    # clims3 = (-0.05,0.05)
+
+    # Scale the principle stress direction: 
+    e₁scaled = fill(SVector{2,Float64}(zeros(2)), nCells)
+    for i=1:nCells
+         approxCellRadius = sqrt(cellAreas[i])/π
+         e₁scaled[i] = e₁[i]  *2*approxCellRadius
+    end
 
     # Plot couple stresses about each vertex: 
     for k=1:nVerts
         if !(k in boundaryVerticesIndex)
-            poly!(ax2, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims, colormap = cmap,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+            poly!(ax4, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims3, colormap = cmap3,  strokecolor=(:grey, 1.0), strokewidth=0.5)
         end
     end
 
@@ -524,30 +555,42 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, cbar, params, matrices, couple
         # Plot cell types: 
         if cellLabels[i] == 0
             poly!(ax1, cellPolygons[i], color=RGB(255/255,178/255,102/255), strokecolor=(:black, 1.0), strokewidth=1)
-            if !(i in exteriorCells)
-                poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
-            end
+            poly!(ax4, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth = 0.5)
+            
         else
             poly!(ax1, cellPolygons[i], color=RGB(102/255,178/255,255/255), strokecolor=(:black, 1.0), strokewidth=1)
-            if !(i in exteriorCells)
-                poly!(ax2, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth=0.5)
-            end
+            poly!(ax4, cellPolygons[i], color=:transparent,strokecolor=(:black, 1.0),strokewidth=0.5)
+            
         end
+
+        # Plot effective pressures in ax2
+        poly!(ax2, cellPolygons[i], color=A_iP_effs[i], colorrange = clims1, colormap = cmap1,  strokecolor=(:black, 1.0), strokewidth=1)
+
+        # Plot deviatoric stress in ax3
+        poly!(ax3, cellPolygons[i], color=A_iξs[i], colorrange = clims2, colormap = cmap2,  strokecolor=(:black, 1.0), strokewidth=1)
     end
 
     # Add colour bar
-    cbar = Colorbar(grid[1,3],colormap = cmap, colorrange=clims, label="Couple Stress", width=20,height=Relative(0.6))
+    PeffCbar = Colorbar(grid[2,2],colormap = cmap1,colorrange=clims1, label="AᵢP_effᵢ", width=20,height=Relative(0.6))
+    ξCbar = Colorbar(grid[2,3],colormap = cmap2,colorrange=clims2, label="Aᵢξᵢ", width=20,height=Relative(0.6))
+    coupleStressCbar = Colorbar(grid[2,4],colormap = cmap3, colorrange=clims3, label="Couple Stress", width=20,height=Relative(0.6))
 
     # Plot boundary
     for j in interfaceBoundaryEdges
         verts = []
         ks = findall(x->x!=0, @view A[j,:])
         verts = R[ks]
-        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=1.5)
-        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=1.5)
+        lines!(ax1, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        lines!(ax2, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        lines!(ax3, Point{2,Float64}.(verts),color=:black,linewidth=3)
+        lines!(ax4, Point{2,Float64}.(verts),color=:black,linewidth=1.5)
     end
 
-    return cbar
+    # Plot principle stress direction on cell type axis: 
+    arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+    arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+
+    return PeffCbar,ξCbar,coupleStressCbar
 end
 
 function visualiseForceComparison(R, h, clusterCells, fig, ax1, ax2, cbar, params,matrices, coupleStresses, vertexTriangles)
@@ -665,13 +708,6 @@ function visualiseForceComparison(R, h, clusterCells, fig, ax1, ax2, cbar, param
             end
         end
     end
-
-    # if scatterEdges == 1
-    #     for j in jVec
-    #         scatter!(ax1,Point{2,Float64}(edgeMidpoints[j]), color=:blue, markersize=5)
-    #         text!(ax1, string(j), position=Point{2,Float64}(edgeMidpoints[j]), color=:blue, fontsize, align=(:left, :center))
-    #     end
-    # end
 
     # Scatter cell positions
     if scatterCells == 1

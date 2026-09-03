@@ -64,7 +64,7 @@ function t1Transitions!(integrator, params, matrices)
         # end
        
         
-        if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) 
+        if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) && (initialSystem!="2-row")
         
 
             # Stopping the back and forth of t1s when the system equilibrates

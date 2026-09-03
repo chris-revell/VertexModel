@@ -46,11 +46,11 @@ using DiscreteCalculus
 
 
 function vertexModel(;
-    initialSystem = "new", # "new", "32-cell", "2-row" or jld2 path string 
+    initialSystem = "new", # "new", "32-cell", "2-row", "symmetric" or jld2 path string 
     boundaryType = "free",
     cellLayout = "random",
-    nRows = 3,
-    nCycles = 1,
+    nRows = 25,
+    nCycles = 10,
     realCycleTime = 400.0, # From Megan's data, using the division rate 0.15/min 
     realTimetMax = nCycles*realCycleTime,
     γ = 0.05,
@@ -99,6 +99,7 @@ function vertexModel(;
     desiredNumCells = 100,
     plotOrientations = 1,
     edgeToAblate = [],
+    clusterWidth = 5, # the radius of the central B cluster in cell number, in the case initialSystem = "symmetric" 
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -137,6 +138,7 @@ function vertexModel(;
         Area_A_ratio = Area_A_ratio,
         t1timeGap = t1timeGap,
         spiky = spiky,
+        clusterWidth = clusterWidth,
     )
 
     # Create directory in which to store date. Save parameters and store directory name for later use.
@@ -515,7 +517,7 @@ function computeCoupleStressesFromSimulation(;jld2pathString, plotForces)
     # Plot couple stresses on vertices: 
     coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar, ξCbar, coupleStressCbar = coupleStressPlotSetup()
 
-    PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R, coupleStressFig, cellTypeAx, coupleStressAx, coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
+    PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R,coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
 
     # Find the folder the data has been taken from: 
     folderName = dirname(dirname(jld2pathString))
