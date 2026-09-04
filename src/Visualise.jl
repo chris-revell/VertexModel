@@ -418,8 +418,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 
     if plotOrientations ==1
-        arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
-        arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+        arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
     end
 
 
@@ -496,7 +496,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     boundaryVerticesIndex = findall(x -> x!=0, boundaryVertices)
     interiorIndices = setdiff(1:length(coupleStresses), boundaryVerticesIndex)
     
-
+    
     # Set colour limits for P_eff
     A_iP_effs = zeros(nCells)
     A_iP_effs .= cellAreas.*P_effs
@@ -524,7 +524,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     max2 = maximum(A_iξs)
     min2 = 0
     # clims2 = (min2, max2)
-    clims2 = (0,0.03)
+    clims2 = (0,0.04)
 
     # Generate a colour map for effective pressures: 
     cmap3 = cgrad([
@@ -545,11 +545,16 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     end
 
     # Plot couple stresses about each vertex: 
-    for k=1:nVerts
-        if !(k in boundaryVerticesIndex)
-            poly!(ax4, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims3, colormap = cmap3,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+    if interiorIndices == []
+        println("No interior indices, not plotting couple stresses")
+    else
+        for k=1:nVerts
+            if !(k in boundaryVerticesIndex)
+                poly!(ax4, vertexTrianglePoints[k],color = coupleStresses[k], colorrange = clims3, colormap = cmap3,  strokecolor=(:grey, 1.0), strokewidth=0.5)
+            end
         end
     end
+    
 
     for i=1:nCells
         # Plot cell types: 
@@ -587,8 +592,8 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     end
 
     # Plot principle stress direction on cell type axis: 
-    arrows!(ax1,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
-    arrows!(ax1,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+    arrows!(ax3,Point{2,Float64}.(cellPositions), 0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
+    arrows!(ax3,Point{2,Float64}.(cellPositions), -0.5*Vec2f.(e₁scaled), color=:black,linewidth = 1,arrowsize=0)
 
     return PeffCbar,ξCbar,coupleStressCbar
 end

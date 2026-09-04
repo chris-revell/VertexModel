@@ -49,7 +49,7 @@ function vertexModel(;
     initialSystem = "new", # "new", "32-cell", "2-row", "symmetric" or jld2 path string 
     boundaryType = "free",
     cellLayout = "random",
-    nRows = 25,
+    nRows = 7,
     nCycles = 10,
     realCycleTime = 400.0, # From Megan's data, using the division rate 0.15/min 
     realTimetMax = nCycles*realCycleTime,
@@ -94,7 +94,7 @@ function vertexModel(;
     Λ_AE = -0.2, 
     Λ_BE = -0.2,
     Area_A_ratio = 0.5,
-    t1timeGap = 5e-1,
+    t1timeGap = 1e-0,
     spiky = true,
     desiredNumCells = 100,
     plotOrientations = 1,

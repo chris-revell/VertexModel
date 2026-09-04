@@ -67,6 +67,7 @@ function t1Transitions!(integrator, params, matrices)
         if edgeLengths[j] < t1ThresholdVec[j] && (timeSinceT1[j] > t1timeGap || firstT1onEdge[j] == 0) && (initialSystem!="2-row")
         
 
+            println("reached t1 block")
             # Stopping the back and forth of t1s when the system equilibrates
             # if firstT1onEdge[j] >= 9
             #     println("T1 attempted and failed")
