@@ -52,7 +52,8 @@ function topologyChange!(R,params,matrices)
         cellPositions,
         cellLabels,
         Λs,
-        edgeLabels = matrices
+        edgeLabels,
+        jsAfterAblation = matrices
 
     # Find adjacency matrices from incidence matrices
     @.. thread = false Ā .= abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
@@ -97,6 +98,12 @@ function topologyChange!(R,params,matrices)
     for j in 1:nEdges
 
         sj = dot(matrices.B̄[:, j], cellLabels)  # sparse matrix multiplication
+
+        # ABLATION EDIT: do not change the lambda values of the ablated cell to match the artificial cell: 
+        if j in jsAfterAblation
+            println("Skipping edge $j in topologyChange!")
+            continue
+        end
         # In the free boundary case, check whether edge is on the boundary:
         if boundaryType=="free" && boundaryEdges[j] == 1
             if sj == 0

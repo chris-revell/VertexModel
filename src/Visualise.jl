@@ -105,8 +105,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     ], 256)
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
-    # clims1 = (-maxabs1, maxabs1)
-    clims1 = (-0.04, 0.04)
+    clims1 = (-maxabs1, maxabs1)
+    # clims1 = (-0.04, 0.04)
 
     # Set colour limits for ξ
     A_iξs = zeros(nCells)
@@ -121,8 +121,8 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
     ])
     max2 = maximum(A_iξs)
     min2 = 0
-    # clims2 = (min2, max2)
-    clims2 = (0,0.04)
+    clims2 = (min2, max2)
+    # clims2 = (0,0.04)
 
     interfaceBoundaryEdges = findall(x -> x==2,edgeLabels)
 
@@ -480,7 +480,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     delete!(coupleStressCbar)
     grid = fig[1,1] = GridLayout()
 
-    
+    println("reaches here")
 
     cellPolygons = makeCellPolygons(R, params, matrices)
     
@@ -508,8 +508,8 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     ], 256)
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
-    # clims1 = (-maxabs1, maxabs1)
-    clims1 = (-0.03, 0.03)
+    clims1 = (-maxabs1, maxabs1)
+    # clims1 = (-0.03, 0.03)
 
     # Set colour limits for ξ
     A_iξs = zeros(nCells)
@@ -523,19 +523,22 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     ])
     max2 = maximum(A_iξs)
     min2 = 0
-    # clims2 = (min2, max2)
-    clims2 = (0,0.04)
+    clims2 = (min2, max2)
+    # clims2 = (0,0.04)
 
-    # Generate a colour map for effective pressures: 
-    cmap3 = cgrad([
-        RGB(0.0, 0.0, 1.0),    # blue
-        RGB(1.0, 1.0, 1.0),   # white, zero
-        RGB(1.0, 0.0, 0.0)   # red
-    ], 256)
-    # Colour bar exclusing exterior vertices 
-    maxabs3 = maximum(abs.(coupleStresses[interiorIndices]))
-    clims3 = (-maxabs3,maxabs3)
-    # clims3 = (-0.05,0.05)
+    if interiorIndices != []
+        # Generate a colour map for effective pressures: 
+        cmap3 = cgrad([
+            RGB(0.0, 0.0, 1.0),    # blue
+            RGB(1.0, 1.0, 1.0),   # white, zero
+            RGB(1.0, 0.0, 0.0)   # red
+        ], 256)
+        # Colour bar exclusing exterior vertices 
+        maxabs3 = maximum(abs.(coupleStresses[interiorIndices]))
+        clims3 = (-maxabs3,maxabs3)
+        # clims3 = (-0.05,0.05)
+    end
+    
 
     # Scale the principle stress direction: 
     e₁scaled = fill(SVector{2,Float64}(zeros(2)), nCells)
@@ -544,6 +547,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
          e₁scaled[i] = e₁[i]  *2*approxCellRadius
     end
 
+   
     # Plot couple stresses about each vertex: 
     if interiorIndices == []
         println("No interior indices, not plotting couple stresses")
@@ -578,8 +582,10 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     # Add colour bar
     PeffCbar = Colorbar(grid[2,2],colormap = cmap1,colorrange=clims1, label="AᵢP_effᵢ", width=20,height=Relative(0.6))
     ξCbar = Colorbar(grid[2,3],colormap = cmap2,colorrange=clims2, label="Aᵢξᵢ", width=20,height=Relative(0.6))
-    coupleStressCbar = Colorbar(grid[2,4],colormap = cmap3, colorrange=clims3, label="Couple Stress", width=20,height=Relative(0.6))
-
+    if interiorIndices != []
+        coupleStressCbar = Colorbar(grid[2,4],colormap = cmap3, colorrange=clims3, label="Couple Stress", width=20,height=Relative(0.6))
+    end
+    
     # Plot boundary
     for j in interfaceBoundaryEdges
         verts = []

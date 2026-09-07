@@ -247,6 +247,7 @@ function initialise(; initialSystem,
         edgeLabels        = zeros(Int64, nEdges),
         trackedVertDistance = [],
         trackedTimePoints = [],
+        jsAfterAblation   = [],
     )
 
     # Pack parameters into a struct for convenience

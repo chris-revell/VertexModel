@@ -60,7 +60,7 @@ using CircularArrays
     l_AE               ::Float64            # Preferred edge length for type A to external interfaces
     l_BE               ::Float64            # Preferred edge length for type B to external interfaces
     k_tracked          ::Vector{Int}        # Tracked vertices after ablation
-    jAblated          ::Int                # Ablated edge 
+    jAblated           ::Int                # Ablated edge 
 end
 
 @kwdef mutable struct MatricesContainer                               
@@ -111,6 +111,7 @@ end
     edgeLabels       ::Vector{Int64}                                # Vector of {0,1,2,3,4} denoting edge type {AA,BB,AB,AE,BE}
     trackedVertDistance ::Vector{Float64}                           # Vector of distance between vertices after ablation
     trackedTimePoints   ::Vector{Float64}                           # Vector of tracked timepoints after ablation
+    jsAfterAblation  ::Vector{Int64}                                # Vector of edges that are added to a new cell after ablation
 end
 
 export ParametersContainer,MatricesContainer
