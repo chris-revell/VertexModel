@@ -212,6 +212,6 @@ export loadData
 export ParametersContainer
 export MatricesContainer
 export AblateCells
-export AblateEdge
+export AblateEdges
 
 end

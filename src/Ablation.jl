@@ -27,14 +27,26 @@ function ablateCells(R, A, B, ablatedCellsList)
 end 
 
 # Note, this function ablates a single edge j, unlike the ablateCells function
-function ablateEdge(R, A, B, j)
-    # Find cells adjacent to edge 
-    j_is = findall(x->x!=0, tmpB[1][:,j])
+# function ablateEdge(R, A, B, j)
+#     # Find cells adjacent to edge 
+#     j_is = findall(x->x!=0, B[:,j])
+#     # Ablate adjacent cells 
+#     newR, newA, newB = ablateCells(R, A, B, j_is)
+# end
+
+# Ablated all edges in list js, and all cells that share edges in list js 
+function ablateEdges(R, A, B, js)
+    # Find cells on each side of each edge
+    j_is = []
+    for j in js
+        append!(j_is, findall(x->x!=0, B[:,j]))
+    end
+    unique!(j_is)
     # Ablate adjacent cells 
     newR, newA, newB = ablateCells(R, A, B, j_is)
 end
    
 export ablateCells
-export ablateEdge
+export ablateEdges
 
 end #end module 
