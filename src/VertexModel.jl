@@ -139,7 +139,13 @@ function vertexModel(;
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]] && outputToggle==1
             # Update progress on command line 
-            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+            if printToggle == 1 
+                if termSteadyState
+                    println("$(@sprintf("%.3e", maximum(abs.(get_du(integrator))))) < $(@sprintf("%.3e",integrator.p[3])) ?")
+                else
+                    println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal")
+                end
+            end
             if frameDataToggle == 1
                 # Save system data to file 
                 jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
