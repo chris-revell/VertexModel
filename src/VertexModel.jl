@@ -29,6 +29,8 @@ using Printf
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
+@from "VertexModelContainers.jl" using VertexModelContainers
+@from "Callbacks.jl" using Callbacks
 
 function vertexModel(;
     initialSystem = "new",
@@ -62,11 +64,13 @@ function vertexModel(;
     randomSeed = 0,
     abstol = 1e-7, 
     reltol = 1e-4,
+    sstol = 100.0*abstol,
     energyModel = "log",
     vertexWeighting = 1,
     R_in = spzeros(2),
     A_in = spzeros(2),
     B_in = spzeros(2), 
+    termSteadyState = false,
     spiky = false,
     hideDecorationsSpines = true,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
@@ -104,14 +108,28 @@ function vertexModel(;
         end
     end
 
-    # Set up ODE integrator 
-    prob = ODEProblem(model!, u0, (0.0, Inf), (params, matrices))
-    alltStops = collect(0.0:params.outputInterval:params.tMax) # Time points that the solver will be forced to land at during integration
-    integrator = init(prob, solver, tstops=alltStops, abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true)
+    # Set up ODE integrator   
+    prob = ODEProblem(model!,
+            u0,
+            (0.0, (termSteadyState ? Inf : params.tMax)),
+            (termSteadyState ? (params, matrices, sstol) : (params, matrices)),
+        )
+    alltStops = collect(0.0:params.outputInterval: (termSteadyState ? 100.0.*params.tMax : params.tMax)) # Time points that the solver will be forced to land at during integration
+    integrator = init(prob,
+            solver,
+            tstops=alltStops,
+            abstol=abstol,
+            reltol=reltol,
+            save_on=false,
+            save_start=false,
+            save_end=true,
+            # callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, affectTerminate!), #(termSteadyState ? cbSS : cbtMax),
+            callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, terminate!), #(termSteadyState ? cbSS : cbtMax),
+        )  
     outputCounter = [1]
 
     # Iterate until integrator time reaches max system time 
-    while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+    while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success) && integrator.sol.retcode!=:Terminate
         
         # Reinterpret state vector as a vector of SVectors 
         R = reinterpret(SVector{2,Float64}, integrator.u)
@@ -120,7 +138,13 @@ function vertexModel(;
         # Output data to file 
         if integrator.t == alltStops[outputCounter[1]] && outputToggle==1
             # Update progress on command line 
-            printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+            if printToggle == 1 
+                if termSteadyState
+                    println("$(@sprintf("%.3e", maximum(abs.(get_du(integrator))))) < $(@sprintf("%.3e",integrator.p[3])) ?")
+                else
+                    println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal")
+                end
+            end
             if frameDataToggle == 1
                 # Save system data to file 
                 jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
