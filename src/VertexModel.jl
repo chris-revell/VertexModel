@@ -31,6 +31,7 @@ using Printf
 @from "SenseCheck.jl" using SenseCheck
 @from "VertexModelContainers.jl" using VertexModelContainers
 @from "Callbacks.jl" using Callbacks
+@from "Ablation.jl" using Ablation
 
 function vertexModel(;
     initialSystem = "new",
@@ -210,5 +211,7 @@ export vertexModel
 export loadData 
 export ParametersContainer
 export MatricesContainer
+export AblateCells
+export AblateEdge
 
 end
