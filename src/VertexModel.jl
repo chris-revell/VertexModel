@@ -40,10 +40,7 @@ using DiscreteCalculus
 @from "CubicSolutions.jl" using CubicSolutions
 @from "ParameterDiagram.jl" using ParameterDiagram
 @from "EdgeAblation.jl" using EdgeAblation
-
-
-
-
+@from "Callbacks.jl" using Callbacks 
 
 function vertexModel(;
     initialSystem = "new", # "new", "32-cell", "2-row", "symmetric" or jld2 path string 
@@ -100,6 +97,7 @@ function vertexModel(;
     plotOrientations = 1,
     edgeToAblate = [],
     clusterWidth = 5, # the radius of the central B cluster in cell number, in the case initialSystem = "symmetric" 
+    termSteadyState = false,
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -185,12 +183,13 @@ function vertexModel(;
         if params.β ==0 
             abstol = 1e-9
             reltol = 1e-6
+            sstol = 100.0*abstol # Steady state tolerance for callback
             solver = Tsit5()
             # Set ODE parameters: 
             prob = ODEProblem(model!,
                     u0,
-                    (0.0, Inf),
-                    (params, matrices)
+                    (0.0, (termSteadyState ? Inf : params.tMax)),
+                    (termSteadyState ? (params, matrices, sstol) : (params, matrices)),
                 )
             alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
             integrator = init(prob,
@@ -201,18 +200,20 @@ function vertexModel(;
                 save_on=false,
                 save_start=false,
                 save_end=true,
+                callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, terminate!),
             )  
 
             println("solver: Tsit5()")
         else
             abstol = 1e-6
             reltol = 1e-3
+            sstol = 100.0*abstol
             solver = SRIW1()
 
             # Set up SDE integrator 
-            prob = SDEProblem(model!, g!, u0, (0.0, Inf), (params, matrices))
+            prob = SDEProblem(model!, g!, u0, (0.0, (termSteadyState ? Inf : params.tMax)),(termSteadyState ? (params, matrices, sstol) : (params, matrices)),)
             alltStops = collect(0.0:params.outputInterval:params.tMax)# Time points beyond which we plot the monolayer
-            integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true)
+            integrator = init(prob, solver; abstol=abstol, reltol=reltol, save_on=false, save_start=false, save_end=true,verbose=true,callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, terminate!),)
         
             println("solver: SRIW1()")
         end
@@ -221,7 +222,7 @@ function vertexModel(;
         ablated = [false]
         
         # Iterate until integrator time reaches max system time 
-        while integrator.t <= params.tMax && (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success)
+        while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success) && integrator.sol.retcode !=:Terminate
             if ablationToggle==1
                 if outputCounter[1] > 33
                     break
