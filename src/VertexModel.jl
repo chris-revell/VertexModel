@@ -97,7 +97,8 @@ function vertexModel(;
     plotOrientations = 1,
     edgeToAblate = [],
     clusterWidth = 5, # the radius of the central B cluster in cell number, in the case initialSystem = "symmetric" 
-    termSteadyState = false,
+    termSteadyState = false, # flag to determine whether simulation terminates once it reaches steady state 
+    randomDivision = true, # flag to determine whether division process is random or not (i.e., cell cycle times are uniform)
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -312,7 +313,7 @@ function vertexModel(;
                 # println("t=$(integrator.t): energy AFTER T1 = ", energy(params, matrices))
             end
             if divisionToggle==1
-                if division!(integrator, params, matrices) > 0
+                if division!(integrator, params, matrices,randomDivision) > 0
                     u_modified!(integrator, true)
                     topologyChange!(R,params,matrices) # Update system matrices after division 
                     spatialData!(R, params, matrices) # Update spatial data after division 

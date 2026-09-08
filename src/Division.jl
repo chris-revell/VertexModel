@@ -26,7 +26,7 @@ using Random
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "ResizeMatrices.jl" using ResizeMatrices
 
-function division!(integrator,params,matrices)
+function division!(integrator,params,matrices,randomDivision)
 
     @unpack nCells,
         nEdges,
@@ -188,8 +188,8 @@ function division!(integrator,params,matrices)
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
             growIndependentMatrices!(params, matrices, 1, 3)
             # Matrices not handled in resizeMatrices
-            cellTimeToDivide[i] = rand(distLogNormal)*nonDimCycleTime
-            push!(cellTimeToDivide,rand(distLogNormal)*nonDimCycleTime)
+            cellTimeToDivide[i] = randomDivision ? rand(distLogNormal)*nonDimCycleTime : nonDimCycleTime # Reset cycle time depending on whether division times are random or not 
+            push!(cellTimeToDivide,randomDivision ? rand(distLogNormal)*nonDimCycleTime : nonDimCycleTime)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
 
