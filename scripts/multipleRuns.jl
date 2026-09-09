@@ -30,7 +30,7 @@ if deNovoSystem
     # This is what we will run to get the starting system for all parameter cases
 
     integ0 = vertexModel(initialSystem ="32-cell",
-                    nRows = 5,
+                    nRows = 3,
                     nCycles = 6,
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,

@@ -22,7 +22,7 @@ using Distances
 @from "SenseCheck.jl" using SenseCheck
 @from "ResizeMatrices.jl" using ResizeMatrices
 
-function edgeAblation!(j, params, matrices, integrator)
+function edgeAblation!(j, params, matrices)
 
     @unpack A,
         B,

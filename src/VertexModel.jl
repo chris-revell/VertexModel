@@ -336,7 +336,7 @@ function vertexModel(;
                     # Find the vertices to track 
                     params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
                     println(params.k_tracked)
-                    edgeAblation!(params.jAblated, params, matrices, integrator)
+                    edgeAblation!(params.jAblated, params, matrices)
                     topologyChange!(R,params,matrices)
                     spatialData!(R, params, matrices) # Update spatial data after T1 transition  
                     ablated[1] = true
@@ -377,7 +377,7 @@ function vertexModel(;
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
-            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 32 && cellsTypesAssigned ==0
+            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 15 && cellsTypesAssigned ==0
                 println("32 cells reached. Assign one type-B cell")
                 @unpack nCells = params
                 nACells = nCells - 1
