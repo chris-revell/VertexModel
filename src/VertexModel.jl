@@ -98,7 +98,7 @@ function vertexModel(;
     edgeToAblate = [],
     clusterWidth = 5, # the radius of the central B cluster in cell number, in the case initialSystem = "symmetric" 
     termSteadyState = false, # flag to determine whether simulation terminates once it reaches steady state 
-    randomDivision = true, # flag to determine whether division process is random or not (i.e., cell cycle times are uniform)
+    randomDivision = false, # flag to determine whether division process is random or not (i.e., cell cycle times are uniform)
 ) # All arguments are optional and will be instantiated with these default values if not provided at runtime
 
     BLAS.set_num_threads(nBlasThreads)
@@ -172,6 +172,9 @@ function vertexModel(;
     # Flag to check if the first plot has been completed
     firstPlot = 0
 
+    # Initialise the integrator for output debugging purposes: 
+    integrator = nothing 
+
     # Global try so that the movie still saves if there is an error:
     try 
 
@@ -208,7 +211,7 @@ function vertexModel(;
         else
             abstol = 1e-6
             reltol = 1e-3
-            sstol = 100.0*abstol
+            sstol = 1000.0*abstol
             solver = SRIW1()
 
             # Set up SDE integrator 
@@ -374,18 +377,22 @@ function vertexModel(;
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
-            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 15 && cellsTypesAssigned ==0
+            elseif initialSystem == "32-cell" && boundaryType == "free" && params.nCells >= 32 && cellsTypesAssigned ==0
                 println("32 cells reached. Assign one type-B cell")
                 @unpack nCells = params
                 nACells = nCells - 1
                 systemCOM = sum(matrices.cellPositions)./params.nCells 
                 iSelected = findmin([norm(matrices.cellPositions[i].-systemCOM) for i=1:params.nCells])[2] # central edge
                 params.cellsTypeB = [iSelected]
+                # params.cellTimeToDivide[iSelected] = randomDivision ? rand(distLogNormal)*nonDimCycleTime : nonDimCycleTime
                 params.cellsTypeA = setdiff(1:nCells, params.cellsTypeB)
                 matrices.cellLabels = zeros(Int64, nCells)
                 matrices.cellLabels[params.cellsTypeB] .= 1
                 cellsTypesAssigned = 1
                 # matrices.cellTimeToDivide[iSelected] = rand(params.distLogNormal)*params.nonDimCycleTime
+
+                # Stop the simulation once the first B cell has been selected. 
+                break
 
             end
 
@@ -415,7 +422,7 @@ function vertexModel(;
     # If outputToggle==1, save animation object and save final system matrices
     (outputToggle == 1 && videoToggle == 1) ? save(datadir(folderName, "$(splitpath(folderName)[end]).mp4"), mov) : nothing
 
-    
+    return integrator
 end
 
 # Function to load previously saved simulation data 

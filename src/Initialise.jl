@@ -23,6 +23,7 @@ using CircularArrays
 using CSV # For reading csv files
 using DataFrames # For reading csv files
 using MAT # For reading mat files
+using LinearAlgebra
 
 # Local modules
 @from "initialSystemLayout.jl" using InitialSystemLayout
@@ -168,7 +169,37 @@ function initialise(; initialSystem,
         R = R_in
         A = A_in
         B = B_in
-        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages
+        nCells = size(B, 1)
+        nVerts = size(A, 2)
+        nEdges = size(A, 1)
+
+        l_AA = initialEdgeLength(γ, -Λ_AA/(2*γ))
+        l_BB = initialEdgeLength(γ, -Λ_BB/(2*γ))
+        l_AB = initialEdgeLength(γ, -Λ_AB/(2*γ))
+        l_AE = initialEdgeLength(γ, -Λ_AE/(2*γ))
+        l_BE = initialEdgeLength(γ, -Λ_BE/(2*γ))
+
+
+        nACells = nCells - 1
+        cellPositions = fill(SVector{2,Float64}(zeros(2)), nCells)
+        cellEdgeCount = zeros(Int64,nCells)
+        B̄ = spzeros(Int64, nCells, nEdges)
+        Ā = spzeros(Int64, nEdges, nVerts)
+        C = spzeros(Int64,nCells,nVerts)
+        B̄ .= abs.(B)
+        Ā .= abs.(A)
+        C .= B̄ * Ā ./2
+
+        cellEdgeCount .= sum.(eachrow(B̄))
+        cellPositions .= C*R ./ cellEdgeCount
+        
+
+        systemCOM = sum(cellPositions)./nCells 
+        iSelected = findmin([norm(cellPositions[i].-systemCOM) for i=1:nCells])[2] # central edge
+        cellsTypeB = [iSelected]
+        cellsTypeA = setdiff(1:nCells, cellsTypeB)
+        
+        cellTimeToDivide = rand(rng,Uniform(0.0, nonDimCycleTime), size(B, 1))  # Random initial cell ages using the input seed 
     else
         # Import system matrices from final state of previous run
         importedData = load("$initialSystem"; 

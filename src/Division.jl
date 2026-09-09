@@ -188,8 +188,8 @@ function division!(integrator,params,matrices,randomDivision)
             resizeMatrices!(params, matrices, nVerts+2, nEdges+3, nCells+1)
             growIndependentMatrices!(params, matrices, 1, 3)
             # Matrices not handled in resizeMatrices
-            cellTimeToDivide[i] = randomDivision ? rand(distLogNormal)*nonDimCycleTime : nonDimCycleTime # Reset cycle time depending on whether division times are random or not 
-            push!(cellTimeToDivide,randomDivision ? rand(distLogNormal)*nonDimCycleTime : nonDimCycleTime)
+            cellTimeToDivide[i] = rand(params.rng, distLogNormal)*nonDimCycleTime # Reset cycle time depending on whether division times are random or not 
+            push!(cellTimeToDivide, rand(params.rng, distLogNormal)*nonDimCycleTime)
             push!(matrices.μ, 1.0)
             push!(matrices.Γ, params.γ)
 
