@@ -20,9 +20,9 @@ using OrdinaryDiffEq
 using Printf
 using DiffEqCallbacks
 
-@from "TopologyChange.jl" using TopologyChange
-@from "Model.jl" using Model
-@from "EdgeAblation" using EdgeAblation
+@from srcdir("TopologyChange.jl") using TopologyChange
+@from srcdir("Model.jl") using Model
+@from srcdir("EdgeAblation") using EdgeAblation
 
 # Pick the equilibrated system: 
 # dateString = ""
