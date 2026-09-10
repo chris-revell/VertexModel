@@ -41,6 +41,7 @@ using DiscreteCalculus
 @from "ParameterDiagram.jl" using ParameterDiagram
 @from "EdgeAblation.jl" using EdgeAblation
 @from "Callbacks.jl" using Callbacks 
+@from "VertexModelContainers.jl" using VertexModelContainers
 
 function vertexModel(;
     initialSystem = "new", # "new", "32-cell", "2-row", "symmetric" or jld2 path string 
@@ -426,9 +427,13 @@ function vertexModel(;
 end
 
 # Function to load previously saved simulation data 
-function loadData(relativePath; outputNumber=100)
-    data = load(projectdir(relativePath, "frameData", "systemData$(@sprintf("%03d", outputNumber)).jld2"))
-    return data["R"], data["matrices"], data["params"]
+function loadData(path)
+    dataDict = load(path; 
+                    typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+                                "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
+                    )
+                )
+    return dataDict
 end
 
 # Ensure code is precompiled
@@ -561,5 +566,6 @@ end
 export vertexModel
 export loadData 
 export extractRecoilVecs, recoilComparisonPlot, ablationLoop, computeCoupleStressesFromSimulation
+export MatricesContainer, ParametersContainer
 
 end

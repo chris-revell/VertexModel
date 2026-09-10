@@ -20,8 +20,8 @@ using OrdinaryDiffEq
 using Printf
 using DiffEqCallbacks
 
-deNovoSystem = true # starting a new monolayer from scratch
-fixedSeed = 123 # Fixed across parameter conditions 
+deNovoSystem = false # starting a new monolayer from scratch
+fixedSeed = 12 # Fixed across parameter conditions 
 
 runningFromStage = 1 # stage 1: running the 
 
@@ -66,7 +66,7 @@ if deNovoSystem
 
 else
 
-    dateString = "26-09-09-14-29-41"
+    dateString = "26-09-10-10-49-26"
     dataDict = load(datadir("multipleRuns", dateString, "$(dateString)_InitialSystem.jld2");
                     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
                                 "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
@@ -99,7 +99,7 @@ integ1 = vertexModel(initialSystem = "argument",
                     β = 0.1,
                     divisionToggle = 1,
                     outputToggle = 1,
-                    frameDataToggle = 1,
+                    frameDataToggle = 0,
                     frameImageToggle = 1,
                     printToggle = 1,
                     videoToggle = 1,
@@ -125,6 +125,7 @@ jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLa
 integ2 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"),
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
+                    nCycles = 2,
                     β = 0.1,
                     divisionToggle = 0,
                     frameDataToggle = 0,
@@ -140,7 +141,7 @@ integ2 = vertexModel(initialSystem = datadir("multipleRuns", dateString, paramet
                     Λ_BB = params.Λ_BB,
                     Λ_AE = params.Λ_AE, 
                     Λ_BE = params.Λ_BE,
-                    termSteadyState = true, # flag to determine whether simulation terminates once it reaches steady state 
+                    termSteadyState = false, # flag to determine whether simulation terminates once it reaches steady state 
                     randomSeed = fixedSeed,
                 )
 
@@ -149,7 +150,7 @@ R = reinterpret(SVector{2,Float64}, integ2.u)
 
 jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"); matrices,params,R)
 
-integ3 = vertexModel(initialSystem = "",
+integ3 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"),
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     β = 0.0,
@@ -157,7 +158,7 @@ integ3 = vertexModel(initialSystem = "",
                     frameDataToggle = 0,
                     frameImageToggle = 1,
                     printToggle = 1,
-                    videoToggle = 1,
+                    videoToggle = 0,
                     termSteadyState = true, # flag to determine whether simulation terminates once it reaches steady state 
                     randomSeed = fixedSeed,
                 )
