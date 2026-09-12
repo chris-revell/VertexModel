@@ -93,13 +93,13 @@ parameterSetLabel = "(I)"
 γ = params.γ
 
 integ1 = vertexModel(initialSystem = "argument",
-                    nCycles = 10,
+                    nCycles = 3.3,
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     β = 0.1,
                     divisionToggle = 1,
                     outputToggle = 1,
-                    frameDataToggle = 0,
+                    frameDataToggle = 1,
                     frameImageToggle = 1,
                     printToggle = 1,
                     videoToggle = 1,

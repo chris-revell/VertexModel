@@ -49,12 +49,12 @@ function vertexModel(;
     cellLayout = "random",
     nRows = 7,
     nCycles = 10,
-    realCycleTime = 400.0, # From Megan's data, using the division rate 0.15/min 
+    realCycleTime = 86400.0, 
+    viscousTimeScale = 1000.0,
     realTimetMax = nCycles*realCycleTime,
     γ = 0.05,
     L₀ = 0.5,
     A₀ = 1.0,
-    viscousTimeScale = 18.0,
     pressureExternal = 0.0,
     peripheralTension = 0.0,
     β = 0.0,
@@ -257,7 +257,11 @@ function vertexModel(;
                 end
                 
                 # Update progress on command line 
-                printToggle == 1 ? println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal") : nothing            
+                if termSteadyState
+                    println("$(@sprintf("%.3e", maximum(abs.(get_du(integrator))))) < $(@sprintf("%.3e",integrator.p[3])) ?")
+                else
+                    println("$(@sprintf("%.2f", integrator.t))/$(@sprintf("%.2f", params.tMax)), $(outputCounter[1])/$outputTotal")
+                end    
                 if frameDataToggle == 1
                     # Save system data to file 
                     jldsave(datadir(folderName, "frameData", "systemData$(@sprintf("%03d", outputCounter[1])).jld2"); matrices, params, R)
@@ -516,7 +520,7 @@ function recoilComparisonPlot(timeVec,distVecs,lowerErrVecs,upperErrVecs,vecLabe
 
 end # end function 
 
-function computeCoupleStressesFromSimulation(;jld2pathString, plotForces)
+function computeCoupleStressesFromSimulation(;jld2pathString, plotForces, absolutePeff = false)
     # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium. 
     # Insure jld2string input is NOT relative 
     R = load(jld2pathString,"R")
@@ -531,12 +535,12 @@ function computeCoupleStressesFromSimulation(;jld2pathString, plotForces)
     # Plot couple stresses on vertices: 
     coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar, ξCbar, coupleStressCbar = coupleStressPlotSetup()
 
-    PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R,coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
+    PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R,coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles,absolutePeff)
 
     # Find the folder the data has been taken from: 
     folderName = dirname(dirname(jld2pathString))
     mkpath(datadir(folderName))
-    save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig)
+    absolutePeff ? (save(datadir(folderName, "coupleStressPlotAbsolutePeff.png"), coupleStressFig)) : (save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig))
 
     if plotForces == 1
         # Case of plotting a cluster of cells to check the rotated forces align with the vector force potential; 
