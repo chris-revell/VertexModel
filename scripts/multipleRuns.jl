@@ -82,24 +82,24 @@ end
 
 
 # Set desired values for line tensions of this run: 
-params.Λ_AA = -0.2
-params.Λ_BB = -0.2
-params.Λ_AE = -0.2
-params.Λ_BE = -0.2
+params.Λ_AA = -0.1
+params.Λ_BB = -0.1
+params.Λ_AE = -0.1
+params.Λ_BE = -0.1
 
-parameterSetLabel = "(I)"
+parameterSetLabel = "(NEW)"
 !isdir(datadir("multipleRuns", dateString, parameterSetLabel)) ? mkpath(datadir("multipleRuns", dateString,parameterSetLabel)) : nothing 
 
 γ = params.γ
 
 integ1 = vertexModel(initialSystem = "argument",
-                    nCycles = 10,
+                    nCycles = 3.3,
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     β = 0.1,
                     divisionToggle = 1,
                     outputToggle = 1,
-                    frameDataToggle = 0,
+                    frameDataToggle = 1,
                     frameImageToggle = 1,
                     printToggle = 1,
                     videoToggle = 1,
@@ -128,7 +128,7 @@ integ2 = vertexModel(initialSystem = datadir("multipleRuns", dateString, paramet
                     nCycles = 2,
                     β = 0.1,
                     divisionToggle = 0,
-                    frameDataToggle = 0,
+                    frameDataToggle = 1,
                     frameImageToggle = 1,
                     printToggle = 1,
                     videoToggle = 1,
