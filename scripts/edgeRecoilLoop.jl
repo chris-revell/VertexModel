@@ -20,15 +20,16 @@ using OrdinaryDiffEq
 using Printf
 using DiffEqCallbacks
 
-@from srcdir("TopologyChange.jl") using TopologyChange
-@from srcdir("Model.jl") using Model
-@from srcdir("EdgeAblation") using EdgeAblation
+include(srcdir("TopologyChange.jl")); using .TopologyChange
+include(srcdir("Model.jl")); using .Model
+include(srcdir("EdgeAblation.jl")); using .EdgeAblation
+include(srcdir("SpatialData.jl")); using .SpatialData
 
 # Pick the equilibrated system: 
-# dateString = ""
-# parameterSetLabel = "" 
+dateString = "26-09-11-16-18-04"
+parameterSetLabel = "(I)" 
 
-# !isdir(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) ? mkpath(datadir("multipleRuns", dateString, paramterSetLabel, "ablationLoop")) : nothing 
+!isdir(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) ? mkpath(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) : nothing 
 
 # dataDict = load(datadir("multipleRuns",dateString, parameterSetLabel, "$(parameterSetLabel)_equilibriumPhase.jld2");
 #                     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
@@ -36,7 +37,7 @@ using DiffEqCallbacks
 #                     )
 #                 )
 
-dataDict = load(datadir("/Users/charlietaylorbarca/Documents/GitHub/VertexModel/data/sims/charlie-free-boundaries/(VIII)/Growth and equilibrium/26-06-09-14-03-05_nCells=795_Λ_AA=-0.1_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2");
+dataDict = load("/Users/user/The University of Manchester Dropbox/Charlotte Taylor Barca/JULIA/VertexModel/data/sims/charlie-free-boundaries/26-09-12-10-18-32_nCells=91_Λ_AA=-0.2_Λ_AB=-0.2_Λ_BB=-0.2_β=0.0_γ=0.05/frameData/systemData037.jld2";
                 typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
                             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer))
 
@@ -48,71 +49,83 @@ dataDict = load(datadir("/Users/charlietaylorbarca/Documents/GitHub/VertexModel/
         pressureExternal,
         peripheralTension,
         vertexWeighting,
-        energyModel = params 
-@unpack Ā,
+        energyModel,
+        boundaryType = params 
+@unpack A,
+        B,
+        Ā,
         B̄,
         cellTensions,
         cellPressures,
         edgeLengths,
         edgeTangents,
-        F,
-        externalF,
         ϵ,
         boundaryVertices,
         boundaryEdges,
         vertexAreas,
-        Λs = matrices
+        Λs,
+        jsAfterAblation = matrices
 
-for jAblated = 1
+# for jAblated = 1
+jAblated = 1
 
-    if jAblated in boundaryEdges
-        break
-    end
+    # if jAblated in boundaryEdges
+    #     break
+    # end
 
     # Find the vertices at either end of the edge: 
-    params.k_tracked = findall(x -> x!=0, @view matrices.A[params.jAblated,:])
+    params.k_tracked = findall(x -> x!=0, @view matrices.A[jAblated,:])
 
-    edgeAblation!(jAblated, params, matrices)
-    topologyChange!(R,params,matrices)
-    spatialData!(R, params, matrices)
+    EdgeAblation.edgeAblation!(jAblated, params, matrices)
+    TopologyChange.topologyChange!(R,params,matrices)
+    SpatialData.spatialData!(R, params, matrices)
 
     # Calculate the resultant force at each k_tracked after ablation: 
-    F = zeros(SVector{2,Float64}, 2, nCells)
+    ablatedF = zeros(SVector{2,Float64}, 2, nCells)
     dR = zeros(SVector{2,Float64}, 2)
-    for k in k_tracked
+    for kInd in enumerate(params.k_tracked)
+        k = kInd[2] # vertex index
+        kInd = kInd[1] # index in k_tracked array
         for j in nzrange(A, k) # iterate over the nonzero entries for vertex k 
             for i in nzrange(B, rowvals(A)[j]) # rowvals(A) gives the row indices of nonzero entries of A
                 
                 # Force components from cell pressure perpendicular to edge tangents - the area derivative wrt. vertex position of Energy from pressure
-                F[k, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
+                ablatedF[kInd, rowvals(B)[i]] += 0.5 * cellPressures[rowvals(B)[i]] * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])
                 # Force components from cell membrane tension parallel to edge tangents 
-                F[k, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+                ablatedF[kInd, rowvals(B)[i]] -= cellTensions[rowvals(B)[i]] * B̄[rowvals(B)[i], rowvals(A)[j]] * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 # Force on vertex from external pressure -- only applies to boundary vertices 
-                if boundaryType == "free"
-                    externalF[k] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
-                end
+                # if boundaryType == "free"
+                #     externalF[kInd] += boundaryVertices[k] * (0.5 * pressureExternal * B[rowvals(B)[i], rowvals(A)[j]] * Ā[rowvals(A)[j], k] .* (ϵ * edgeTangents[rowvals(A)[j]])) # 0 unless boundaryVertices != 0
+                # end
                 
                 if energyModel == "quadratic2pops"
                     # We have the separate edge tension term in that case: 
                     # Factor of 1/2 because this is added for each cell that meets at j
-                    F[k, rowvals(B)[i]] -=  0.5 * Λs[rowvals(A)[j]] * B̄[rowvals(B)[i], rowvals(A)[j]] *  A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+                    ablatedF[kInd, rowvals(B)[i]] -=  0.5 * Λs[rowvals(A)[j]] * B̄[rowvals(B)[i], rowvals(A)[j]] *  A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
                 end 
                 
             end
             # Force on vertex from peripheral tension -- only for boundary edges 
-            if boundaryType == "free"
-                externalF[k] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
-            end
+            # if boundaryType == "free"
+            #     externalF[kInd] -= boundaryEdges[rowvals(A)[j]] * peripheralTension * (peripheryLength - sqrt(π * nCells)) * A[rowvals(A)[j], k] .* edgeTangents[rowvals(A)[j]] ./ edgeLengths[rowvals(A)[j]]
+            # end
         end
 
-        dR[k] = sum(F[k, :])
+        dR[kInd] = sum(ablatedF[kInd, :])
+
+        
 
     end
-    println(dR)
+    println("dR = ",dR)
+    dR̄= sum(dR)/2
+    dR̂ = dR[1] - dR̄
+
+    println("dR̄ = ",dR̄)
+    println("dR̂ = ",dR̂)
 
 
 
-end
+# end
 
-jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop"); )
-
+# jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop.jld2"); dR)
+# jldsave()

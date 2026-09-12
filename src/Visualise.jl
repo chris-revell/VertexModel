@@ -454,7 +454,7 @@ function visualise(R, t, fig, ax1, ax2, ax3, cbar1, cbar2, mov, params, matrices
 
 end
 
-function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles)
+function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles,absolutePeff)
 
     @unpack nCells,
         nVerts = params 
@@ -500,16 +500,27 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     # Set colour limits for P_eff
     A_iP_effs = zeros(nCells)
     A_iP_effs .= cellAreas.*P_effs
+    if absolutePeff
+        A_iP_effs .= abs.(A_iP_effs)
+    end
     # Generate a colour map for effective pressures: 
-    cmap1 = cgrad([
-        RGB(12.0/256, 181.0/256, 119.0/256),    # bright green teal
-        RGB(1.0, 1.0, 1.0),   # white, zero
-        RGB(26/256,26/256,26/256)   # charcoal
-    ], 256)
+    if absolutePeff
+        cmap1 = cgrad([
+            RGB(1.0, 1.0, 1.0),   # white, zero
+            RGB(26/256,26/256,26/256)   # charcoal
+        ], 256)
+    else
+        cmap1 = cgrad([
+            RGB(12.0/256, 181.0/256, 119.0/256),    # bright green teal
+            RGB(1.0, 1.0, 1.0),   # white, zero
+            RGB(26/256,26/256,26/256)   # charcoal
+        ], 256)
+    end
+    
     # Alternative colour bar - centered at 0: 
     maxabs1 = maximum(abs.(A_iP_effs))
-    clims1 = (-maxabs1, maxabs1)
-    # clims1 = (-0.03, 0.03)
+    # clims1 = (-maxabs1, maxabs1)
+    absolutePeff ? (clims1 = (0, 0.03)) : (clims1 = (-0.03, 0.03))
 
     # Set colour limits for ξ
     A_iξs = zeros(nCells)
@@ -523,8 +534,8 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     ])
     max2 = maximum(A_iξs)
     min2 = 0
-    clims2 = (min2, max2)
-    # clims2 = (0,0.04)
+    # clims2 = (min2, max2)
+    clims2 = (0,0.03)
 
     if interiorIndices != []
         # Generate a colour map for effective pressures: 
@@ -536,7 +547,7 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
         # Colour bar exclusing exterior vertices 
         maxabs3 = maximum(abs.(coupleStresses[interiorIndices]))
         clims3 = (-maxabs3,maxabs3)
-        # clims3 = (-0.05,0.05)
+        clims3 = (-0.02,0.02)
     end
     
 
