@@ -150,7 +150,8 @@ R = reinterpret(SVector{2,Float64}, integ2.u)
 
 jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"); matrices,params,R)
 
-integ3 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"),
+integ3 = vertexModel(#initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"),               
+                    initialSystem = "data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2",
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     nCycles = 20,
@@ -163,6 +164,9 @@ integ3 = vertexModel(initialSystem = datadir("multipleRuns", dateString, paramet
                     termSteadyState = true, # flag to determine whether simulation terminates once it reaches steady state 
                     randomSeed = fixedSeed,
                 )
+
+R = reinterpret(SVector{2,Float64}, integ3.u)
+(params, matrices) = integ3.p
 
 jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_equilibriumPhase.jld2"); matrices,params,R)
 
