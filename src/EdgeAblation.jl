@@ -44,7 +44,7 @@ function edgeAblation!(j, params, matrices)
     # Find all edges on i₂, excluding the ablated edge:
     i₂_js = [jj for jj in findall(x -> x!=0, B[i₂,:]) if jj!=j]
     matrices.jsAfterAblation = i₂_js
-    println(matrices.jsAfterAblation)
+    # println(matrices.jsAfterAblation)
 
     # Add edges to i₁ with same orientation:
     for edge in i₂_js 

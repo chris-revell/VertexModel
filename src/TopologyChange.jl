@@ -101,7 +101,7 @@ function topologyChange!(R,params,matrices)
 
         # ABLATION EDIT: do not change the lambda values of the ablated cell to match the artificial cell: 
         if j in jsAfterAblation
-            println("Skipping edge $j in topologyChange!")
+            # println("Skipping edge $j in topologyChange!")
             continue
         end
         # In the free boundary case, check whether edge is on the boundary:
