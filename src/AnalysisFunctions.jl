@@ -59,7 +59,7 @@ end
 function makeCellPolygonsOld(R,params,matrices)
     cellPolygons = Vector{Point{2,Float64}}[]
     for i=1:params.nCells
-        orderedVertices, orderedEdges = orderAroundCell(matrices,i)
+        orderedVertices, orderedEdges = orderAroundCell(matrices.A, matrices.B, i)
         push!(cellPolygons,Point{2,Float64}.(R[orderedVertices]))
     end
     return cellPolygons
