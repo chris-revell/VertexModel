@@ -8,7 +8,6 @@
 module Ablation
 
 # Julia packages
-using DiscreteCalculus
 using SparseArrays
 
 # Ablate all cells in list ablatedCellsList
