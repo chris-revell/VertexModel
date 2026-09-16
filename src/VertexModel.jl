@@ -30,8 +30,9 @@ using DiffEqCallbacks
 @from "TopologyChange.jl" using TopologyChange
 @from "Division.jl" using Division
 @from "SenseCheck.jl" using SenseCheck
-@from "Callbacks.jl" using Callbacks
 @from "VertexModelContainers.jl" using VertexModelContainers
+@from "Callbacks.jl" using Callbacks
+@from "Ablation.jl" using Ablation
 
 function vertexModel(;
     initialSystem = "new",
@@ -124,11 +125,12 @@ function vertexModel(;
             save_on=false,
             save_start=false,
             save_end=true,
-            callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, affectTerminate!), #(termSteadyState ? cbSS : cbtMax),
+            # callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, affectTerminate!), #(termSteadyState ? cbSS : cbtMax),
+            callback = DiscreteCallback(termSteadyState ? conditionSteadyState : conditiontMax, terminate!), #(termSteadyState ? cbSS : cbtMax),
         )  
     outputCounter = [1]
 
-    # Iterate until integrator terminates according to specified callback 
+    # Iterate until integrator time reaches max system time 
     while (integrator.sol.retcode == ReturnCode.Default || integrator.sol.retcode == ReturnCode.Success) && integrator.sol.retcode!=:Terminate
         
         # Reinterpret state vector as a vector of SVectors 
@@ -191,6 +193,17 @@ function vertexModel(;
     return integrator
 end
 
+# Function that uses JLD2 load function with type map for 
+# VertexModel.jl structs specified. Doing this avoids type reconstruction.
+function loadData(path)
+    dataDict = load(path; 
+                    typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+                                "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
+                    )
+                )
+    return dataDict
+end
+
 # Ensure code is precompiled
 @compile_workload begin
     vertexModel(nCycles=0.01, outputToggle=0, frameDataToggle=0, frameImageToggle=0, printToggle=0, videoToggle=0)
@@ -203,5 +216,8 @@ export MatricesContainer
 export conditionSteadyState
 export conditiontMax
 export affectTerminate!
+export loadData 
+# export AblateCells
+# export AblateEdges
 
 end

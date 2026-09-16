@@ -17,9 +17,7 @@ using FromFile
 
 @from "VertexModelContainers.jl" using VertexModelContainers
 
-function orderAroundCell(matrices, i)
-
-    @unpack A, B = matrices
+function orderAroundCell(A, B, i)
 
     # Find all edges and vertices for cell i
     cellEdges, edgeOrientations = findnz(B[i, :])
