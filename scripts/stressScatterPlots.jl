@@ -123,7 +123,7 @@ end
 
 # Initialise scatter plot
 set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
-fig = Figure(size=(1200,600))
+fig = Figure(size=(600,600))
 
 # Initialise a figure for tracking sum of P_effsA_i: 
 grid = fig[1,1] = GridLayout()
