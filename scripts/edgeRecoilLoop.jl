@@ -91,6 +91,9 @@ for jAblated = 1:nEdges
     params_l = deepcopy(params_orig)
     matrices_l = deepcopy(matrices_orig)
 
+    println(typeof(matrices_l))
+    println(typeof(params_l))
+
     # Find the vertices at either end of the edge: 
     k_tracked = findall(x -> x!=0, @view matrices_l.A[jAblated,:])
     params_l.k_tracked = k_tracked
