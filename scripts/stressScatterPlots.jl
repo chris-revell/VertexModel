@@ -63,22 +63,23 @@ for edge in enumerate(interfaceBoundaryEdges)
 
     # Find incident cells and then store them in order A-B 
     cells = findall(x -> x!=0, @view B[:,j_oldInd])
-    orderAroundCell_B = CircularArray{Int64}
-    for cell in cells
-        if cellLabels[cell] == 0 # cell A
-            incidentCells[1] = cell
-            # orderAroundCell_A = OrderAroundCell.orderAroundCell(matrices,cell)
-        else
-            incidentCells[2] = cell
-            # Find a list of vertices going clockwise around cell B, we want to take from left to right when looking out from cell B.
-            orderAroundCell_B, ~ = OrderAroundCell.orderAroundCell(matrices,cell)
-        end
+    orderAroundLowerPeffCell = CircularArray{Int64}
+
+    # Check which of the cells has smaller Peff foor ordering: 
+    if P_effs[cells[1]] < P_effs[cells[2]]
+        incidentCells[1] = cells[1]
+        incidentCells[2] = cells[2]
+        orderAroundLowerPeffCell, ~ = OrderAroundCell.orderAroundCell(matrices,cells[1])
+    else
+        incidentCells[1] = cells[2]
+        incidentCells[2] = cells[1]
+        orderAroundLowerPeffCell, ~ = OrderAroundCell.orderAroundCell(matrices,cells[2])
     end
 
     trailingVertices = findall(x->x!=0, @view(A[j_oldInd,:]))
     # Check which order these vertices appear in going clockwise around cell B:
-    positionVert1 = findall(x -> x == trailingVertices[1], orderAroundCell_B)
-    positionVert2 = findall(x -> x == trailingVertices[2], orderAroundCell_B)
+    positionVert1 = findall(x -> x == trailingVertices[1], orderAroundLowerPeffCell)
+    positionVert2 = findall(x -> x == trailingVertices[2], orderAroundLowerPeffCell)
 
     if positionVert1 < positionVert2
         incidentVerts[1] = trailingVertices[1]
@@ -88,7 +89,7 @@ for edge in enumerate(interfaceBoundaryEdges)
         incidentVerts[2] = trailingVertices[1]
     end
 
-    PeffDiffVec[j_newInd] = P_effs[incidentCells[1]] - P_effs[incidentCells[2]]
+    PeffDiffVec[j_newInd] = P_effs[incidentCells[2]] - P_effs[incidentCells[1]]
     CoupleStressDiffVec[j_newInd] = coupleStresses[incidentVerts[1]] - coupleStresses[incidentVerts[2]]
     
 end
