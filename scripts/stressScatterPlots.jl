@@ -27,9 +27,9 @@ include(srcdir("OrderAroundCell.jl")); using .OrderAroundCell
 
 # Date string to define the folder we will save to: 
 dateString = "26-09-10-10-49-26"
-parameterSetLabel = "(XIII)"
+parameterSetLabel = "(I)"
 # Path to data we want to calculate from:
-jld2pathString = "data/multipleRuns/26-09-10-10-49-26/(XIII)/26-09-13-03-46-48_nCells=1169_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2"
+jld2pathString = "data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2"
 
 
 R = load(jld2pathString,"R")
@@ -43,7 +43,8 @@ matrices = load(jld2pathString,"matrices")
         edgeLabels,
         cellLabels,
         P_effs,
-        ξs = matrices
+        ξs,
+        edgeLengths = matrices
 
 # First compute couple stresses: 
 h = hNetwork(R,A,B,F)
@@ -114,26 +115,8 @@ for edge in enumerate(interfaceBoundaryEdges)
     end
     
 
-    PeffDiffVec[j_newInd] = P_effs[incidentCells[2]] - P_effs[incidentCells[1]]
-    ξDiffVec[j_newInd] = ξs[incidentCells[2]] - ξs[incidentCells[1]]
+    PeffDiffVec[j_newInd] =( P_effs[incidentCells[2]] - P_effs[incidentCells[1]]) * edgeLengths[j_oldInd]
     CoupleStressDiffVec[j_newInd] = coupleStresses[incidentVerts[2]] - coupleStresses[incidentVerts[1]]
-    
-    positionVert1b = findfirst(x -> x == trailingVertices[1], orderAroundLowerPeffCell2)
-    positionVert2b = findfirst(x -> x == trailingVertices[2], orderAroundLowerPeffCell2)
-    n2 = length(orderAroundLowerPeffCell2)
-
-    incidentVerts2 = zeros(Int64,2)
-    if mod(positionVert2b - positionVert1b, n2) == 1
-        incidentVerts2[1] = trailingVertices[1]
-        incidentVerts2[2] = trailingVertices[2]
-    elseif mod(positionVert1b - positionVert2b, n2) == 1
-        incidentVerts2[1] = trailingVertices[2]
-        incidentVerts2[2] = trailingVertices[1]
-    else
-        error("Vertices $(trailingVertices) are not adjacent in orderAroundLowerPeffCell2.")
-    end
-
-    CoupleStressDiffVec2[j_newInd] = coupleStresses[incidentVerts2[2]] - coupleStresses[incidentVerts2[1]]
 
 
 end
@@ -145,14 +128,10 @@ fig = Figure(size=(1200,600))
 # Initialise a figure for tracking sum of P_effsA_i: 
 grid = fig[1,1] = GridLayout()
 ax = Axis(grid[1,1],aspect=1)
-ax2 = Axis(grid[1,2],aspect=1)
 ax.title = "$parameterSetLabel Effective pressure difference against couple stress difference across interface edges"
-ax2.title = "$parameterSetLabel Shear stress difference against couple stress difference across interface edges"
-ax.xlabel = "ΔP_eff"
-ax2.xlabel = "Δξ"
+ax.xlabel = "ΔP_eff lⱼ"
 ax.ylabel = "Δ{CURLh}ₖ"
 
 scatter!(ax, PeffDiffVec, CoupleStressDiffVec, color=:blue, markersize=5)
-scatter!(ax2, ξDiffVec, CoupleStressDiffVec2, color=:blue, markersize=5)
 
 save(datadir("multipleRuns",dateString,parameterSetLabel, "stressDiffScatterPlot.png"), fig)
