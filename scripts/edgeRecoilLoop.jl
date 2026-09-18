@@ -27,20 +27,22 @@ include(srcdir("SpatialData.jl")); using .SpatialData
 include(srcdir("AnalysisFunctions.jl")); using .AnalysisFunctions
 
 # Pick the equilibrated system: 
-dateString = "26-09-11-16-18-04"
-parameterSetLabel = "(I)" 
+dateString = "26-09-10-10-49-26"
+parameterSetLabel = "(III)" 
 
 !isdir(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) ? mkpath(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) : nothing 
 
-# dataDict = load(datadir("multipleRuns",dateString, parameterSetLabel, "$(parameterSetLabel)_equilibriumPhase.jld2");
-#                     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
-#                                 "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
-#                     )
-#                 )
+dataDict = load(datadir("multipleRuns",dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2");
+                    typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+                                "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
+                    )
+                )
 
-dataDict = load("/Users/user/The University of Manchester Dropbox/Charlotte Taylor Barca/JULIA/VertexModel/data/sims/charlie-free-boundaries/Symmetric simulations/(XIII)/26-09-13-19-52-01_nCells=469_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData002.jld2";
-                typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
-                            "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer))
+
+
+# dataDict = load("/Users/user/The University of Manchester Dropbox/Charlotte Taylor Barca/JULIA/VertexModel/data/sims/charlie-free-boundaries/Symmetric simulations/(XIII)/26-09-13-19-52-01_nCells=469_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData002.jld2";
+#                 typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+#                             "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer))
 
 # Import system data
 @unpack R, params, matrices = dataDict
@@ -88,6 +90,9 @@ for jAblated = 1:nEdges
     R_l = deepcopy(R_orig)
     params_l = deepcopy(params_orig)
     matrices_l = deepcopy(matrices_orig)
+
+    println(typeof(matrices_l))
+    println(typeof(params_l))
 
     # Find the vertices at either end of the edge: 
     k_tracked = findall(x -> x!=0, @view matrices_l.A[jAblated,:])
