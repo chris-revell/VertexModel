@@ -25,18 +25,11 @@ using DiffEqCallbacks
 dateString = "26-09-10-10-49-26"
 parameterSetLabel = "(I)"
 # Vector of paths to data we want to calculate from:
-jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(III)/(III)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(IX)/26-09-12-18-25-13_nCells=1273_Λ_AA=-0.1_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(NEW 2)/(NEW 2)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(NEW 3)/(NEW 3)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(V)/(V)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(VIII)/(VIII)_equilibriumPhase.jld2",
-                "data/multipleRuns/26-09-10-10-49-26/(XIII)/26-09-13-03-46-48_nCells=1169_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2"]
-
+jld2pathVec = [] # List of paths to JLD2 files IN ORDER from (O) to (V)
 
 # decide which property we would like to scatter 
-plotPeffOnBoundary = true 
+plotPeffOnBoundary = false
+plotξsAcrossMonolayer = true
 
 if plotPeffOnBoundary
 
@@ -110,4 +103,70 @@ if plotPeffOnBoundary
     end
     
     display(fig)
+end
+
+if plotξsAcrossMonolayer
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    fig = Figure(size=(1200,600))
+
+    # Initialise figure: 
+    grid = fig[1,1] = GridLayout()
+    ax = Axis(grid[1,1],
+        xticks = (1:6,["(O)","(Q)","(R)","(S)","(T)","(U)"]),
+        xlabel = "Simulation label",
+        ylabel = "ξᵢ")
+
+    parameterLabelVec = ["(O)","(Q)","(R)","(S)","(T)","(U)"]
+    jld2pathVec = jld2pathVec[[1;3:7]] # exclude simulations (P) and (V)
+
+    for (simIdx, jld2pathString) in enumerate(jld2pathVec)
+
+        parameterSetLabel = parameterLabelVec[simIdx]
+
+        R = load(jld2pathString,"R")
+        params = load(jld2pathString,"params")
+        matrices = load(jld2pathString,"matrices")
+
+        @unpack A, B, C, edgeLabels, cellLabels, P_effs, ξs = matrices
+        @unpack nCells = params
+
+        # Initialise vectors for each group: 
+        boundaryξs = []
+        interiorξs = []
+        exteriorξs = []
+
+        # Fill in values along the composite boundary: 
+        interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
+        interfaceBoundaryCells = Int[]
+        for j in interfaceBoundaryEdges
+            incidentCells = findall(x->x!=0, @view B[:,j])
+            push!(interfaceBoundaryCells, incidentCells...)
+        end
+        unique!(interfaceBoundaryCells)
+        for i in interfaceBoundaryCells
+            push!(boundaryξs, ξs[i])
+        end
+
+        # Fill in values on the interior/exterior 
+        for i in 1:nCells
+            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells)
+                push!(exteriorξs, ξs[i])
+            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells)
+                push!(interiorξs, ξs[i])
+            end
+        end
+
+        # Plot this simulation's three groups immediately, dodged side by side
+        boxplot!(ax, fill(simIdx, length(boundaryξs)), boundaryξs,
+            dodge = fill(1, length(boundaryξs)), color = colors[1], width = 0.7)
+        boxplot!(ax, fill(simIdx, length(interiorξs)), interiorξs,
+            dodge = fill(2, length(interiorξs)), color = colors[2], width = 0.7)
+        boxplot!(ax, fill(simIdx, length(exteriorξs)), exteriorξs,
+            dodge = fill(3, length(exteriorξs)), color = colors[3], width = 0.7)
+
+    end
+
+
+
 end
