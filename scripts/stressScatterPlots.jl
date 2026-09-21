@@ -27,9 +27,9 @@ include(srcdir("OrderAroundCell.jl")); using .OrderAroundCell
 
 # Date string to define the folder we will save to: 
 dateString = "26-09-10-10-49-26"
-parameterSetLabel = "(I)"
+parameterSetLabel = "(VIII)"
 # Path to data we want to calculate from:
-jld2pathString = "data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2"
+jld2pathString = "data/multipleRuns/26-09-10-10-49-26/(VIII)/(VIII)_equilibriumPhase.jld2"
 
 
 R = load(jld2pathString,"R")
@@ -133,5 +133,13 @@ ax.xlabel = "ΔP_eff lⱼ"
 ax.ylabel = "Δ{CURLh}ₖ"
 
 scatter!(ax, PeffDiffVec, CoupleStressDiffVec, color=:blue, markersize=5)
+
+X = [ones(length(PeffDiffVec)) PeffDiffVec]
+β = X \ CoupleStressDiffVec   # least squares solution
+intercept, slope = β
+xs = range(extrema(PeffDiffVec)..., length=200)
+lines!(ax, xs, intercept .+ slope .* xs, color=:black, linewidth=2)
+
+display(fig)
 
 save(datadir("multipleRuns",dateString,parameterSetLabel, "stressDiffScatterPlot.png"), fig)
