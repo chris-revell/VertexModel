@@ -82,10 +82,10 @@ end
 
 
 # Set desired values for line tensions of this run: 
-params.Λ_AA = -0.1
-params.Λ_BB = -0.1
-params.Λ_AE = -0.1
-params.Λ_BE = -0.1
+params.Λ_AA = -0.35
+params.Λ_BB = -0.3
+params.Λ_AE = -0.35
+params.Λ_BE = -0.3
 
 parameterSetLabel = "(NEW)"
 !isdir(datadir("multipleRuns", dateString, parameterSetLabel)) ? mkpath(datadir("multipleRuns", dateString,parameterSetLabel)) : nothing 
@@ -93,7 +93,7 @@ parameterSetLabel = "(NEW)"
 γ = params.γ
 
 integ1 = vertexModel(initialSystem = "argument",
-                    nCycles = 3.3,
+                    nCycles = 2,
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     β = 0.1,
@@ -125,7 +125,7 @@ jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLa
 integ2 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"),
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
-                    nCycles = 2,
+                    nCycles = 1,
                     β = 0.1,
                     divisionToggle = 0,
                     frameDataToggle = 1,

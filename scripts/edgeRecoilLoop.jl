@@ -28,20 +28,25 @@ include(srcdir("AnalysisFunctions.jl")); using .AnalysisFunctions
 
 # Pick the equilibrated system: 
 dateString = "26-09-10-10-49-26"
-parameterSetLabel = "(III)" 
+parameterSetLabel = "(T)" 
+println(parameterSetLabel)
 
 !isdir(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) ? mkpath(datadir("multipleRuns", dateString, parameterSetLabel, "ablationLoop")) : nothing 
 
-dataDict = load(datadir("multipleRuns",dateString, parameterSetLabel, "$(parameterSetLabel)_equilibriumPhase.jld2");
-                    typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
-                                "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
-                    )
-                )
+# dataDict = load(datadir("multipleRuns",dateString, parameterSetLabel, "$(parameterSetLabel)_equilibriumPhase.jld2");
+#                     typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+#                                 "VertexModel.../VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer
+#                     )
+#                 )
 
 # dataDict = load("C:/Users/z28439ct/Documents/GitHub/VertexModel/data/multipleRuns/26-09-10-10-49-26/(I)/26-09-12-14-42-03_nCells=1273_Λ_AA=-0.2_Λ_AB=-0.2_Λ_BB=-0.2_β=0.0_γ=0.05/frameData/systemData099.jld2";
 #                 typemap=Dict("VertexModel.../VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
 #                             "VertexModel...VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer))
 
+dataDict = load("data/multipleRuns/26-09-10-10-49-26/(T)/(V)_equilibriumPhase.jld2";
+                typemap=Dict("VertexModel...\\VertexModelContainers.jl.VertexModelContainers.MatricesContainer" => MatricesContainer, 
+                            "VertexModel...\\VertexModelContainers.jl.VertexModelContainers.ParametersContainer" => ParametersContainer)
+                            )
 
 # Import system data
 @unpack R, params, matrices = dataDict
@@ -80,6 +85,7 @@ edgeSpeeds = zeros(Float64, nEdges)
 edgeRotations = zeros(Float64, nEdges)
 
 for jAblated = 1:nEdges
+    println("j = ", jAblated, "/$nEdges")
 # jAblated = 1
 
     if matrices_orig.boundaryEdges[jAblated] == 1
@@ -87,19 +93,14 @@ for jAblated = 1:nEdges
     end
 
     #
+
     R_l = deepcopy(R_orig)
     params_l = deepcopy(params_orig)
     matrices_l = deepcopy(matrices_orig)
 
-    println(typeof(matrices_l))
-    println(typeof(params_l))
-
     # Find the vertices at either end of the edge: 
-    k_tracked = findall(x -> x!=0, @view matrices_l.A[jAblated,:])
-    params_l.k_tracked = k_tracked
+    params_l.k_tracked = findall(x -> x!=0, @view matrices_l.A[jAblated,:])
 
-    
-      
 
     EdgeAblation.edgeAblation!(jAblated, params_l, matrices_l)
     TopologyChange.topologyChange!(R_l, params_l, matrices_l)
@@ -110,13 +111,13 @@ for jAblated = 1:nEdges
     cellTensions_l, cellPressures_l = matrices_l.cellTensions, matrices_l.cellPressures
     edgeLengths_l, edgeTangents_l   = matrices_l.edgeLengths, matrices_l.edgeTangents
     ϵ_l, Λs_l = matrices_l.ϵ, matrices_l.Λs
-    energyModel = params_l.energyModel
+    energyModel,k_tracked_l = params_l.energyModel,params_l.k_tracked
 
     # Calculate the resultant force at each k_tracked after ablation: 
     ablatedF = zeros(SVector{2,Float64}, 2, nCells)
     dR = zeros(SVector{2,Float64}, 2)
 
-    for kInd in enumerate(k_tracked)
+    for kInd in enumerate(k_tracked_l)
         k = kInd[2] # vertex index
         kInd = kInd[1] # index in k_tracked array
         for j in nzrange(A_l, k) # iterate over the nonzero entries for vertex k 
@@ -152,7 +153,7 @@ for jAblated = 1:nEdges
     # println("dR = ",dR)
     dR̄= sum(dR)/2
     dR̂ = dR[1] - dR̄
-    Δr = R_orig[k_tracked[1]] - R_orig[k_tracked[2]]
+    Δr = R_orig[k_tracked_l[1]] - R_orig[k_tracked_l[2]]
 
     edgeSpeeds[jAblated] = norm(dR̂)
     edgeRotations[jAblated] = Δr[1]*dR̂[2] - Δr[2]*dR̂[1] # take the cross produce with the edge. Positive = anticlockwise; negative = clockwise 
@@ -218,11 +219,14 @@ climsSpeed = (0.0, maximum(edgeSpeeds))
 linesegments!(rotationAx, edgeVectors; color = edgeRotations,colorrange = climsRotation, colormap = cmapRotation, linewidth=3)
 linesegments!(speedAx, edgeVectors; color = edgeSpeeds,colorrange = climsSpeed, colormap = cmapSpeed, linewidth=3)
 
-# cbarRotation = Colorbar(grid[2,1],colormap = cmapRotation, colorrange=climsRotation, label="Edge rotation", width=20,height=Relative(0.6))
-# cbarSpeed = Colorbar(grid[2,2],colormap = cmapSpeed, colorrange=climsSpeed, label="Edge Speed", width=20,height=Relative(0.6))
+cbarRotation = Colorbar(grid[2,1],colormap = cmapRotation, colorrange=climsRotation, label="Edge rotation", width=20,height=Relative(0.6))
+cbarSpeed = Colorbar(grid[2,2],colormap = cmapSpeed, colorrange=climsSpeed, label="Edge Speed", width=20,height=Relative(0.6))
 
 # # rowsize!(grid, 2, Fixed(60))   # colorbars get a fixed 60px strip; row 1 takes the rest automatically
 # rowsize!(grid, 1, Relative(0.9))
 # rowsize!(grid, 2, Relative(0.1))
 
 save(datadir("multipleRuns", dateString, parameterSetLabel,"ablationLoop", "ablationFigure.png"),edgeAblationFig)
+
+jldsave(datadir("multipleRuns", dateString, parameterSetLabel,"ablationLoop","ablationData.jld2");edgeSpeeds,edgeRotations)
+
