@@ -480,8 +480,6 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
     delete!(coupleStressCbar)
     grid = fig[1,1] = GridLayout()
 
-    println("reaches here")
-
     cellPolygons = makeCellPolygons(R, params, matrices)
     
     vertexTrianglePoints = Vector{Point{2,Float64}}[]
@@ -546,8 +544,8 @@ function visualiseCoupleStresses(R,fig, ax1, ax2, ax3, ax4, PeffCbar,ξCbar,coup
         ], 256)
         # Colour bar exclusing exterior vertices 
         maxabs3 = maximum(abs.(coupleStresses[interiorIndices]))
-        # clims3 = (-maxabs3,maxabs3)
-        clims3 = (-0.02,0.02)
+        clims3 = (-maxabs3,maxabs3)
+        # clims3 = (-0.02,0.02)
     end
     
 

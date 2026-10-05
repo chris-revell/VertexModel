@@ -538,7 +538,8 @@ function computeCoupleStressesFromSimulation(;jld2pathString, plotForces, absolu
     PeffCbar, ξCbar, coupleStressCbar = visualiseCoupleStresses(R,coupleStressFig, cellTypeAx, PeffAx, ξAx, coupleStressAx, PeffCbar,ξCbar,coupleStressCbar, params, matrices, coupleStresses, vertexTriangles,absolutePeff)
 
     # Find the folder the data has been taken from: 
-    folderName = dirname(dirname(jld2pathString))
+    # folderName = dirname(dirname(jld2pathString))
+    folderName = dirname(jld2pathString)
     mkpath(datadir(folderName))
     absolutePeff ? (save(datadir(folderName, "coupleStressPlotAbsolutePeff.png"), coupleStressFig)) : (save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig))
 

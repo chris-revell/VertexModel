@@ -19,6 +19,7 @@ using CircularArrays
 using OrdinaryDiffEq
 using Printf
 using DiffEqCallbacks
+using DiscreteCalculus
 
 
 # Date string to define the folder we will save to: 
@@ -36,8 +37,9 @@ jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(O)/(I)_equilibriumPhase.jld
 
 # decide which property we would like to scatter 
 plotPeffOnBoundary = false
-plotξsAcrossMonolayer = true
+plotξsAcrossMonolayer = false
 plotPeffAcrossMonolayer = false
+plotCSAcrossMonolayer = true
 
 # Orange family — boundary_A relates to exterior
 exteriorColor  = RGB(255/255, 178/255, 102/255)   # light orange (existing)
@@ -127,7 +129,7 @@ if plotξsAcrossMonolayer
         params = load(jld2pathString,"params")
         matrices = load(jld2pathString,"matrices")
 
-        @unpack A, B, C, edgeLabels, cellLabels, P_effs, ξs = matrices
+        @unpack A, B, C, edgeLabels, cellLabels, P_effs, ξs, boundaryEdges = matrices
         @unpack nCells = params
 
         # Initialise vectors for each group: 
@@ -135,7 +137,9 @@ if plotξsAcrossMonolayer
         boundaryξs_B = []
         interiorξs = []
         exteriorξs = []
+        peripheryξs = []
 
+        
         # Fill in values along the composite boundary: 
         interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
         interfaceBoundaryCells = Int[]
@@ -150,14 +154,18 @@ if plotξsAcrossMonolayer
             elseif cellLabels[i]==1
                 push!(boundaryξs_B, ξs[i])
             end
-            
+        end
+
+        peripheryCells = unique(getindex.(findall(x -> x != 0, @view(B[:, findall(x -> x!=0, boundaryEdges)])), 1))
+        for i in peripheryCells
+            push!(peripheryξs,ξs[i])
         end
 
         # Fill in values on the interior/exterior 
         for i in 1:nCells
-            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells)
+            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
                 push!(exteriorξs, ξs[i])
-            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells)
+            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
                 push!(interiorξs, ξs[i])
             end
         end
@@ -187,7 +195,6 @@ end
 
 if plotPeffAcrossMonolayer
 
-    colors = [:blue, :green, :red]
     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
     fig = Figure(size=(1200,600))
 
@@ -208,14 +215,17 @@ if plotPeffAcrossMonolayer
         params = load(jld2pathString,"params")
         matrices = load(jld2pathString,"matrices")
 
-        @unpack A, B, C, edgeLabels, cellLabels, P_effs, ξs = matrices
+        @unpack A, B, C, edgeLabels, cellLabels, P_effs, ξs, boundaryEdges = matrices
         @unpack nCells = params
+
+        
 
         # Initialise vectors for each group: 
         boundaryPeffsA = []
         boundaryPeffsB = []
         interiorPeffs = []
         exteriorPeffs = []
+        peripheryPeffs = []
 
         # Fill in values along the composite boundary: 
         interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
@@ -225,20 +235,23 @@ if plotPeffAcrossMonolayer
             push!(interfaceBoundaryCells, incidentCells...)
         end
         unique!(interfaceBoundaryCells)
-         for i in interfaceBoundaryCells
+        for i in interfaceBoundaryCells
             if cellLabels[i]==0
                 push!(boundaryPeffsA, P_effs[i])
             elseif cellLabels[i]==1
                 push!(boundaryPeffsB, P_effs[i])
             end
-            
+        end
+        peripheryCells = unique(getindex.(findall(x -> x != 0, @view(B[:, findall(x -> x!=0, boundaryEdges)])), 1))
+        for i in peripheryCells
+            push!(peripheryPeffs,P_effs[i])
         end
 
         # Fill in values on the interior/exterior 
         for i in 1:nCells
-            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells)
+            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
                 push!(exteriorPeffs, P_effs[i])
-            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells)
+            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
                 push!(interiorPeffs, P_effs[i])
             end
         end
@@ -254,7 +267,93 @@ if plotPeffAcrossMonolayer
             boxplot!(ax, fill(simIdx, length(interiorPeffs)), interiorPeffs,
                 dodge = fill(4, length(interiorPeffs)), n_dodge = 4, color =interiorColor, width = 0.7)
         end
-        
     end
     save(datadir("multipleRuns",dateString,"PeffsGlobalPlot.png"),fig)
+end
+
+if plotCSAcrossMonolayer
+
+    set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    fig = Figure(size=(1200,600))
+
+    # Initialise figure: 
+    grid = fig[1,1] = GridLayout()
+    ax = Axis(grid[1,1],
+        xticks = (1:8,["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]),
+        xlabel = "Simulation label",
+        ylabel = "Couple stress")
+
+    parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]
+
+    for (simIdx, jld2pathString) in enumerate(jld2pathVec)
+
+        parameterSetLabel = parameterLabelVec[simIdx]
+
+        R = load(jld2pathString,"R")
+        params = load(jld2pathString,"params")
+        matrices = load(jld2pathString,"matrices")
+
+        @unpack A, B, C, F, edgeLabels, cellLabels, P_effs, ξs, boundaryEdges, boundaryVertices = matrices
+        @unpack nCells = params
+
+        h = hNetwork(R,A,B,F)
+        coupleStresses = -curlᵛ(R,A,B,h)
+        println(coupleStresses)
+
+        coupleStressAA = []
+        coupleStressBB = []
+        coupleStressAB = []
+
+        # Fill in values along the composite boundary: 
+        interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
+        interfaceBoundaryVertices = Int[]
+        for j in interfaceBoundaryEdges
+            incidentVertices = findall(x->x!=0, @view A[j,:])
+            push!(interfaceBoundaryVertices, incidentVertices...)
+        end
+        unique!(interfaceBoundaryVertices)
+        for k in interfaceBoundaryVertices
+            push!(coupleStressAB,abs(coupleStresses[k]))
+        end
+
+        BBEdges = findall(x -> x==1, edgeLabels)
+        BBVertices = Int[]
+        for j in BBEdges 
+            incidentVertices = findall(x->x!=0, @view A[j,:])
+            push!(BBVertices, incidentVertices...)
+        end
+        unique!(BBVertices)
+        for k in BBVertices 
+            push!(coupleStressBB, abs(coupleStresses[k]))
+        end
+
+        AAEdges = findall(x -> x==0, edgeLabels)
+        AAVertices = Int[]
+        for j in AAEdges 
+            incidentVertices = findall(x->x!=0, @view A[j,:])
+            push!(AAVertices, incidentVertices...)
+        end
+        unique!(AAVertices)
+        for k in AAVertices 
+            if !(k in boundaryVertices) # Exclude peripheral vertices
+                push!(coupleStressAA, abs(coupleStresses[k]))
+            end
+        end
+
+
+        # Plot this simulation's three groups immediately, dodged side by side
+        boxplot!(ax,fill(simIdx,length(coupleStressAA)),coupleStressAA,
+            dodge = fill(1,length(coupleStressAA)),n_dodge = 3,color = exteriorColor, width=0.7)
+        boxplot!(ax, fill(simIdx, length(coupleStressBB)), coupleStressBB,
+            dodge = fill(2, length(coupleStressBB)), n_dodge = 3, color =interiorColor, width = 0.7)
+        boxplot!(ax,fill(simIdx,length(coupleStressAB)),coupleStressAB,
+            dodge = fill(3,length(coupleStressAB)),n_dodge = 3,color =:grey, width=0.7)
+
+
+    end
+
+    save(datadir("multipleRuns",dateString,"CoupleStressesBoxPlot.png"),fig)
+
+
+
 end
