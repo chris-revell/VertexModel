@@ -30,14 +30,15 @@ parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)",
                     "(T)",
                     "(U)","(V)"]
 
-jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(O)/(I)_equilibriumPhase.jld2", #(O)
-                "data/multipleRuns/26-09-10-10-49-26/(P)/(NEW 2)_equilibriumPhase.jld2",#(P)
+jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(O)/26-09-12-14-42-03_nCells=1273_Λ_AA=-0.2_Λ_AB=-0.2_Λ_BB=-0.2_β=0.0_γ=0.05/frameData/systemData099.jld2", #(O)
+                "data/multipleRuns/26-09-10-10-49-26/(P)/26-09-12-13-53-32_nCells=1273_Λ_AA=-0.1_Λ_AB=-0.2_Λ_BB=-0.25_β=0.0_γ=0.05/frameData/systemData099.jld2",#(P)
                 "data/multipleRuns/26-09-10-10-49-26/(Q)/26-09-12-18-25-13_nCells=1273_Λ_AA=-0.1_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",#(Q)
-                "data/multipleRuns/26-09-10-10-49-26/(R)/(III)_equilibriumPhase.jld2",#(R)
+                "data/multipleRuns/26-09-10-10-49-26/(R)/26-09-12-13-39-48_nCells=1273_Λ_AA=-0.15_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",#(R)
                 "data/multipleRuns/26-09-10-10-49-26/(S)/26-09-13-03-46-48_nCells=1169_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",#(S)
-                "data/multipleRuns/26-09-10-10-49-26/(T)/(V)_equilibriumPhase.jld2",#(T)
-                "data/multipleRuns/26-09-10-10-49-26/(U)/(VIII)_equilibriumPhase.jld2",#(U)
-                "data/multipleRuns/26-09-10-10-49-26/(V)/(NEW 3)_equilibriumPhase.jld2"]#(V)
+                "data/multipleRuns/26-09-10-10-49-26/(T)/26-09-12-14-02-50_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.15_β=0.0_γ=0.05/frameData/systemData099.jld2",#(T)
+                "data/multipleRuns/26-09-10-10-49-26/(U)/26-09-12-14-08-47_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",#(U)
+                "data/multipleRuns/26-09-10-10-49-26/(V)/26-09-12-13-57-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",]#(V)
+
 
 set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
 fig = Figure(size=(1800,600))
