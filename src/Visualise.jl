@@ -753,6 +753,9 @@ function visualiseForceComparison(R, h, clusterCells, fig, ax1, ax2, cbar, param
     return cbar
 end
 
-export visualise, visualiseCoupleStresses, visualiseForceComparison
+# function visualiseInfiniteBilayer()
+# end
+
+export visualise, visualiseCoupleStresses, visualiseForceComparison#, visualiseInfiniteBilayer   
 
 end

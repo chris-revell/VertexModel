@@ -352,7 +352,120 @@ function spatialData!(R,params,matrices)
 
 end
 
-export spatialData!
+function spatialDataBilayer!(R,κ,λ,params,matrices)
+
+    @unpack A,
+        B,
+        Ā,
+        B̄,
+        Bᵀ,
+        C,
+        cellEdgeCount,
+        cellVertexOrders,
+        cellEdgeOrders,
+        cellPositions,
+        boundaryCells,
+        cellPerimeters,
+        cellOrientedAreas,
+        cellShapeTensor,
+        cellAreas,
+        cellL₀s,
+        cellA₀s,
+        cellTensions,
+        cellPressures,
+        edgeLengths,
+        edgeTangents,
+        edgeMidpoints,
+        edgeMidpointLinks,
+        vertexAreas,
+        μ,
+        Γ,
+        Λs,
+        P_effs,
+        T_effs,
+        ξs,
+        e₁ = matrices
+    @unpack initialSystem,
+        boundaryType,
+        nCells,
+        nEdges,
+        nVerts,
+        γ,
+        L₀,
+        A₀,
+        energyModel,
+        L_x,
+        L_y = params
+
+        R¹ = SVector{2,Float64}[nVerts]
+        R² = SVector{2,Float64}[nVerts]
+        # Check which way we need to shift each vertex 
+        for k=1:nVerts 
+            # Set values for images:
+            e = 4+κ^2*λ^2
+            a = (4-κ^2*λ^2)/e
+            b = 4*κ*λ/e
+            c = 4λ/e 
+            d = 2*κ*λ^2 / e 
+
+            x = R[k][1] 
+            y = R[k][2]
+
+            # Check whether the vertex is to the left or the right of the origin: 
+            if x < 0
+                # To the left of the origin. In this case we find images r'
+                R¹[k] = SVector( x*a - y*b + c, y*a + x*b + d)
+
+            else 
+                # To the right of the origin. In this case we find images r'' 
+                R²[k] = SVector( x*a + y*b - c, y*a - x*b + d)
+            end
+        end
+
+        edgeTangents[1] = R[2] .- R[1]
+        edgeTangents[2] = R[3] .- R[2]
+        edgeTangents[3] = R[4] .- R[3]
+        edgeTangents[4] = R¹[3] .- R[4]
+        edgeTangents[5] = R[5] .- R[4]
+        edgeTangents[6] = R[6] .- R[5]
+        edgeTangents[7] = R²[5] .- R[6]
+        edgeTangents[8] = R¹[2] .- R[1]
+
+        for j in 1:nEdges
+            edgeLengths[j] = norm(edgeTangents[j])
+            edgeMidpoints[j] = SVector(mod(v1[1] + 0.5*edgeTangents[j][1], L_x), mod(v1[2] + 0.5*edgeTangents[j][2], L_y))
+        end
+
+        orderedVerts1 = CircularArray(ones(Int64, 6)) # Ordered list of vertices around cell i in clockwise direction 
+        orderedEdges1 = CircularArray(ones(Int64, 6)) # Ordered list of edges around cell i in clockwise direction
+        orderedVerts2 = CircularArray(ones(Int64, 6)) # Ordered list of vertices around cell i in clockwise direction 
+        orderedEdges2 = CircularArray(ones(Int64, 6)) # Ordered list of edges around cell i in clockwise direction
+
+        # New vertex indexing to account for image vertices and edges: 
+            # Vertices: [1,2,3,4,5,6,2',3',4'',5''] = [1,2,3,4,5,6,7,8,9,10]
+            # Edges: [1,2,3,4,5,6,7,8,2',4'',5''] = [1,2,3,4,5,6,7,8,9,10,11]
+        orderedVerts1 .= [1,7,8,4,3,2]
+        orderedEdges1 .= [8,9,4,3,2,1]
+        orderedVerts2 .= [3,4,5,6,10,9]
+        orderedEdges2 .= [3,5,6,7,11,10]
+
+        ############################################ CONTINUE HERE ########################################################################
+
+
+
+
+end
+
+function bilayerDerivatives()
+
+
+    derivativeVec = [dAdκ, dBdκ, dCdκ, dDdκ, dEdκ,dAdλ, dBdλ, dCdλ, dDdλ, dEdλ]
+
+    return  derivativeVec
+end
+
+
+export spatialData!,spatialDataBilayer!
 
 end
 

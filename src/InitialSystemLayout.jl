@@ -226,6 +226,7 @@ function initialSystemLayout(γ,Λ_AA,Λ_BB,Λ_AB,Λ_AE,Λ_BE, nRows,spiky,initi
 
 end
 
+
 export initialSystemLayout, initialEdgeLength
 
 end

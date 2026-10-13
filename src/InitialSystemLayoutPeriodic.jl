@@ -310,7 +310,6 @@ function initialSystemLayoutPeriodic(γ,L_x,L_y,Λ_AA,Λ_BB,Λ_AB,Area_A_ratio)
                     poly[k] = new_idx
                 end
             end
-            
         end
 
         # Now determine the cell edges from these kept polygons: 
