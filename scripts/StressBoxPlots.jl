@@ -319,7 +319,12 @@ if plotCSAcrossMonolayer
         BBVertices = Int[]
         for j in BBEdges 
             incidentVertices = findall(x->x!=0, @view A[j,:])
-            push!(BBVertices, incidentVertices...)
+            for k in incidentVertices
+                # Check that this vertex hasn't already been counted on the interface: 
+                if !(k in interfaceBoundaryVertices)
+                    push!(BBVertices, k)
+                end
+            end
         end
         unique!(BBVertices)
         for k in BBVertices 
@@ -330,7 +335,12 @@ if plotCSAcrossMonolayer
         AAVertices = Int[]
         for j in AAEdges 
             incidentVertices = findall(x->x!=0, @view A[j,:])
-            push!(AAVertices, incidentVertices...)
+            for k in incidentVertices
+                # Check that this vertex hasn't already been counted on the interface: 
+                if !(k in interfaceBoundaryVertices)
+                    push!(AAVertices, k)
+                end
+            end
         end
         unique!(AAVertices)
 
