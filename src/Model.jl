@@ -210,6 +210,8 @@ function bilayerModel!(du, u, p, t)
     end
     vertexWeighting == 1 ? dR ./= vertexAreas : nothing
 
+    
+
     # Update values of dOptVec for vertices (entries 1-10)
     for k=1:6
         if k!=4
