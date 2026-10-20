@@ -126,6 +126,61 @@ function makeBilayerPolygon(R,cellVertexOrder)
     return cellPolygons
 end
 
+function findNonDiagonalZeroContour(
+    κ_grid,
+    Λ_AAVec,
+    Λ_BBVec;
+    diagonalTolerance = 1e-4,
+    zeroTolerance = 1e-10
+)
+    zeroPairs = Tuple{Float64,Float64}[]
+
+    # For each fixed Λ_AA, search along the Λ_BB direction
+    for Aind in eachindex(Λ_AAVec)
+
+        Λ_AA = Λ_AAVec[Aind]
+
+        for Bind in 1:(length(Λ_BBVec) - 1)
+
+            κ1 = κ_grid[Aind, Bind]
+            κ2 = κ_grid[Aind, Bind + 1]
+
+            Λ_BB1 = Λ_BBVec[Bind]
+            Λ_BB2 = Λ_BBVec[Bind + 1]
+
+            # Ignore failed or non-finite optimisation results
+            if !isfinite(κ1) || !isfinite(κ2)
+                continue
+            end
+
+            Λ_BB_zero = nothing
+
+            # Grid point is already approximately zero
+            if abs(κ1) < zeroTolerance
+                Λ_BB_zero = Float64(Λ_BB1)
+
+            # κ changes sign between neighbouring grid points
+            elseif κ1 * κ2 < 0
+                # Linear interpolation of the κ = 0 location
+                Λ_BB_zero =
+                    Float64(Λ_BB1 - κ1 * (Λ_BB2 - Λ_BB1) / (κ2 - κ1))
+            end
+
+            if Λ_BB_zero !== nothing
+                # Remove the diagonal solution Λ_AA = Λ_BB
+                if abs(Λ_AA - Λ_BB_zero) > diagonalTolerance
+                    push!(
+                        zeroPairs,
+                        (Float64(Λ_AA), Λ_BB_zero)
+                    )
+                end
+            end
+        end
+    end
+
+    return zeroPairs
+end
+
 function runBilayer()
 
     ######################################## INITIALISE VECTORS AND PARAMS ########################################
@@ -138,7 +193,7 @@ function runBilayer()
     Λ_BBVec = range(-0.3,-0.1,500)
 
     # Initialise vectors of each of our minimisation variables 
-    κ_grid = zeros(length(Λ_BBVec), length(Λ_AAVec))
+    κ_grid = zeros(length(Λ_AAVec), length(Λ_BBVec))
 
 
 
@@ -209,6 +264,16 @@ end
 
 κ_grid, Λ_AAVec,Λ_BBVec = runBilayer()
 
+zeroPairs = findNonDiagonalZeroContour(
+    κ_grid,
+    Λ_AAVec,
+    Λ_BBVec;
+    diagonalTolerance = 2e-3
+)
+
+println("zeroAAs = ", [zeroPair[1] for zeroPair in zeroPairs])
+
+println("zeroBBs = ", [zeroPair[2] for zeroPair in zeroPairs])
 fig = Figure(size=(700,600))
 
 ax = Axis(
@@ -223,10 +288,20 @@ hm = heatmap!(
     Λ_AAVec,
     Λ_BBVec,
     κ_grid,
-    colormap=:RdBu
+    colormap=:RdBu,
 )
 
-Colorbar(fig[1,2], hm)
+contour!(
+    ax,
+    Λ_AAVec,
+    Λ_BBVec,
+    κ_grid;
+    levels = [0.0],
+    color = :black,
+    linewidth = 3
+)
+
+Colorbar(fig[1,2], hm, label = L"κ", width = 20)
 
 display(fig)
 save(datadir("InfiniteBilayer","bilayer_κ_heatmap.png"), fig)
