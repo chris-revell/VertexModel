@@ -543,6 +543,7 @@ function computeCoupleStressesFromSimulation(;jld2pathString, plotForces, absolu
     mkpath(datadir(folderName))
     absolutePeff ? (save(datadir(folderName, "coupleStressPlotAbsolutePeff.png"), coupleStressFig)) : (save(datadir(folderName, "coupleStressPlot.png"), coupleStressFig))
 
+    display(coupleStressFig)
     if plotForces == 1
         # Case of plotting a cluster of cells to check the rotated forces align with the vector force potential; 
         forceComparisonFig, forceAx, polyAx, forceComparisonCbar = forceComparisonPlotSetup()

@@ -82,50 +82,52 @@ end
 
 
 # Set desired values for line tensions of this run: 
-params.Λ_AA = -0.35
-params.Λ_BB = -0.3
-params.Λ_AE = -0.35
-params.Λ_BE = -0.3
+# Zero pair as an example: 
+# params.Λ_AA = -0.3389236545682103
+# params.Λ_BB = -0.10480831475885634
+# params.Λ_AE = -0.3389236545682103
+# params.Λ_BE = -0.10480831475885634
 
-parameterSetLabel = "(NEW)"
-!isdir(datadir("multipleRuns", dateString, parameterSetLabel)) ? mkpath(datadir("multipleRuns", dateString,parameterSetLabel)) : nothing 
+# parameterSetLabel = "(Kappa=0 test 2)"
+# !isdir(datadir("multipleRuns", dateString, parameterSetLabel)) ? mkpath(datadir("multipleRuns", dateString,parameterSetLabel)) : nothing 
 
-γ = params.γ
+# γ = params.γ
 
-integ1 = vertexModel(initialSystem = "argument",
+# integ1 = vertexModel(initialSystem = "argument",
+#                     nCycles = 3.3,
+#                     realCycleTime = 86400.0, 
+#                     viscousTimeScale = 1000.0,
+#                     β = 0.1,
+#                     divisionToggle = 1,
+#                     outputToggle = 1,
+#                     frameDataToggle = 1,
+#                     frameImageToggle = 1,
+#                     printToggle = 1,
+#                     videoToggle = 1,
+#                     γ=γ,
+#                     R_in = R,
+#                     A_in = matrices.A,
+#                     B_in = matrices.B,
+#                     Λ_AA = params.Λ_AA, 
+#                     Λ_AB = params.Λ_AB,
+#                     Λ_BB = params.Λ_BB,
+#                     Λ_AE = params.Λ_AE, 
+#                     Λ_BE = params.Λ_BE,
+#                     termSteadyState = false, # flag to determine whether simulation terminates once it reaches steady state 
+#                     randomDivision = false, # flag to determine whether division process is random or not (i.e., cell cycle times are uniform)
+#                     randomSeed = fixedSeed,
+#                 )
+
+# R = reinterpret(SVector{2,Float64}, integ1.u)
+# (params, matrices) = integ1.p
+
+# jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"); matrices,params,R)
+
+integ2 = vertexModel(#initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"),
+                    initialSystem = "data/sims/charlie-free-boundaries/26-10-26-16-12-14_nCells=15_Λ_AA=-0.339_Λ_AB=-0.2_Λ_BB=-0.105_β=0.1_γ=0.05/frameData/systemData097.jld2",
+                    realCycleTime = 86400.0, 
+                    viscousTimeScale = 1000.0,
                     nCycles = 2,
-                    realCycleTime = 86400.0, 
-                    viscousTimeScale = 1000.0,
-                    β = 0.1,
-                    divisionToggle = 1,
-                    outputToggle = 1,
-                    frameDataToggle = 1,
-                    frameImageToggle = 1,
-                    printToggle = 1,
-                    videoToggle = 1,
-                    γ=γ,
-                    R_in = R,
-                    A_in = matrices.A,
-                    B_in = matrices.B,
-                    Λ_AA = params.Λ_AA, 
-                    Λ_AB = params.Λ_AB,
-                    Λ_BB = params.Λ_BB,
-                    Λ_AE = params.Λ_AE, 
-                    Λ_BE = params.Λ_BE,
-                    termSteadyState = false, # flag to determine whether simulation terminates once it reaches steady state 
-                    randomDivision = false, # flag to determine whether division process is random or not (i.e., cell cycle times are uniform)
-                    randomSeed = fixedSeed,
-                )
-
-R = reinterpret(SVector{2,Float64}, integ1.u)
-(params, matrices) = integ1.p
-
-jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"); matrices,params,R)
-
-integ2 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_growthPhase.jld2"),
-                    realCycleTime = 86400.0, 
-                    viscousTimeScale = 1000.0,
-                    nCycles = 1,
                     β = 0.1,
                     divisionToggle = 0,
                     frameDataToggle = 1,
@@ -150,8 +152,8 @@ R = reinterpret(SVector{2,Float64}, integ2.u)
 
 jldsave(datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"); matrices,params,R)
 
-integ3 = vertexModel(#initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"),               
-                    initialSystem = "data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2",
+integ3 = vertexModel(initialSystem = datadir("multipleRuns", dateString, parameterSetLabel, "$(parameterSetLabel)_noGrowthPhase.jld2"),               
+                    # initialSystem = "data/multipleRuns/26-09-10-10-49-26/(I)/(I)_equilibriumPhase.jld2",
                     realCycleTime = 86400.0, 
                     viscousTimeScale = 1000.0,
                     nCycles = 20,

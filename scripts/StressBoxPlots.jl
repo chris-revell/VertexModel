@@ -33,13 +33,16 @@ jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(O)/26-09-12-14-42-03_nCells
                 "data/multipleRuns/26-09-10-10-49-26/(S)/26-09-13-03-46-48_nCells=1169_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",#(S)
                 "data/multipleRuns/26-09-10-10-49-26/(T)/26-09-12-14-02-50_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.15_β=0.0_γ=0.05/frameData/systemData099.jld2",#(T)
                 "data/multipleRuns/26-09-10-10-49-26/(U)/26-09-12-14-08-47_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",#(U)
-                "data/multipleRuns/26-09-10-10-49-26/(V)/26-09-12-13-57-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",]#(V)
+                "data/multipleRuns/26-09-10-10-49-26/(V)/26-09-12-13-57-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",#(V)
+                "data/multipleRuns/26-09-10-10-49-26/(KRAS V12 TEST 1)/26-10-21-09-55-13_nCells=1273_Λ_AA=-0.325_Λ_AB=-0.2_Λ_BB=-0.075_β=0.0_γ=0.05/frameData/systemData072.jld2",]#(KRAS V12 TEST 2)
 
 # decide which property we would like to scatter 
 plotPeffOnBoundary = false
 plotξsAcrossMonolayer = false
 plotPeffAcrossMonolayer = false
-plotCSAcrossMonolayer = true
+plotCSAcrossMonolayer = false
+plotAreasAcrossMonolayer = false
+plotCircularityAcrossMonolayer = true
 
 # Orange family — boundary_A relates to exterior
 exteriorColor  = RGB(255/255, 178/255, 102/255)   # light orange (existing)
@@ -58,11 +61,11 @@ if plotPeffOnBoundary
     # Initialise figure: 
     grid = fig[1,1] = GridLayout()
     ax = Axis(grid[1,1],
-        xticks = (1:8,["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]),
+        xticks = (1:8,["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)","(KRASV12 TEST 2)"]),
         xlabel = "Simulation label",
         ylabel = "ξᵢ")
 
-    parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]
+    parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)","(KRASV12 TEST 2)"]
 
     for (simIdx, jld2pathString) in enumerate(jld2pathVec)
 
@@ -269,6 +272,160 @@ if plotPeffAcrossMonolayer
         end
     end
     save(datadir("multipleRuns",dateString,"PeffsGlobalPlot.png"),fig)
+end
+
+if plotAreasAcrossMonolayer
+     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    fig = Figure(size=(1200,600))
+
+    # Initialise figure: 
+    grid = fig[1,1] = GridLayout()
+    ax = Axis(grid[1,1],
+        xticks = (1:8,["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]),
+        xlabel = "Simulation label",
+        ylabel = "Area")
+
+    parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)","(KRAS V12 TEST 2)"]
+
+    for (simIdx, jld2pathString) in enumerate(jld2pathVec)
+
+        parameterSetLabel = parameterLabelVec[simIdx]
+
+        R = load(jld2pathString,"R")
+        params = load(jld2pathString,"params")
+        matrices = load(jld2pathString,"matrices")
+
+        @unpack A, B, C, edgeLabels, cellLabels, cellAreas, ξs, boundaryEdges = matrices
+        @unpack nCells = params
+
+        
+
+        # Initialise vectors for each group: 
+        boundaryAreasA = []
+        boundaryAreasB = []
+        interiorAreas = []
+        exteriorAreas = []
+        peripheryAreas = []
+
+        # Fill in values along the composite boundary: 
+        interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
+        interfaceBoundaryCells = Int[]
+        for j in interfaceBoundaryEdges
+            incidentCells = findall(x->x!=0, @view B[:,j])
+            push!(interfaceBoundaryCells, incidentCells...)
+        end
+        unique!(interfaceBoundaryCells)
+        for i in interfaceBoundaryCells
+            if cellLabels[i]==0
+                push!(boundaryAreasA, cellAreas[i])
+            elseif cellLabels[i]==1
+                push!(boundaryAreasB, cellAreas[i])
+            end
+        end
+        peripheryCells = unique(getindex.(findall(x -> x != 0, @view(B[:, findall(x -> x!=0, boundaryEdges)])), 1))
+        for i in peripheryCells
+            push!(peripheryAreas,cellAreas[i])
+        end
+
+        # Fill in values on the interior/exterior 
+        for i in 1:nCells
+            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
+                push!(exteriorAreas, cellAreas[i])
+            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
+                push!(interiorAreas, cellAreas[i])
+            end
+        end
+
+        # Plot this simulation's three groups immediately, dodged side by side
+        boxplot!(ax,fill(simIdx,length(boundaryAreasA)),boundaryAreasA,
+            dodge = fill(1,length(boundaryAreasA)),n_dodge = 4,color = boundaryAColor, width=0.7)
+        boxplot!(ax, fill(simIdx, length(exteriorAreas)), exteriorAreas,
+            dodge = fill(2, length(exteriorAreas)), n_dodge = 4, color =exteriorColor, width = 0.7)
+        boxplot!(ax,fill(simIdx,length(boundaryAreasB)),boundaryAreasB,
+            dodge = fill(3,length(boundaryAreasB)),n_dodge = 4,color = boundaryBColor, width=0.7)
+        if !isempty(interiorAreas)
+            boxplot!(ax, fill(simIdx, length(interiorAreas)), interiorAreas,
+                dodge = fill(4, length(interiorAreas)), n_dodge = 4, color =interiorColor, width = 0.7)
+        end
+    end
+    save(datadir("multipleRuns",dateString,"AreasGlobalPlot.png"),fig)
+end
+
+if plotCircularityAcrossMonolayer
+     set_theme!(figure_padding=1, backgroundcolor=(:white,1.0), font="Helvetica")
+    fig = Figure(size=(1200,600))
+
+    # Initialise figure: 
+    grid = fig[1,1] = GridLayout()
+    ax = Axis(grid[1,1],
+        xticks = (1:8,["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]),
+        xlabel = "Simulation label",
+        ylabel = "Circularity")
+
+    parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)","(KRAS V12 TEST 2)"]
+
+    for (simIdx, jld2pathString) in enumerate(jld2pathVec)
+
+        parameterSetLabel = parameterLabelVec[simIdx]
+
+        R = load(jld2pathString,"R")
+        params = load(jld2pathString,"params")
+        matrices = load(jld2pathString,"matrices")
+
+        @unpack A, B, C, edgeLabels, cellLabels, cellAreas, cellPerimeters, ξs, boundaryEdges = matrices
+        @unpack nCells = params
+
+        
+
+        # Initialise vectors for each group: 
+        boundaryCircularitysA = []
+        boundaryCircularitysB = []
+        interiorCircularitys = []
+        exteriorCircularitys = []
+        peripheryCircularitys = []
+
+        # Fill in values along the composite boundary: 
+        interfaceBoundaryEdges = findall(x -> x==2, edgeLabels)
+        interfaceBoundaryCells = Int[]
+        for j in interfaceBoundaryEdges
+            incidentCells = findall(x->x!=0, @view B[:,j])
+            push!(interfaceBoundaryCells, incidentCells...)
+        end
+        unique!(interfaceBoundaryCells)
+        for i in interfaceBoundaryCells
+            if cellLabels[i]==0
+                push!(boundaryCircularitysA, cellPerimeters[i]/sqrt(cellAreas[i]))
+            elseif cellLabels[i]==1
+                push!(boundaryCircularitysB, cellPerimeters[i]/sqrt(cellAreas[i]))
+            end
+        end
+        peripheryCells = unique(getindex.(findall(x -> x != 0, @view(B[:, findall(x -> x!=0, boundaryEdges)])), 1))
+        for i in peripheryCells
+            push!(peripheryCircularitys,cellPerimeters[i]/sqrt(cellAreas[i]))
+        end
+
+        # Fill in values on the interior/exterior 
+        for i in 1:nCells
+            if cellLabels[i] == 0 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
+                push!(exteriorCircularitys, cellPerimeters[i]/sqrt(cellAreas[i]))
+            elseif cellLabels[i] == 1 && !(i in interfaceBoundaryCells) && !(i in peripheryCells)
+                push!(interiorCircularitys, cellPerimeters[i]/sqrt(cellAreas[i]))
+            end
+        end
+
+        # Plot this simulation's three groups immediately, dodged side by side
+        boxplot!(ax,fill(simIdx,length(boundaryCircularitysA)),boundaryCircularitysA,
+            dodge = fill(1,length(boundaryCircularitysA)),n_dodge = 4,color = boundaryAColor, width=0.7)
+        boxplot!(ax, fill(simIdx, length(exteriorCircularitys)), exteriorCircularitys,
+            dodge = fill(2, length(exteriorCircularitys)), n_dodge = 4, color =exteriorColor, width = 0.7)
+        boxplot!(ax,fill(simIdx,length(boundaryCircularitysB)),boundaryCircularitysB,
+            dodge = fill(3,length(boundaryCircularitysB)),n_dodge = 4,color = boundaryBColor, width=0.7)
+        if !isempty(interiorCircularitys)
+            boxplot!(ax, fill(simIdx, length(interiorCircularitys)), interiorCircularitys,
+                dodge = fill(4, length(interiorCircularitys)), n_dodge = 4, color =interiorColor, width = 0.7)
+        end
+    end
+    save(datadir("multipleRuns",dateString,"CircularitysGlobalPlot.png"),fig)
 end
 
 if plotCSAcrossMonolayer

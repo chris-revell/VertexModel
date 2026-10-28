@@ -22,6 +22,7 @@ using CircularArrays
 using OrdinaryDiffEq
 using Printf
 using DiffEqCallbacks
+using Statistics
 
 include(srcdir("OrderAroundCell.jl")); using .OrderAroundCell
 
@@ -36,10 +37,12 @@ jld2pathVec = ["data/multipleRuns/26-09-10-10-49-26/(O)/26-09-12-14-42-03_nCells
                 "data/multipleRuns/26-09-10-10-49-26/(S)/26-09-13-03-46-48_nCells=1169_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.3_β=0.0_γ=0.05/frameData/systemData099.jld2",#(S)
                 "data/multipleRuns/26-09-10-10-49-26/(T)/26-09-12-14-02-50_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.15_β=0.0_γ=0.05/frameData/systemData099.jld2",#(T)
                 "data/multipleRuns/26-09-10-10-49-26/(U)/26-09-12-14-08-47_nCells=1273_Λ_AA=-0.3_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",#(U)
-                "data/multipleRuns/26-09-10-10-49-26/(V)/26-09-12-13-57-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",]#(V)
+                "data/multipleRuns/26-09-10-10-49-26/(V)/26-09-12-13-57-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.1_β=0.0_γ=0.05/frameData/systemData099.jld2",#(V)
+                "data/multipleRuns/26-09-10-10-49-26/(Kappa=0 test 1)/26-10-27-04-36-33_nCells=1273_Λ_AA=-0.25_Λ_AB=-0.2_Λ_BB=-0.25_β=0.0_γ=0.05/frameData/systemData074.jld2",#(Kappa=0 test 1)
+                "data/multipleRuns/26-09-10-10-49-26/(Kappa=0 test 2)/26-10-27-18-08-57_nCells=1115_Λ_AA=-0.339_Λ_AB=-0.2_Λ_BB=-0.105_β=0.0_γ=0.05/frameData/systemData053.jld2",]#(Kappa=0 test 2)
 
 
-parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)"]
+parameterLabelVec = ["(O)","(P)","(Q)","(R)","(S)","(T)","(U)","(V)","(Kappa=0 test 1)","(Kappa=0 test 2)"]
 
 plotξs = true
 
@@ -145,12 +148,14 @@ for (simInd, jld2pathString) in enumerate(jld2pathVec)
 
     scatter!(ax, PeffDiffVecTimesLength, CoupleStressDiffVec, color=:blue, markersize=5)
 
+    r = cor(PeffDiffVec,CoupleStressDiffVec)
     X = [ones(length(PeffDiffVec)) PeffDiffVecTimesLength]
     β = X \ CoupleStressDiffVec   # least squares solutions
     intercept, slope = β
     xs = range(extrema(PeffDiffVecTimesLength)..., length=200)
-    lines!(ax, xs, intercept .+ slope .* xs, color=:black, linewidth=2)
+    lines!(ax, xs, intercept .+ slope .* xs, color=:black, linewidth=2,label="PMCC = $(round(r, digits=3))")
 
+    axislegend(ax)
     save(datadir("multipleRuns",dateString,"CoupeStressScatterPlots",parameterSetLabel, "PeffCSDiffScatterPlot.png"), fig)
 
     if plotξs
@@ -168,12 +173,15 @@ for (simInd, jld2pathString) in enumerate(jld2pathVec)
 
         scatter!(ax, ξDiffVec, CoupleStressDiffVec, color=:blue, markersize=5)
 
+        r = cor(ξDiffVec,CoupleStressDiffVec)
+        println(r)
         X = [ones(length(ξDiffVec)) ξDiffVec]
         β = X \ CoupleStressDiffVec   # least squares solution
         intercept, slope = β
         xs = range(extrema(ξDiffVec)..., length=200)
-        lines!(ax, xs, intercept .+ slope .* xs, color=:black, linewidth=2)
+        lines!(ax, xs, intercept .+ slope .* xs, color=:black, linewidth=2,label="PMCC = $(round(r, digits=3))")
 
+        axislegend(ax)
         save(datadir("multipleRuns",dateString,"CoupeStressScatterPlots",parameterSetLabel, "ξCSDiffScatterPlot.png"),fig)
 
 
