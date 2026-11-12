@@ -627,6 +627,25 @@ contour!(
     linewidth = 3
 )
 
+paramSetsAA = [-0.2,-0.1,-0.1,-0.15,-0.3,-0.3,-0.3,-0.25,
+# -0.339,
+# -0.105,
+-0.2,-0.2,-0.25,-0.339,
+-0.3,
+-0.3
+]
+paramSetsBB = [-0.2,-0.25,-0.3,-0.3,-0.3,-0.15,-0.1,-0.1,
+# -0.105,
+# -0.339,
+-0.339,
+-0.3,
+-0.3,
+-0.2,-0.2,-0.25
+]
+scatter!(ax, paramSetsAA,paramSetsBB, color =:black, markersize = 10)
+
+display(fig)
+
 # Define the value at the floppy boundary: 
 Γ = 0.05
 Λ_star = -2*2*sqrt(2)*3^(1/4)*Γ 

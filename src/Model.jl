@@ -210,22 +210,7 @@ function bilayerModel!(du, u, p, t)
     end
     vertexWeighting == 1 ? dR ./= vertexAreas : nothing
 
-    
 
-    # Update values of dOptVec for vertices (entries 1-10)
-    for k=1:6
-        if k!=4
-            push!(dOptVec, dR[k][1])
-            push!(dOptVec, dR[k][2])
-        end
-    end
-
-
-    dκ = dUdκ
-
-    # Update values of dOptVec for κ and λ (entries 11 and 12)
-    push!(dOptVec, dκ)
-    push!(dOptVec, dλ)
 
 end
 
