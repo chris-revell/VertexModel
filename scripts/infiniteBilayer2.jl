@@ -24,6 +24,9 @@ using GeometryBasics
 using ForwardDiff
 using LineSearches
 
+include(srcdir("PlotSetup.jl")); using .PlotSetup
+include(srcdir("Visualise.jl")); using .Visualise
+
 ######################################## FUNCTION DEFINITIONS ########################################
 function vertexImage(R,κ,λ,s)
     # Function to calculate rotational image of a vector, s=1 for anticlockwise, s=-1 for clockwise
@@ -92,9 +95,9 @@ function energyCalculation(u,Λ_AA,Λ_BB,Λ_AB)
 
     # Order of vertices and edges around each cell (clockewise):
     cellVertexOrders1 = CircularArray([1,7,8,4,3,2])
-    cellVertexOrders2 = CircularArray([3,4,5,6,10,9])
+    cellVertexOrders2 = CircularArray([4,5,6,10,9,3])
 
-    cellEdgeOrders1 = CircularArray([1,2,3,4,5,6])
+    cellEdgeOrders1 = CircularArray([6,1,2,3,4,5])
     cellEdgeOrders2 = CircularArray([4,7,8,9,10,11])
 
     # Vector of edge tensions for each edge: []
@@ -248,6 +251,8 @@ function computeCoupleStresses(R,κ,λ,A,B,Λ_AA,Λ_BB,Λ_AB,Γ)
     R_ext[15] = vertexImage(R[5],κ,λ,+1)
     R_ext[16] = vertexImage(R[6],κ,λ,+1)
 
+    # println(R_ext)
+
     F = computeForces(R_ext,Λ_AA,Λ_BB,Λ_AB,Γ,A,B)
 
 
@@ -258,7 +263,117 @@ function computeCoupleStresses(R,κ,λ,A,B,Λ_AA,Λ_BB,Λ_AB,Γ)
 
     vertexTriangles = findCellLinkVertexTriangles(R_ext,A,B)
 
-    return coupleStresses, vertexTriangles
+    return coupleStresses, vertexTriangles, R_ext
+end
+
+function checkHNetwork(R, A, B, F, Λ_AA,Λ_BB)
+    # Function to work with DiscreteCalculus.jl couple stress functions, from a simulation in equilbrium. 
+    
+
+    h = hNetwork(R,A,B,F)
+    coupleStresses = -curlᵛ(R,A,B,h)
+    vertexTriangles = findCellLinkVertexTriangles(R,A,B)
+
+    cellEdgeOrders = Dict{Int64,CircularArray{Int64}}()
+    cellVertexOrders = Dict{Int64,CircularArray{Int64}}()
+
+    cellEdgeOrders[1] = CircularArray([6,1,2,3,4,5])
+    cellVertexOrders[1] = CircularArray([1,7,8,4,3,2])
+
+    cellEdgeOrders[2] = CircularArray([4,7,8,9,10,11])
+    cellVertexOrders[2] = CircularArray([4,5,6,10,9,3])
+
+    cellEdgeOrders[3] = CircularArray([5,11,14,13,12,18])
+    cellVertexOrders[3] = CircularArray([3,9,13,12,11,2])
+
+    cellEdgeOrders[4] = CircularArray([3,15,16,17,19,7])
+    cellVertexOrders[4] = CircularArray([8,14,15,16,5,4])
+    
+
+    ϵ = SMatrix{2, 2, Float64}([
+        0.0 1.0
+        -1.0 0.0
+    ]) 
+    
+    # Case of plotting a cluster of cells to check the rotated forces align with the vector force potential; 
+    forceComparisonFig, forceAx, polyAx, forceComparisonCbar = forceComparisonPlotSetup()
+
+    scatter!(
+        forceAx,
+        Point2f.(h),
+        color = :blue
+    )
+
+    for j in eachindex(h)
+        scatter!(
+            forceAx,
+            [Point2f(h[j])],
+            color = :blue,
+            markersize = 12
+        )
+    
+        text!(
+            forceAx,
+            string(j),
+            position = Point2f(h[j]),
+            offset = (8, 8),
+            color = :black,
+            fontsize = 14
+        )
+    end
+
+    clusterCells = [1,2,3,4]
+    # clusterCells=[3]
+    startCell = clusterCells[1]
+    traversedCells = Int64[]
+    traversedEdges = Int64[]
+    cellNeighbourMatrix = B*transpose(B)
+    rotatedVerticesList = fill(SVector{2, Float64}(zeros(2)), size(B,2)) # This is what we will compare with h
+    
+    # cellColours = Dict(zip(clusterCells, distinguishable_colors(length(clusterCells))))
+
+    startEdge = cellEdgeOrders[startCell][1]
+    # Find the index of this edge within the ordering of edges around cell ii 
+    startInd = findall(x->x==startEdge, cellEdgeOrders[startCell])[1]
+    for vertexInd = startInd:(startInd+length(cellVertexOrders[startCell])-1)
+        if length(traversedEdges)==0
+            rotatedVerticesList[cellEdgeOrders[startCell][startInd]] = h[cellEdgeOrders[startCell][startInd]]
+        end
+        rotatedVerticesList[cellEdgeOrders[startCell][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]] .+ ϵ*F[cellVertexOrders[startCell][vertexInd], startCell]
+
+        arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[startCell][vertexInd], startCell])],color=:red, linewidth=1, arrowsize=0.03)
+        
+        push!(traversedEdges, cellEdgeOrders[startCell][vertexInd]) 
+    end
+    push!(traversedCells, startCell)
+
+    while length(traversedCells) < length(clusterCells)
+        currentNeighbourShell = setdiff(findnz(cellNeighbourMatrix[:, traversedCells])[1], traversedCells)
+        for ii in currentNeighbourShell 
+            if ii in clusterCells
+
+                startEdge = cellEdgeOrders[ii][1]
+                # Find the index of this edge within the ordering of edges around cell ii 
+                startInd = findall(x->x==startEdge, cellEdgeOrders[ii])[1]
+
+                rotatedVerticesList[cellEdgeOrders[ii][startInd]] = h[cellEdgeOrders[ii][startInd]]
+                # Remember in clockwise ordering, cellEdgeOrders[i][1] precedes cellVertexOrders[1]
+                for vertexInd = startInd:(startInd+length(cellVertexOrders[ii])-1)
+                    rotatedVerticesList[cellEdgeOrders[ii][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[ii][vertexInd]] .+ ϵ*F[cellVertexOrders[ii][vertexInd], ii]
+                    push!(traversedEdges, cellEdgeOrders[ii][vertexInd]) 
+                    arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[ii][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[ii][vertexInd], ii])],color=:red, linewidth=1, arrowsize=0.03)
+                end
+                
+                push!(traversedCells, ii)
+            end
+        end
+    end
+
+    # forceComparisonCbar = visualiseForceComparison(R, h, clusterCells, forceComparisonFig, polyAx,forceAx, forceComparisonCbar, params, matrices, coupleStresses, vertexTriangles)
+    save(datadir("InfiniteBilayer","coupleStressTests", "forceComparisonPlot($Λ_AA,$Λ_BB).png"), forceComparisonFig)
+
+
+    return nothing
 end
 
 ##################################### Main funciton ###############################################
@@ -309,7 +424,7 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             u0 = [x10,y10,x20,y20,x30,y30,x50,y50,x60,y60,κ0,λ0]
     
             # Run minimisation:
-           
+            
             f(u) = energyCalculation(u, Λ_AA, Λ_BB, Λ_AB)
 
             result = optimize(
@@ -322,19 +437,22 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             u = Optim.minimizer(result)
     
             x1,y1,x2,y2,x3,y3,x5,y5,x6,y6,κ,λ = u
+                
+            
+            
 
-            λ0 = λ
-            κ0 = κ
-            x10 = x1
-            y10 = y1
-            x20 = x2
-            y20 = y2
-            x30 = x3
-            y30 = y3
-            x50 = x5
-            y50 = y5
-            x60 = x6
-            y60 = y6
+            # λ0 = λ
+            # κ0 = κ
+            # x10 = x1
+            # y10 = y1
+            # x20 = x2
+            # y20 = y2
+            # x30 = x3
+            # y30 = y3
+            # x50 = x5
+            # y50 = y5
+            # x60 = x6
+            # y60 = y6
             
             
     
@@ -345,7 +463,7 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
 
             # Order of vertices and edges around each cell (clockewise):
             cellVertexOrders1 = CircularArray([1,7,8,4,3,2])
-            cellVertexOrders2 = CircularArray([3,4,5,6,10,9])
+            cellVertexOrders2 = CircularArray([4,5,6,10,9,3])
     
             polygon1 = makeBilayerPolygon(R,cellVertexOrders1)
             polygon2 = makeBilayerPolygon(R,cellVertexOrders2)
@@ -366,7 +484,9 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             hidespines!(ax2)
     
             # Compute couple stresses: 
-            coupleStresses, vertexTriangles = computeCoupleStresses(R,κ,λ,A,B,Λ_AA,Λ_BB,Λ_AB,Γ)
+            coupleStresses, vertexTriangles, R_ext = computeCoupleStresses(R,κ,λ,A,B,Λ_AA,Λ_BB,Λ_AB,Γ)
+
+            # println(abs.(area.(vertexTriangles)))
 
             # Generate a colour map for effective pressures: 
             cmap3 = cgrad([
@@ -484,6 +604,7 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             ),
             fig_bilayer)
     
+            checkHNetwork(R_ext, A, B, computeForces(R_ext,Λ_AA,Λ_BB,Λ_AB,Γ,A,B), Λ_AA,Λ_BB)
     
         catch err
     
@@ -522,11 +643,14 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
 
 end
 
+
+
 # Vector of Λ values to loop over, [Λ_AA,Λ_BB]
 Λ_AB = -0.2
 Γ=0.05
 nRepeats = 1
-Λ_vec = [[-0.2,-0.2],
+Λ_vec = [
+        [-0.2,-0.2],
         [-0.3,-0.3],
         [-0.3,-0.25],
         [-0.3,-0.2],
@@ -542,4 +666,5 @@ nRepeats = 1
         [-0.339,-0.2],
         ]
 
-runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
+
+        runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
