@@ -23,8 +23,10 @@ using DiffEqCallbacks
 using GeometryBasics
 using ForwardDiff
 using LineSearches
+using Revise
 
-include(srcdir("PlotSetup.jl")); using .PlotSetup
+# include(srcdir("PlotSetup.jl")); using .PlotSetup
+@from "$(srcdir("PlotSetup.jl"))" using PlotSetup
 include(srcdir("Visualise.jl")); using .Visualise
 
 ######################################## FUNCTION DEFINITIONS ########################################
@@ -255,8 +257,6 @@ function computeCoupleStresses(R,κ,λ,A,B,Λ_AA,Λ_BB,Λ_AB,Γ)
 
     F = computeForces(R_ext,Λ_AA,Λ_BB,Λ_AB,Γ,A,B)
 
-
-
     h = hNetwork(R_ext,A,B,F)
 
     coupleStresses = -curlᵛ(R_ext,A,B,h)
@@ -271,8 +271,6 @@ function checkHNetwork(R, A, B, F, Λ_AA,Λ_BB)
     
 
     h = hNetwork(R,A,B,F)
-    coupleStresses = -curlᵛ(R,A,B,h)
-    vertexTriangles = findCellLinkVertexTriangles(R,A,B)
 
     cellEdgeOrders = Dict{Int64,CircularArray{Int64}}()
     cellVertexOrders = Dict{Int64,CircularArray{Int64}}()
@@ -294,80 +292,113 @@ function checkHNetwork(R, A, B, F, Λ_AA,Λ_BB)
         0.0 1.0
         -1.0 0.0
     ]) 
+
+    targetVertices = (3, 4)
+    vertexColours = Dict(3 => :red, 4 => :green)
+
     
     # Case of plotting a cluster of cells to check the rotated forces align with the vector force potential; 
     forceComparisonFig, forceAx, polyAx, forceComparisonCbar = forceComparisonPlotSetup()
 
-    scatter!(
-        forceAx,
-        Point2f.(h),
-        color = :blue
-    )
 
-    for j in eachindex(h)
-        scatter!(
-            forceAx,
-            [Point2f(h[j])],
-            color = :blue,
-            markersize = 12
-        )
-    
-        text!(
-            forceAx,
-            string(j),
-            position = Point2f(h[j]),
-            offset = (8, 8),
-            color = :black,
-            fontsize = 14
-        )
+    # h points for the two triangles (edges 4,5,11 and 3,4,7)
+    for j in (3, 4, 5, 7, 11)
+        scatter!(forceAx, [Point2f(h[j])], color = :blue)
+        text!(forceAx, string(j), position = Point2f(h[j]), offset = (8, 8), fontsize = 14)
     end
 
-    clusterCells = [1,2,3,4]
-    # clusterCells=[3]
-    startCell = clusterCells[1]
-    traversedCells = Int64[]
-    traversedEdges = Int64[]
-    cellNeighbourMatrix = B*transpose(B)
-    rotatedVerticesList = fill(SVector{2, Float64}(zeros(2)), size(B,2)) # This is what we will compare with h
-    
-    # cellColours = Dict(zip(clusterCells, distinguishable_colors(length(clusterCells))))
+    # 1) Does force balance hold at 3 and 4?
+    for k in targetVertices
+        println("vertex $k: |ΣF| = ", norm(sum(F[k, :])))
+    end
 
-    startEdge = cellEdgeOrders[startCell][1]
-    # Find the index of this edge within the ordering of edges around cell ii 
-    startInd = findall(x->x==startEdge, cellEdgeOrders[startCell])[1]
-    for vertexInd = startInd:(startInd+length(cellVertexOrders[startCell])-1)
-        if length(traversedEdges)==0
-            rotatedVerticesList[cellEdgeOrders[startCell][startInd]] = h[cellEdgeOrders[startCell][startInd]]
+    # 2) Does each rotated force connect the right h points?
+    for c in 1:4
+        edges, verts = cellEdgeOrders[c], cellVertexOrders[c]
+        for i in 1:6
+            k = verts[i]
+            k in targetVertices || continue
+            tail = h[edges[i]]
+            step = ϵ * F[k, c]
+            resid = norm(h[edges[i+1]] - tail - step)
+            println("cell $c, vertex $k: edge $(edges[i])→$(edges[i+1]), residual = $resid")
+            arrows!(forceAx, [Point2f(tail)], [Vec2f(step)];
+                    color = vertexColours[k], linewidth = 1.5, arrowsize=0.03)
         end
-        rotatedVerticesList[cellEdgeOrders[startCell][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]] .+ ϵ*F[cellVertexOrders[startCell][vertexInd], startCell]
-
-        arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[startCell][vertexInd], startCell])],color=:red, linewidth=1, arrowsize=0.03)
-        
-        push!(traversedEdges, cellEdgeOrders[startCell][vertexInd]) 
     end
-    push!(traversedCells, startCell)
 
-    while length(traversedCells) < length(clusterCells)
-        currentNeighbourShell = setdiff(findnz(cellNeighbourMatrix[:, traversedCells])[1], traversedCells)
-        for ii in currentNeighbourShell 
-            if ii in clusterCells
 
-                startEdge = cellEdgeOrders[ii][1]
-                # Find the index of this edge within the ordering of edges around cell ii 
-                startInd = findall(x->x==startEdge, cellEdgeOrders[ii])[1]
+    # for j in eachindex(h)
+    # for j in [5,11,4,3,7]
+    #     scatter!(
+    #         forceAx,
+    #         [Point2f(h[j])],
+    #         color = :blue
+    #     )
+    #     # scatter!(
+    #     #     forceAx,
+    #     #     [Point2f(h[j])],
+    #     #     color = :blue,
+    #     #     markersize = 12
+    #     # )
+    
+    #     text!(
+    #         forceAx,
+    #         string(j),
+    #         position = Point2f(h[j]),
+    #         offset = (8, 8),
+    #         color = :black,
+    #         fontsize = 14
+    #     )
+    # end
 
-                rotatedVerticesList[cellEdgeOrders[ii][startInd]] = h[cellEdgeOrders[ii][startInd]]
-                # Remember in clockwise ordering, cellEdgeOrders[i][1] precedes cellVertexOrders[1]
-                for vertexInd = startInd:(startInd+length(cellVertexOrders[ii])-1)
-                    rotatedVerticesList[cellEdgeOrders[ii][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[ii][vertexInd]] .+ ϵ*F[cellVertexOrders[ii][vertexInd], ii]
-                    push!(traversedEdges, cellEdgeOrders[ii][vertexInd]) 
-                    arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[ii][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[ii][vertexInd], ii])],color=:red, linewidth=1, arrowsize=0.03)
-                end
+    # clusterCells = [1,2,3,4]
+    # # clusterCells=[3]
+    # startCell = clusterCells[1]
+    # traversedCells = Int64[]
+    # traversedEdges = Int64[]
+    # cellNeighbourMatrix = B*transpose(B)
+    # rotatedVerticesList = fill(SVector{2, Float64}(zeros(2)), size(B,2)) # This is what we will compare with h
+    
+    # # cellColours = Dict(zip(clusterCells, distinguishable_colors(length(clusterCells))))
+
+    # startEdge = cellEdgeOrders[startCell][1]
+    # # Find the index of this edge within the ordering of edges around cell ii 
+    # startInd = findall(x->x==startEdge, cellEdgeOrders[startCell])[1]
+    # for vertexInd = startInd:(startInd+length(cellVertexOrders[startCell])-1)
+    #     if length(traversedEdges)==0
+    #         rotatedVerticesList[cellEdgeOrders[startCell][startInd]] = h[cellEdgeOrders[startCell][startInd]]
+    #     end
+    #     rotatedVerticesList[cellEdgeOrders[startCell][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]] .+ ϵ*F[cellVertexOrders[startCell][vertexInd], startCell]
+
+    #     if vertexInd == 3 || vertexInd == 4
+    #         arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[startCell][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[startCell][vertexInd], startCell])],color=:red, linewidth=1, arrowsize=0.03)
+    #     end
+    #     push!(traversedEdges, cellEdgeOrders[startCell][vertexInd]) 
+    # end
+    # push!(traversedCells, startCell)
+
+    # while length(traversedCells) < length(clusterCells)
+    #     currentNeighbourShell = setdiff(findnz(cellNeighbourMatrix[:, traversedCells])[1], traversedCells)
+    #     for ii in currentNeighbourShell 
+    #         if ii in clusterCells
+
+    #             startEdge = cellEdgeOrders[ii][1]
+    #             # Find the index of this edge within the ordering of edges around cell ii 
+    #             startInd = findall(x->x==startEdge, cellEdgeOrders[ii])[1]
+
+    #             rotatedVerticesList[cellEdgeOrders[ii][startInd]] = h[cellEdgeOrders[ii][startInd]]
+    #             # Remember in clockwise ordering, cellEdgeOrders[i][1] precedes cellVertexOrders[1]
+    #             for vertexInd = startInd:(startInd+length(cellVertexOrders[ii])-1)
+    #                 rotatedVerticesList[cellEdgeOrders[ii][vertexInd+1]] = rotatedVerticesList[cellEdgeOrders[ii][vertexInd]] .+ ϵ*F[cellVertexOrders[ii][vertexInd], ii]
+    #                 push!(traversedEdges, cellEdgeOrders[ii][vertexInd]) 
+    #                 arrows!(forceAx,[Point2f(rotatedVerticesList[cellEdgeOrders[ii][vertexInd]])],[Vec2f(ϵ*F[cellVertexOrders[ii][vertexInd], ii])],color=:red, linewidth=1, arrowsize=0.03)
+    #             end
                 
-                push!(traversedCells, ii)
-            end
-        end
-    end
+    #             push!(traversedCells, ii)
+    #         end
+    #     end
+    # end
 
     # forceComparisonCbar = visualiseForceComparison(R, h, clusterCells, forceComparisonFig, polyAx,forceAx, forceComparisonCbar, params, matrices, coupleStresses, vertexTriangles)
     save(datadir("InfiniteBilayer","coupleStressTests", "forceComparisonPlot($Λ_AA,$Λ_BB).png"), forceComparisonFig)
@@ -427,15 +458,26 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             
             f(u) = energyCalculation(u, Λ_AA, Λ_BB, Λ_AB)
 
+            options = Optim.Options(
+                x_tol = 1e-12,
+                g_tol = 1e-12,
+                f_tol = 1e-14,
+                iterations = 20_000,
+            )
+
             result = optimize(
                 f,
                 u0,
-                LBFGS();
-                autodiff = :forward,
+                LBFGS(),
+                options;
+                autodiff = :forward
             )
     
             u = Optim.minimizer(result)
-    
+
+
+
+            println("Optim converged: ", Optim.converged(result))
             x1,y1,x2,y2,x3,y3,x5,y5,x6,y6,κ,λ = u
                 
             
@@ -495,9 +537,9 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
                 RGB(1.0, 0.0, 0.0)   # red
             ], 256)
             # Colour bar excluding exterior vertices 
-            maxabs3 = maximum(abs.(coupleStresses[[3,4]]))
-            clims3 = (-maxabs3,maxabs3)
-            # clims3 = (-0.02,0.02)
+            # maxabs3 = maximum(abs.(coupleStresses[[3,4]]))
+            # clims3 = (-maxabs3,maxabs3)
+            clims3 = (-3e-9,3e-9)
     
             for n in -nRepeats:nRepeats
                 # Apply the periodic transformation to all vertices
@@ -604,7 +646,11 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             ),
             fig_bilayer)
     
-            checkHNetwork(R_ext, A, B, computeForces(R_ext,Λ_AA,Λ_BB,Λ_AB,Γ,A,B), Λ_AA,Λ_BB)
+            try
+                checkHNetwork(R_ext, A, B, computeForces(R_ext,Λ_AA,Λ_BB,Λ_AB,Γ,A,B), Λ_AA, Λ_BB)
+            catch err
+                showerror(stderr, err, catch_backtrace()); println(stderr)
+            end
     
         catch err
     
