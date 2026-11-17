@@ -459,9 +459,9 @@ function runBilayer(Λ_vec, Λ_AB, Γ, nRepeats)
             f(u) = energyCalculation(u, Λ_AA, Λ_BB, Λ_AB)
 
             options = Optim.Options(
-                x_tol = 1e-12,
-                g_tol = 1e-12,
-                f_tol = 1e-14,
+                x_tol = 1e-16,
+                g_tol = 1e-16,
+                f_tol = 1e-16,
                 iterations = 20_000,
             )
 
